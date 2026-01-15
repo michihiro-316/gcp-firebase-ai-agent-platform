@@ -1,0 +1,164 @@
+rules_version = '2';
+
+/**
+ * マルチテナント対応 Firestore セキュリティルール
+ *
+ * 【データ構造】
+ * - config/access_control: グローバル設定（管理者のみ）
+ * - customers/{customerId}: 顧客マスタ（管理者のみ）
+ * - users/{userId}: ユーザー情報（customer_id で顧客に紐付け）
+ * - checkpoints/{customerId}_{userId}_{threadId}: 会話履歴
+ * - conversations/{customerId}/{conversationId}: 会話データ
+ * - rate_limits/{userId}: レート制限（バックエンドのみ）
+ *
+ * 【セキュリティ方針】
+ * 1. 顧客IDプレフィックスでデータ分離
+ * 2. ユーザーは自分の顧客のデータのみアクセス可能
+ * 3. 書き込みは基本的にバックエンド経由のみ
+ */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================================
+    // ヘルパー関数
+    // =========================================================================
+
+    /**
+     * ユーザーの顧客IDを取得
+     */
+    function getCustomerId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.customer_id;
+    }
+
+    /**
+     * 認証済みかどうか
+     */
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    /**
+     * スレッドIDが正しい形式か確認
+     * 形式: {customerId}_{userId}_{uniqueId}
+     */
+    function isValidThreadId(threadId, customerId, userId) {
+      return threadId.matches(customerId + '_' + userId + '_.*');
+    }
+
+    // =========================================================================
+    // グローバル設定
+    // =========================================================================
+
+    /**
+     * アクセス制御設定
+     * - 読み取り: 管理者のみ（Firebase Console経由）
+     * - 書き込み: 管理者のみ（Firebase Console経由）
+     */
+    match /config/{document=**} {
+      allow read, write: if false;
+    }
+
+    // =========================================================================
+    // 顧客マスタ
+    // =========================================================================
+
+    /**
+     * 顧客情報
+     * - 読み取り: 自社の設定のみ
+     * - 書き込み: 管理者のみ（Firebase Console経由）
+     */
+    match /customers/{customerId} {
+      allow read: if isAuthenticated() && getCustomerId() == customerId;
+      allow write: if false;
+
+      // 顧客配下のサブコレクション
+      match /{subcollection=**} {
+        allow read: if isAuthenticated() && getCustomerId() == customerId;
+        allow write: if false;
+      }
+    }
+
+    // =========================================================================
+    // ユーザー情報
+    // =========================================================================
+
+    /**
+     * ユーザー情報
+     * - 読み取り: 自分の情報のみ
+     * - 書き込み: バックエンドのみ（新規ユーザー登録時）
+     */
+    match /users/{userId} {
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow write: if false;
+    }
+
+    // =========================================================================
+    // 会話履歴（チェックポイント）
+    // =========================================================================
+
+    /**
+     * チェックポイント（会話履歴）
+     * - 読み取り: 自社・自分のスレッドのみ
+     * - 書き込み: バックエンドのみ
+     *
+     * スレッドID形式: {customerId}_{userId}_{uniqueId}
+     */
+    match /checkpoints/{threadId} {
+      allow read: if isAuthenticated() &&
+                  isValidThreadId(threadId, getCustomerId(), request.auth.uid);
+      allow write: if false;
+
+      // サブコレクション（LangGraphの内部構造）
+      match /{document=**} {
+        allow read: if isAuthenticated() &&
+                    isValidThreadId(threadId, getCustomerId(), request.auth.uid);
+        allow write: if false;
+      }
+    }
+
+    // =========================================================================
+    // 会話データ（顧客別）
+    // =========================================================================
+
+    /**
+     * 会話データ
+     * - 読み取り: 自社のデータのみ
+     * - 書き込み: バックエンドのみ
+     */
+    match /conversations/{customerId}/{conversationId} {
+      allow read: if isAuthenticated() && getCustomerId() == customerId;
+      allow write: if false;
+
+      // 会話内のメッセージ
+      match /messages/{messageId} {
+        allow read: if isAuthenticated() && getCustomerId() == customerId;
+        allow write: if false;
+      }
+    }
+
+    // =========================================================================
+    // レート制限
+    // =========================================================================
+
+    /**
+     * レート制限データ
+     * - クライアントからのアクセス不可
+     * - バックエンドからのみ読み書き
+     */
+    match /rate_limits/{userId} {
+      allow read, write: if false;
+    }
+
+    // =========================================================================
+    // デフォルト（その他すべてのドキュメント）
+    // =========================================================================
+
+    /**
+     * 明示的に許可されていないドキュメントはすべて拒否
+     */
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,21 @@
+# Cloud Functions
+functions-framework==3.5.0
+
+# Firebase/GCP
+firebase-admin==6.5.0
+google-cloud-aiplatform==1.71.1
+google-cloud-firestore==2.19.0
+
+# LangChain/LangGraph
+langchain==0.3.14
+langchain-google-vertexai==2.0.11
+langgraph==0.2.60
+langgraph-checkpoint==2.0.10
+
+# Web Framework
+flask==3.1.0
+flask-cors==5.0.0
+
+# Utilities
+pydantic==2.10.4
+python-dotenv==1.0.1

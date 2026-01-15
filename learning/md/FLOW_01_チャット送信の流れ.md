@@ -1,0 +1,646 @@
+# チャット送信の流れ - 完全解説
+
+**このドキュメントの目的**：
+「チャットを送信したら何が起きるか」を、**実際のコード**と**繋がり**を見ながら理解する。
+
+**想定読者**: GASを少し触ったことがある新卒エンジニア
+
+**読了時間**: 約45分
+
+---
+
+## まず知っておくべきこと
+
+### ストリーミングとは？
+
+```
+【普通の通信】
+質問 ───────────────────────────────→ サーバー
+                                        ↓ 全部作ってから返す
+「こんにちは、今日は良い天気ですね！」 ←─────────────────
+
+【ストリーミング通信】
+質問 ───────────────────────────────→ サーバー
+「こん」     ←──── 少しずつ返す
+「にち」     ←────
+「は、」     ←────
+「今日」     ←────
+「は...」    ←────
+
+→ ChatGPTのように文字が流れるように表示される！
+```
+
+### async/await とは？（GAS経験者向け）
+
+```javascript
+// GASの場合（同期処理）
+function myFunction() {
+  const response = UrlFetchApp.fetch('https://...');  // ここで待つ
+  const data = response.getContentText();  // 終わってから次へ
+}
+
+// TypeScript/Pythonの場合（非同期処理）
+async function myFunction() {
+  const response = await fetch('https://...');  // awaitで「待つ」と明示
+  const data = await response.json();
+}
+```
+
+**ポイント**: `await` は「この処理が終わるまで待って」という意味。
+GASでは自動で待っていたが、TypeScript/Pythonでは `await` を書く必要がある。
+
+---
+
+## 全体フロー図
+
+```
+【ブラウザ】                     【サーバー】                    【外部サービス】
+
+1. 入力ボックスに
+   「こんにちは」と入力
+        ↓
+2. 送信ボタンをクリック
+        ↓
+   ┌─────────────────┐
+   │  useChat.ts     │  ← 「チャットのロジック担当」
+   │  sendMessage()  │
+   └────────┬────────┘
+            ↓
+   ┌─────────────────┐
+   │  api.ts         │  ← 「サーバーとの通信担当」
+   │  sendChatMessage()
+   │  + IDトークン取得 │─────────────→ Firebase Auth
+   └────────┬────────┘               (トークン発行)
+            ↓
+   ┌─────────────────┐
+   │ Authorization:  │  ← 「私は〇〇です」という証明書
+   │ Bearer xxxx     │
+   └────────┬────────┘
+            ↓
+════════════════════════ インターネット ════════════════════════
+            ↓
+   ┌─────────────────┐
+   │  main.py        │  ← 「受付担当」
+   │  /chat          │
+   └────────┬────────┘
+            ↓
+   ┌─────────────────┐
+   │  auth.py        │  ← 「身分確認担当」
+   │  トークン検証    │──────────────→ Firebase Admin SDK
+   │  customer_id取得 │               (本人確認)
+   └────────┬────────┘
+            ↓
+   ┌─────────────────┐
+   │  agent.py       │  ← 「AI担当」
+   │  AIに質問       │──────────────→ Vertex AI (Gemini)
+   └────────┬────────┘               (応答生成)
+            ↓
+   ┌─────────────────┐
+   │ checkpointer.py │  ← 「記録担当」
+   │  会話履歴保存    │──────────────→ Firestore
+   └────────┬────────┘               (データ保存)
+            ↓
+════════════════════════ インターネット ════════════════════════
+            ↓
+3. ストリーミングで
+   「こん」「にち」「は」
+   と少しずつ表示
+```
+
+**それぞれのファイルの役割**:
+| ファイル | 役割 | 例えると |
+|----------|------|----------|
+| useChat.ts | チャット画面の状態管理 | メモ帳 |
+| api.ts | サーバーとの通信 | 電話 |
+| main.py | リクエストの受付 | 受付窓口 |
+| auth.py | 身分確認 | 警備員 |
+| agent.py | AI処理 | 相談員 |
+| checkpointer.py | 履歴保存 | 書記 |
+
+---
+
+## ステップ1: ユーザーがメッセージを送信
+
+### なぜこのファイルがあるのか？
+
+**問題**: チャット画面のボタンやテキストボックスに、送信ロジックを直接書くと...
+- コードが長くなる
+- 他の画面で再利用できない
+- テストしにくい
+
+**解決**: ロジックを「フック（Hook）」として分離する
+
+### 場所: `frontend/src/hooks/useChat.ts`
+
+```typescript
+// useChat.ts の sendMessage 関数（簡略版）
+
+const sendMessage = useCallback(async (content: string) => {
+  // ====================================
+  // 【この関数の役割】
+  // 1. ユーザーのメッセージを画面に表示
+  // 2. サーバーにメッセージを送信
+  // 3. AIの返答を少しずつ受け取って表示
+  // ====================================
+
+  if (!content.trim() || isLoading) return  // 空文字や連打を防止
+
+  setIsLoading(true)  // ← 「送信中...」状態にする
+
+  // ユーザーのメッセージを画面に追加
+  const userMessage = { id: '...', role: 'user', content }
+  setMessages(prev => [...prev, userMessage])
+
+  // AIの返答用の「空の箱」を用意
+  const assistantMessage = { id: '...', role: 'assistant', content: '' }
+  setMessages(prev => [...prev, assistantMessage])
+
+  try {
+    // ★ ここで api.ts の関数を呼ぶ
+    await sendChatMessage(
+      content,         // 「こんにちは」
+      threadId,        // 会話のID
+      (chunk) => {     // AIの返答を少しずつ受け取る
+        // 「こん」「にち」「は」と来るたびに画面を更新
+        // → 文字が流れるように表示される
+      }
+    )
+  } catch (err) {
+    setError(err.message)  // エラーがあれば表示
+  } finally {
+    setIsLoading(false)  // 送信完了
+  }
+}, [threadId, isLoading])
+```
+
+### GAS経験者向け解説
+
+```javascript
+// GASでの似たような処理
+function sendMessage(content) {
+  // GASではこう書くところを...
+  const response = UrlFetchApp.fetch(url, options);
+  return response.getContentText();
+}
+
+// TypeScriptでは async/await を使う
+async function sendMessage(content: string) {
+  const response = await fetch(url, options);
+  return await response.json();
+}
+```
+
+---
+
+## ステップ2: APIを呼び出す（トークン付き）
+
+### なぜこのファイルがあるのか？
+
+**問題**: サーバーにリクエストを送るとき、毎回「私は誰です」という証明が必要
+**解決**: 認証トークンを自動で付ける処理を一箇所にまとめる
+
+### 場所: `frontend/src/services/api.ts`
+
+```typescript
+// api.ts（簡略版）
+
+// ★ チャットメッセージを送信する関数
+export async function sendChatMessage(
+  message: string,                      // 送りたいメッセージ
+  threadId: string | null,              // 会話のID
+  onChunk: (chunk: string) => void      // 返答を少しずつ受け取るコールバック
+): Promise<string> {
+
+  // 1. 認証トークンを取得して、ヘッダーに付ける
+  const token = await auth.currentUser?.getIdToken()
+  const headers = {
+    'Authorization': `Bearer ${token}`,  // ← これが「私は〇〇です」の証明
+  }
+
+  // 2. サーバーにリクエストを送信
+  const response = await fetch(`${API_URL}/chat`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ message, thread_id: threadId }),
+  })
+
+  // 3. ストリーミングで返答を受け取る
+  const reader = response.body?.getReader()
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+
+    // 「data: こん」→「こん」を取り出して呼び出し元に返す
+    const text = new TextDecoder().decode(value)
+    // ... パース処理 ...
+    onChunk(parsedData)  // ← useChat.ts に渡される
+  }
+}
+```
+
+### IDトークンとは？
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                       IDトークン                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  「この人は本物の山田太郎さんです」という証明書               │
+│                                                             │
+│  中身:                                                      │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ {                                                   │   │
+│  │   "name": "山田太郎",      ← 名前                    │   │
+│  │   "email": "yamada@...",  ← メールアドレス          │   │
+│  │   "uid": "abc123",        ← ユーザーID              │   │
+│  │   "exp": 1705471200       ← 有効期限（1時間）        │   │
+│  │ }                                                   │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  ※ Googleが「この人は本物です」と署名している                │
+│  ※ 改ざんすると署名が壊れるので、偽造できない                │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## ステップ3: バックエンドでリクエストを受け取る
+
+### なぜこのファイルがあるのか？
+
+**役割**: すべてのリクエストの「入口」
+- 認証チェック
+- レート制限（使いすぎ防止）
+- 適切なエージェントへの振り分け
+
+### 場所: `backend/src/main.py`
+
+```python
+# main.py（簡略版）
+
+@app.route("/chat", methods=["POST"])
+def chat():
+    """チャットAPI（ストリーミング）"""
+
+    # 1. 認証チェック（auth.py を呼ぶ）
+    user_info = authenticate_request(request)
+    customer_id = user_info["customer_id"]
+
+    # 2. レート制限チェック
+    if not check_rate_limit(user_info["uid"]):
+        return error_response("リクエスト制限を超えました", 429)
+
+    # 3. メッセージを取得
+    data = request.get_json()
+    message = data.get("message")
+
+    # 4. AIエージェントを呼び出し
+    agent = get_agent("sample", customer_id)
+
+    # 5. ストリーミングで返す
+    def generate():
+        for chunk in agent.run(message, thread_id):
+            yield f"data: {chunk}\n\n"  # SSE形式
+        yield "data: [DONE]\n\n"
+
+    return Response(generate(), mimetype="text/event-stream")
+```
+
+### main.py の役割を図解
+
+```
+リクエスト到着
+    ↓
+┌─────────────────────────────────────────┐
+│              main.py                     │
+├─────────────────────────────────────────┤
+│                                         │
+│  ① authenticate_request()              │
+│     → auth.py を呼んで身分確認           │
+│                                         │
+│  ② check_rate_limit()                  │
+│     → 使いすぎていないかチェック          │
+│                                         │
+│  ③ get_agent()                         │
+│     → 適切なAIエージェントを取得          │
+│                                         │
+│  ④ agent.run()                         │
+│     → AIに質問して返答を生成             │
+│                                         │
+└─────────────────────────────────────────┘
+    ↓
+ストリーミングで返す
+```
+
+---
+
+## ステップ4: 認証処理
+
+### なぜこのファイルがあるのか？
+
+**問題**: 「認証」処理はいろんな場所で使いたい
+- `/chat` エンドポイント
+- `/agents` エンドポイント
+- 将来の新しいエンドポイント
+
+**解決**: 認証処理を別ファイルにまとめる
+
+### 場所: `backend/src/common/auth.py`
+
+```python
+# auth.py（簡略版）
+
+def authenticate_request(request) -> dict:
+    """
+    リクエストを認証し、ユーザー情報を返す
+
+    【処理の流れ】
+    1. ヘッダーからトークンを取り出す（形式を厳密に検証）
+    2. トークンが本物か検証（失効チェック含む）
+    3. このユーザーは許可されているか確認
+    4. どの会社（顧客）に所属しているか取得
+    """
+    # 1. ヘッダーからトークンを取り出す（セキュリティ強化版）
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header:
+        raise ValueError("認証トークンがありません")
+
+    parts = auth_header.split(" ")
+    if len(parts) != 2 or parts[0] != "Bearer":
+        raise ValueError("認証ヘッダーの形式が不正です")
+
+    id_token = parts[1]
+
+    # 2. Firebase Admin SDK でトークンを検証
+    # check_revoked=True: ログアウト済み/無効化されたトークンを拒否
+    user_info = auth.verify_id_token(id_token, check_revoked=True)
+
+    # 3. このユーザーは許可されているか
+    if not is_user_allowed(user_info["email"]):
+        raise ValueError("アクセスが許可されていません")
+
+    # 4. 顧客IDを取得（マルチテナント用）
+    user_info["customer_id"] = get_user_customer_id(user_info["uid"])
+
+    return user_info
+```
+
+### 認証の流れ図
+
+```
+Authorization: Bearer eyJhbGciOiJS...
+                ↓
+        ┌───────────────┐
+        │ verify_token  │ ← Firebase Admin SDK で検証
+        └───────┬───────┘
+                ↓
+        「このトークンは本物？」
+                ↓
+        ┌───────┴───────┐
+        ↓               ↓
+      本物            偽物
+        ↓               ↓
+  次の処理へ        エラーを返す
+                    （401 Unauthorized）
+```
+
+---
+
+## ステップ5: AIエージェントが応答を生成
+
+### なぜこのファイルがあるのか？
+
+**問題**: 将来、違う種類のAIエージェントを追加したい
+- カスタマーサポート用
+- 社内FAQ用
+- 翻訳用
+
+**解決**: エージェントを「差し替え可能」な形で作る
+
+### 場所: `backend/src/agents/sample_agent/agent.py`
+
+```python
+# agent.py（簡略版）
+
+class SampleAgent(BaseAgent):
+    """サンプルQ&Aエージェント"""
+
+    # ★ AIの「性格」を定義
+    SYSTEM_PROMPT = """あなたは親切で丁寧なAIアシスタントです。
+ユーザーの質問に対して、わかりやすく簡潔に回答してください。"""
+
+    # ★ 使用するモデル（Gemini 1.5 Flash）
+    MODEL_NAME = "gemini-1.5-flash"
+
+    async def _chat_node(self, state):
+        """
+        チャット処理の本体
+
+        【流れ】
+        1. これまでの会話履歴を取得
+        2. 「あなたは親切な...」というシステムプロンプトを先頭に追加
+        3. Vertex AI (Gemini) に送信
+        4. 応答を返す
+        """
+        messages = state["messages"]
+
+        # システムプロンプトを追加
+        full_messages = [
+            {"role": "system", "content": self.SYSTEM_PROMPT},
+            *messages
+        ]
+
+        # Vertex AI に問い合わせ
+        response = await self.llm.ainvoke(full_messages)
+
+        return {"messages": [response]}
+```
+
+### エージェントの仕組み
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    SampleAgent                               │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  SYSTEM_PROMPT = "あなたは親切な..."  ← AIの性格を決める     │
+│                                                             │
+│  _chat_node() の処理:                                       │
+│                                                             │
+│    [システムプロンプト]                                       │
+│    [ユーザー: こんにちは]     ← これまでの会話               │
+│    [AI: こんにちは！]                                        │
+│    [ユーザー: 今日の天気は？]  ← 今回の質問                  │
+│            ↓                                                │
+│        Gemini に送信                                        │
+│            ↓                                                │
+│    [AI: 今日は晴れですね]     ← Geminiからの返答             │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## ステップ6: 会話履歴をFirestoreに保存
+
+### なぜこのファイルがあるのか？
+
+**問題**:
+- サーバーを再起動すると、会話履歴が消える
+- 違う会社の会話が混ざると情報漏洩
+
+**解決**:
+- Firestoreに保存して永続化
+- 会社（顧客）ごとにデータを分離
+
+### 場所: `backend/src/agents/firestore_checkpointer.py`
+
+```python
+# firestore_checkpointer.py（簡略版）
+
+class FirestoreCheckpointer(BaseCheckpointSaver):
+    """会話履歴をFirestoreに保存"""
+
+    def __init__(self, db, customer_id: str):
+        self.db = db
+        self.customer_id = customer_id  # ★ どの会社のデータか
+
+    def _get_checkpoint_ref(self, thread_id: str):
+        """
+        保存先のパスを生成
+
+        例: customers/acme-corp/checkpoints/user123_abc/...
+        """
+        return (
+            self.db.collection("customers")
+            .document(self.customer_id)      # ← 会社ごとに分離
+            .collection("checkpoints")
+            .document(thread_id)
+        )
+```
+
+### Firestoreのデータ構造
+
+```
+Firestore（データベース）
+│
+└── customers/                        ← 「顧客」コレクション
+    │
+    ├── acme-corp/                    ← 会社A のデータ
+    │   └── checkpoints/
+    │       ├── user1_abc123/         ← ユーザー1の会話
+    │       └── user2_def456/         ← ユーザー2の会話
+    │
+    └── beta-inc/                     ← 会社B のデータ
+        └── checkpoints/
+            └── ...                   ← 会社Bの会話（会社Aからは見えない）
+
+【ポイント】
+会社Aの人は会社Bのデータにアクセスできない
+→ 情報漏洩を防止
+```
+
+---
+
+## まとめ：ファイルの繋がり
+
+```
+【ブラウザ側（フロントエンド）】
+
+┌──────────────┐        ┌──────────────┐
+│ useChat.ts   │ ─────→ │   api.ts     │
+│              │        │              │
+│ ・画面の状態管理│        │ ・サーバー通信  │
+│ ・メッセージ一覧│        │ ・認証トークン付与│
+└──────────────┘        └──────────────┘
+                              │
+                              ↓ HTTP リクエスト
+════════════════════════ インターネット ════════════════════════
+                              │
+                              ↓
+
+【サーバー側（バックエンド）】
+
+┌──────────────┐        ┌──────────────┐
+│   main.py    │ ─────→ │   auth.py    │
+│              │        │              │
+│ ・リクエスト受付│        │ ・トークン検証  │
+│ ・エージェント呼出│       │ ・顧客ID取得   │
+└──────┬───────┘        └──────────────┘
+       │
+       ├─────────────→ ┌──────────────┐
+       │               │  agent.py    │
+       │               │              │
+       │               │ ・AI処理      │
+       │               │ ・応答生成    │
+       │               └──────────────┘
+       │
+       └─────────────→ ┌──────────────┐
+                       │checkpointer.py│
+                       │              │
+                       │ ・履歴保存    │
+                       │ ・顧客分離    │
+                       └──────────────┘
+```
+
+---
+
+## よくあるエラーと対処法
+
+| エラーメッセージ | 原因 | 対処法 |
+|-----------------|------|--------|
+| `ログインが必要です` | 未ログイン状態でAPI呼び出し | ログインする |
+| `認証トークンがありません` | Authorization ヘッダーがない | ログインし直す |
+| `認証ヘッダーの形式が不正です` | Bearer形式でない | ログインし直す |
+| `セッションが無効です` | ログアウト後のトークン使用 | 再ログインする |
+| `セッションの有効期限が切れました` | トークンの有効期限切れ（1時間） | ページをリロード |
+| `認証トークンが無効です` | 改ざんされたトークン | 再ログインする |
+| `顧客に紐付けされていません` | ユーザーが会社に登録されていない | 管理者に連絡 |
+| `リクエスト制限を超えました` | 短時間に送りすぎ | 1分待つ |
+| `メッセージが長すぎます` | 10,000文字を超えた | メッセージを短くする |
+| `thread_idの形式が不正です` | 不正なthread_id | thread_idを指定しない |
+| `CORSエラー` | フロントエンドのURLが許可されていない | ALLOWED_ORIGINS 確認 |
+| `エラーが発生しました` | サーバー内部エラー | しばらく待って再試行 |
+
+---
+
+## 確認問題
+
+### 理解度チェック
+
+1. **送信ボタンを押してから、画面に文字が表示されるまでに、何個のファイルを通過する？**
+
+   <details>
+   <summary>答え</summary>
+   6個（useChat.ts → api.ts → main.py → auth.py → agent.py → checkpointer.py）
+   </details>
+
+2. **「Bearer」とは何？**
+
+   <details>
+   <summary>答え</summary>
+   「トークンを持っている人」という意味。Authorization ヘッダーでトークンを送る標準的な形式。
+   </details>
+
+3. **会社Aのユーザーが会社Bのデータを見れないのは、どのファイルのおかげ？**
+
+   <details>
+   <summary>答え</summary>
+   checkpointer.py。customer_id で保存先を分けている。
+   </details>
+
+### 実践チャレンジ
+
+ブラウザの開発者ツール（F12）を開いて、実際にチャットを送信し、
+Network タブで以下を確認してみよう：
+
+1. `/chat` へのリクエストに `Authorization: Bearer ...` が付いているか
+2. レスポンスが `data: こん` のような形式で返ってきているか
+
+---
+
+## 次に読むべきドキュメント
+
+- `FLOW_02_ログインの流れ.md` - ログイン処理の詳細
+- `FLOW_03_セットアップの流れ.md` - 環境構築の手順
