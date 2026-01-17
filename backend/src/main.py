@@ -1,11 +1,37 @@
 """
-メインエントリーポイント（Cloud Run Functions）
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  main.py - バックエンドのエントリーポイント                                    ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║                                                                              ║
+║  🎯 役割:                                                                    ║
+║     フロントエンドからのHTTPリクエストを受け取り、                             ║
+║     適切なAIエージェントに処理を振り分ける「司令塔」                           ║
+║                                                                              ║
+║  📡 エンドポイント:                                                          ║
+║     POST /chat      → チャットメッセージを処理（ストリーミング）              ║
+║     POST /chat/sync → 同期版チャット（デバッグ用）                           ║
+║     GET  /health    → ヘルスチェック（死活監視用）                           ║
+║     GET  /agents    → 利用可能なエージェント一覧                             ║
+║                                                                              ║
+║  🔒 セキュリティ:                                                            ║
+║     - Firebase認証トークンの検証                                             ║
+║     - 顧客IDによるデータ分離（マルチテナント）                                ║
+║     - レート制限（DoS対策）                                                  ║
+║     - メッセージ長制限（コスト攻撃対策）                                      ║
+║                                                                              ║
+║  📚 詳細: learning/md/02_バックエンド解説.md                                 ║
+║                                                                              ║
+║  ⚠️  通常このファイルを編集する必要はありません                               ║
+║      AIの動作を変えるには agents/_template/agent.py を編集してください        ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 
-【マルチテナント】
-顧客ごとにデータを分離。customer_idはCustom Claimsから取得。
+【マルチテナント設計】
+顧客ごとにデータを完全分離。customer_idはFirebase Custom Claimsから取得。
 
-【新しいエージェントを追加する場合】
-AGENTS辞書にクラスを追加するだけでOK。
+【エージェント追加方法】
+1. agents/ に新しいディレクトリを作成（_templateをコピー）
+2. 下記のAGENTS辞書にクラスを追加
 """
 import asyncio
 import re
@@ -27,21 +53,28 @@ from common.errors import error_response, success_response
 from common.firebase_init import db
 
 # エージェント
-from agents.sample_agent import SampleAgent
-from agents.firestore_checkpointer import FirestoreCheckpointer
+from agents._base.firestore_checkpointer import FirestoreCheckpointer
+from agents._template import TemplateAgent
 
 
 # ===== 設定 =====
 
 # 利用可能なエージェント一覧
-# 新しいエージェントを追加する場合はここに追記
+# 顧客別エージェントを追加する場合はここに追記
+# 例: from agents.acme_corp.agent import AcmeCorpAgent
 AGENTS = {
-    "sample": SampleAgent,
-    # "rag_agent": RagAgent,  # 例: RAGエージェントを追加
+    "template": TemplateAgent,
+    # "acme-corp": AcmeCorpAgent,  # 顧客別エージェントの例
 }
 
-# デフォルトで使用するエージェント
-DEFAULT_AGENT = "sample"
+# この顧客で使用するエージェント（環境変数 DEFAULT_AGENT で指定）
+DEFAULT_AGENT = config.DEFAULT_AGENT or "template"
+
+# 起動時に設定をログ出力
+if config.CUSTOMER_ID:
+    logger.info(f"顧客別バックエンド起動: customer_id={config.CUSTOMER_ID}, agent={DEFAULT_AGENT}")
+else:
+    logger.info(f"共通バックエンド起動: agent={DEFAULT_AGENT}")
 
 # セキュリティ設定
 MAX_MESSAGE_LENGTH = 10000  # メッセージの最大文字数（DoS/コスト攻撃対策）
@@ -96,6 +129,15 @@ def prepare_chat_request():
 
     user_id = user_info["uid"]
     customer_id = user_info["customer_id"]
+
+    # 顧客ID検証（顧客別デプロイの場合）
+    # 環境変数で CUSTOMER_ID が設定されている場合、
+    # ユーザーの所属顧客と一致することを確認
+    if config.CUSTOMER_ID and config.CUSTOMER_ID != customer_id:
+        raise ChatRequestError(
+            "このAPIエンドポイントへのアクセス権限がありません",
+            403
+        )
 
     # レート制限チェック
     if not check_rate_limit(user_id):

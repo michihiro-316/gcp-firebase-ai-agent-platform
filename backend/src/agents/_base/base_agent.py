@@ -1,21 +1,10 @@
 """
 AIエージェント基底クラス
 
-すべてのAIエージェントはこのクラスを継承して実装します。
+【重要】このファイルは通常触りません。
+すべてのAIエージェントの共通基盤です。
 
-【新しいエージェントを作る場合】
-1. このクラスを継承
-2. create_graph() メソッドを実装してLangGraphを定義
-3. get_initial_state() メソッドを実装して初期状態を定義
-
-例:
-    class MyAgent(BaseAgent):
-        def create_graph(self):
-            # LangGraphを作成して返す
-            ...
-
-        def get_initial_state(self):
-            return {"messages": []}
+新しいエージェントを作る場合は _template/ をコピーしてください。
 """
 from abc import ABC, abstractmethod
 from typing import AsyncGenerator

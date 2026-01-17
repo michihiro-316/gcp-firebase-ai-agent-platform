@@ -6,7 +6,61 @@
 
 ## 手順
 
-### 1. 顧客を登録
+### 1. バックエンド設定ファイルを作成
+
+顧客ごとに異なるAIエージェントを使用するため、まずバックエンド設定ファイルを作成します。
+
+```bash
+# テンプレートをコピー
+cp backend/customer-configs/template.env backend/customer-configs/<顧客ID>.env
+
+# 例
+cp backend/customer-configs/template.env backend/customer-configs/acme-corp.env
+```
+
+設定ファイルを編集して、使用するエージェントを指定します：
+
+```env
+# backend/customer-configs/acme-corp.env
+CUSTOMER_ID=acme-corp
+DEFAULT_AGENT=acme-corp       # この顧客専用エージェントを指定
+```
+
+### 1.5. 顧客専用エージェントを作成（オプション）
+
+AIの応答をカスタマイズする場合は、顧客専用エージェントを作成します。
+
+```bash
+# テンプレートをコピー
+cd backend/src/agents
+cp -r _template acme-corp
+
+# agent.py の SYSTEM_PROMPT を編集
+vim acme-corp/agent.py
+```
+
+```python
+# backend/src/agents/acme-corp/agent.py
+class AcmeCorpAgent(BaseAgent):
+    SYSTEM_PROMPT = """あなたはACME社の専門AIアシスタントです。
+ACME社の製品・サービスに関する質問に答えてください。"""
+```
+
+main.py に登録:
+```python
+from agents.acme_corp.agent import AcmeCorpAgent
+
+AGENTS = {
+    "template": TemplateAgent,
+    "acme-corp": AcmeCorpAgent,  # 追加
+}
+```
+
+**重要:**
+- カスタマイズしない場合は `DEFAULT_AGENT=template` のままでOK
+- 詳細は `learning/md/08_AIカスタマイズ.md` を参照
+
+### 2. 顧客をFirestoreに登録
 
 ```bash
 cd backend
@@ -16,7 +70,25 @@ python scripts/manage_customer.py add <顧客ID> "<顧客名>"
 python scripts/manage_customer.py add acme-corp "株式会社ACME"
 ```
 
-### 2. ユーザーを顧客に紐付け
+### 3. バックエンド＆フロントエンドをデプロイ
+
+```bash
+# 環境変数を設定
+export PROJECT_ID=your-gcp-project-id
+
+# 両方デプロイ（推奨）
+./infrastructure/deploy-customer.sh acme-corp
+
+# バックエンドのみ
+./infrastructure/deploy-customer.sh acme-corp --backend-only
+
+# フロントエンドのみ
+./infrastructure/deploy-customer.sh acme-corp --frontend-only
+```
+
+初回実行時は設定ファイルのテンプレートが作成されます。編集後に再実行してください。
+
+### 4. ユーザーを顧客に紐付け
 
 ユーザーが先にGoogleログインしている必要があります。
 
@@ -27,7 +99,7 @@ python scripts/manage_customer.py add-user <顧客ID> <メールアドレス>
 python scripts/manage_customer.py add-user acme-corp yamada@acme.co.jp
 ```
 
-### 3. 確認
+### 5. 確認
 
 ```bash
 # 顧客一覧
@@ -42,11 +114,135 @@ python scripts/manage_customer.py show-user yamada@acme.co.jp
 
 ---
 
+## アーキテクチャ
+
+顧客ごとに独立したバックエンド（Cloud Functions）をデプロイすることで、
+顧客別に異なるAIエージェントを適用できます。
+
+```
+                    Cloud Load Balancer
+                           │
+         ┌─────────────────┼─────────────────┐
+         │                 │                 │
+    /customer-a/*     /customer-b/*     /customer-c/*
+         │                 │                 │
+         ▼                 ▼                 ▼
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│ Cloud Functions │ │ Cloud Functions │ │ Cloud Functions │
+│ customer-a-api  │ │ customer-b-api  │ │ customer-c-api  │
+│ (SampleAgent)   │ │  (RAGAgent)     │ │ (CustomAgent)   │
+└─────────────────┘ └─────────────────┘ └─────────────────┘
+         │                 │                 │
+         └─────────────────┼─────────────────┘
+                           │
+                           ▼
+                    ┌─────────────────┐
+                    │    Firestore    │
+                    │  (customer_id   │
+                    │   でデータ分離)  │
+                    └─────────────────┘
+```
+
+---
+
+## GCS（フロントエンド）構造
+
+```
+gs://{project}-frontend/
+  common/                      # 共通ファイル（利用規約など）
+  customers/
+    {customer_id}/             # 顧客ごとのフロントエンド
+      index.html
+      assets/
+      config.json              # 顧客設定（レンダラー設定含む）
+```
+
+---
+
+## カスタムレンダラー（チャット表示のカスタマイズ）
+
+顧客ごとにチャットの表示形式をカスタマイズできます。
+
+### 設定ファイルでのカスタマイズ
+
+`frontend/customer-configs/{customer_id}.json` の `chatRenderer` セクションを編集：
+
+```json
+{
+  "chatRenderer": {
+    "output": {
+      "enableTables": true,      // テーブル表示
+      "enableCharts": false,     // グラフ表示
+      "enableCodeHighlight": true,
+      "enableMarkdown": true,
+      "maxWidth": "800px"
+    },
+    "styling": {
+      "userMessageBg": "#e3f2fd",
+      "assistantMessageBg": "#f5f5f5",
+      "fontFamily": "system-ui, sans-serif"
+    }
+  }
+}
+```
+
+### コードでのカスタマイズ（TypeScript/Reactの知識が必要）
+
+顧客専用のレンダラーコンポーネントを作成できます：
+
+**手順1.** サンプルをコピーして顧客フォルダを作成
+
+```bash
+mkdir frontend/src/renderers/acme-corp
+cp frontend/src/renderers/_examples/TableRenderer.tsx \
+   frontend/src/renderers/acme-corp/MessageRenderer.tsx
+```
+
+**手順2.** `frontend/src/renderers/index.ts` に登録
+
+```typescript
+// ファイル冒頭のインポートに追加
+import { MessageRenderer as AcmeCorpMessageRenderer } from './acme-corp/MessageRenderer'
+
+// customerRenderers に追加
+const customerRenderers: Record<string, typeof DefaultMessageRenderer> = {
+  'acme-corp': AcmeCorpMessageRenderer,
+}
+```
+
+**手順3.** 再ビルド＆デプロイ
+
+```bash
+./infrastructure/deploy-customer.sh acme-corp --frontend-only
+```
+
+サンプルは `frontend/src/renderers/_examples/` を参照してください：
+- `MarkdownRenderer.tsx` - Markdown対応（セキュリティ上の注意あり）
+- `TableRenderer.tsx` - テーブル形式データ対応
+
+---
+
+## カスタマイズの役割分担
+
+| カスタマイズ内容 | 言語 | ファイル |
+|-----------------|------|----------|
+| AIの応答内容・性格 | **Python** | `backend/src/agents/{customer_id}/agent.py` |
+| 使用エージェントの指定 | 設定ファイル | `backend/customer-configs/*.env` |
+| チャットの色・フォント | **JSON** | `frontend/customer-configs/*.json` |
+| チャット表示の高度なカスタマイズ | TypeScript | `frontend/src/renderers/{customer_id}/` |
+
+**推奨**: Python開発者の方は、まずバックエンド（Python）のカスタマイズから始めてください。
+フロントエンドの高度なカスタマイズ（TypeScript）は必要に応じて後から対応できます。
+
+---
+
 ## 注意事項
 
 - ユーザーは紐付け後、**再ログイン**が必要です
 - 顧客IDは英数字とハイフンのみ使用してください
 - 1ユーザーは1顧客にのみ所属できます
+- バックエンド設定ファイル（`.env`）を変更した場合は再デプロイが必要です
+- フロントエンド設定（`config.json`）を変更した場合も再デプロイが必要です
 
 ---
 

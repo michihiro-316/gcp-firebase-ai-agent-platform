@@ -2,9 +2,11 @@
  * チャットフック
  *
  * AIエージェントとの会話を管理します。
+ * セッション管理フックと連携して動作します。
  */
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { sendChatMessage } from '../services/api'
+import type { ChatSession } from './useSessions'
 
 /**
  * ユニークなIDを生成
@@ -22,11 +24,27 @@ export interface Message {
   content: string
 }
 
-export function useChat() {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [threadId, setThreadId] = useState<string | null>(null)
+interface UseChatOptions {
+  activeSession: ChatSession | null
+  onMessagesUpdate: (sessionId: string, messages: Message[], threadId: string | null) => void
+}
+
+export function useChat(options?: UseChatOptions) {
+  const { activeSession, onMessagesUpdate } = options || {}
+
+  const [messages, setMessages] = useState<Message[]>(activeSession?.messages || [])
+  const [threadId, setThreadId] = useState<string | null>(activeSession?.threadId || null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // アクティブセッションが変更されたらメッセージを復元
+  useEffect(() => {
+    if (activeSession) {
+      setMessages(activeSession.messages)
+      setThreadId(activeSession.threadId)
+      setError(null)
+    }
+  }, [activeSession?.id])
 
   // メッセージを送信
   const sendMessage = useCallback(async (content: string) => {
@@ -41,7 +59,9 @@ export function useChat() {
       role: 'user',
       content,
     }
-    setMessages(prev => [...prev, userMessage])
+
+    const updatedMessagesWithUser = [...messages, userMessage]
+    setMessages(updatedMessagesWithUser)
 
     // AIの応答用プレースホルダー
     const assistantMessageId = generateUniqueId()
@@ -50,19 +70,24 @@ export function useChat() {
       role: 'assistant',
       content: '',
     }
-    setMessages(prev => [...prev, assistantMessage])
+
+    const updatedMessagesWithAssistant = [...updatedMessagesWithUser, assistantMessage]
+    setMessages(updatedMessagesWithAssistant)
 
     try {
+      let currentContent = ''
+
       // ストリーミングでメッセージを受信
       const newThreadId = await sendChatMessage(
         content,
         threadId,
         (chunk) => {
+          currentContent += chunk
           // チャンクを受信するたびにメッセージを更新
           setMessages(prev =>
             prev.map(msg =>
               msg.id === assistantMessageId
-                ? { ...msg, content: msg.content + chunk }
+                ? { ...msg, content: currentContent }
                 : msg
             )
           )
@@ -70,16 +95,30 @@ export function useChat() {
       )
 
       setThreadId(newThreadId)
+
+      // セッションにメッセージを保存
+      if (activeSession && onMessagesUpdate) {
+        const finalMessages = updatedMessagesWithUser.concat({
+          ...assistantMessage,
+          content: currentContent,
+        })
+        onMessagesUpdate(activeSession.id, finalMessages, newThreadId)
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'エラーが発生しました'
       setError(errorMessage)
 
       // エラー時は失敗したメッセージを削除
       setMessages(prev => prev.filter(msg => msg.id !== assistantMessageId))
+
+      // セッションにはユーザーメッセージまで保存
+      if (activeSession && onMessagesUpdate) {
+        onMessagesUpdate(activeSession.id, updatedMessagesWithUser, threadId)
+      }
     } finally {
       setIsLoading(false)
     }
-  }, [threadId, isLoading])
+  }, [threadId, isLoading, messages, activeSession, onMessagesUpdate])
 
   // 会話をリセット
   const resetChat = useCallback(() => {

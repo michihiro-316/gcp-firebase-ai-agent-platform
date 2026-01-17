@@ -1,8 +1,21 @@
 # AIエージェントパッケージ
 #
-# 【新しいエージェントの追加方法】
-# 1. このディレクトリに新しいフォルダを作成（例: my_agent/）
-# 2. base_agent.py の BaseAgent クラスを継承
-# 3. main.py でエージェントを登録
+# 【ディレクトリ構成】
 #
-# 詳細は sample_agent/ を参考にしてください
+#   agents/
+#   ├── _base/           ← 共通基盤（触らない）
+#   ├── _template/       ← コピー元テンプレート
+#   └── {customer_id}/   ← 顧客別エージェント（ここを作成）
+#
+# 【顧客別エージェントの作り方】
+# 1. _template をコピー
+#    cp -r _template acme-corp
+#
+# 2. agent.py の SYSTEM_PROMPT を編集
+#
+# 3. main.py の AGENTS に登録
+#    from agents.acme_corp import AcmeCorpAgent
+#    AGENTS = {"acme-corp": AcmeCorpAgent, ...}
+#
+# 4. customer-configs/acme-corp.env を作成
+#    DEFAULT_AGENT=acme-corp

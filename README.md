@@ -1,177 +1,196 @@
 # GCP AIエージェント基盤
 
-複数の顧客にAIチャットボットを提供するプラットフォームです。
+複数の顧客にAIチャットボットを提供するマルチテナントプラットフォームです。
 
 ---
 
-## 🚀 はじめての方へ
+## 🎯 このプロジェクトの特徴
 
-### このプロジェクトを理解するために
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│   🧠 AIエージェント開発に集中できる設計                              │
+│                                                                     │
+│   ┌─────────────────────┐     ┌─────────────────────┐              │
+│   │  ✅ 触る場所        │     │  🔒 触らなくてOK    │              │
+│   │  ─────────────     │     │  ──────────────    │              │
+│   │  agent.py          │     │  認証・認可         │              │
+│   │  (AIの性格・能力)   │     │  フロントエンド     │              │
+│   │                    │     │  インフラ           │              │
+│   └─────────────────────┘     └─────────────────────┘              │
+│                                                                     │
+│   データサイエンスチームはAIの「心臓部」に集中！                      │
+│   認証やUIは自動で動きます。                                         │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🚀 クイックスタート（5分で起動）
+
+### 1. 起動（1コマンド）
+
+```bash
+./start.sh
+```
+
+これだけで以下が自動実行されます：
+- バックエンド起動（Python/Flask）
+- フロントエンド起動（React/Vite）
+- 接続確認
+
+### 2. ブラウザで開く
+
+http://localhost:5173
+
+### 3. AIをカスタマイズ
+
+```
+backend/src/agents/_template/agent.py
+```
+
+このファイルの `SYSTEM_PROMPT` を編集するとAIの性格が変わります。
+
+---
+
+## 📁 ディレクトリ構成
 
 ```
 📁 GCP/
-├── 📖 README.md          ← 今読んでいるファイル
-├── 📖 SETUP.md           ← GCP/Firebaseの初期設定手順
-├── 📖 CUSTOMER_GUIDE.md  ← 顧客・ユーザー追加の手順
 │
-├── 📚 learning/          ← 【勉強用】ここから読み始めてください！
-│   ├── md/               ← Markdownドキュメント
-│   │   ├── 00_はじめに読んでください.md  ← ★最初にこれを読む
-│   │   ├── 01_全体像.md
-│   │   ├── 02_バックエンド解説.py
-│   │   ├── 03_フロントエンド解説.md
-│   │   ├── 04_動かしてみよう.md
-│   │   ├── 05_顧客管理の仕組み.md
-│   │   └── 06_コマンド解説.md    ← ★ターミナルコマンドの説明
-│   │
-│   ├── colab/            ← Google Colabノートブック（対話的に学習）
-│   │   └── 01_Python基礎とバックエンド理解.ipynb
-│   │
-│   └── github-pages/     ← HTML化されたドキュメント（自動生成）
+├── 🚀 start.sh              ← 開発環境を1コマンドで起動
+├── 🚀 deploy.sh             ← 本番環境に1コマンドでデプロイ
 │
-├── 🖥️ frontend/          ← 【本番】フロントエンド（React）
-├── ⚙️ backend/           ← 【本番】バックエンド（Python）
-│   ├── src/              ← ソースコード
-│   └── scripts/          ← 管理スクリプト
-└── ...
+├── 📖 README.md             ← 今読んでいるファイル
+├── 📖 SETUP.md              ← GCP/Firebaseの初期設定
+├── 📖 CUSTOMER_GUIDE.md     ← 顧客追加の手順
+│
+├── 📚 learning/             ← 【学習用ドキュメント】
+│   └── md/
+│       ├── 00_はじめに読んでください.md  ← ★最初にこれ
+│       ├── 01_全体像.md                  ← システム構成図
+│       ├── 02_バックエンド解説.md        ← Python/Flask
+│       ├── 03_フロントエンド解説.md      ← React/TypeScript
+│       ├── 04_動かしてみよう.md          ← ハンズオン
+│       ├── 06_コマンド解説.md            ← ★コマンドの意味
+│       └── 08_AIカスタマイズ.md          ← ★AI編集ガイド
+│
+├── ⚙️ backend/              ← 【バックエンド】
+│   └── src/
+│       ├── main.py          ← APIエントリーポイント（触らなくてOK）
+│       ├── common/          ← 認証・設定など（触らなくてOK）
+│       └── agents/          ← 🧠 AIエージェント（ここを編集！）
+│           ├── _base/       ← 基盤（触らない）
+│           └── _template/   ← テンプレート（コピーして使う）
+│               └── agent.py ← ★AIの心臓部
+│
+└── 🖥️ frontend/             ← 【フロントエンド】（触らなくてOK）
+    └── src/
+        ├── App.tsx          ← メインコンポーネント
+        └── components/      ← UI部品
 ```
-
-### 読む順番
-
-| 順番 | ファイル | 内容 |
-|------|----------|------|
-| 1 | `learning/md/00_はじめに読んでください.md` | 勉強の進め方 |
-| 2 | `learning/md/01_全体像.md` | システム全体の図解 |
-| 3 | `learning/md/06_コマンド解説.md` | ターミナルコマンドの意味 |
-| 4 | `SETUP.md` | 環境構築の手順 |
-| 5 | `CUSTOMER_GUIDE.md` | 顧客追加の手順 |
-
-### 学習方法を選ぶ
-
-| 方式 | 場所 | おすすめの人 |
-|------|------|-------------|
-| **Markdown** | `learning/md/` | テキストで読みたい人 |
-| **Google Colab** | `learning/colab/` | Pythonコードを実行しながら学びたい人 |
-| **GitHub Pages** | 自動生成 | ブラウザできれいに読みたい人 |
 
 ---
 
-## 📋 システム概要
+## 📚 学習ガイド
 
-### 何ができるか
+### あなたは誰ですか？
 
-- 複数の顧客（会社）にAIチャットボットを提供
-- 顧客ごとにデータを完全に分離（セキュリティ確保）
-- Googleアカウントでログイン
+| あなた | 読むべきドキュメント |
+|--------|----------------------|
+| **データサイエンティスト** | `08_AIカスタマイズ.md` → `agent.py` を編集 |
+| **新人エンジニア** | `00_はじめに〜.md` → `04_動かしてみよう.md` |
+| **PM** | `01_全体像.md` → `CUSTOMER_GUIDE.md` |
+| **フルスタック** | `02_バックエンド解説.md` → `03_フロントエンド解説.md` |
 
-### 使用技術
+### 推奨学習順序
 
-| 領域 | 技術 |
-|------|------|
-| フロントエンド | React + TypeScript + Vite |
-| バックエンド | Python + Flask + LangGraph |
-| AI | Vertex AI (Gemini 1.5 Flash) |
-| 認証 | Firebase Authentication |
-| データベース | Firestore |
-| ホスティング | Firebase Hosting + Cloud Run Functions |
+```
+1️⃣  ./start.sh で起動        ← まず動かす（5分）
+2️⃣  ブラウザでチャット       ← 動作確認（5分）
+3️⃣  agent.py を編集          ← AIをカスタマイズ（30分）
+4️⃣  06_コマンド解説.md       ← 仕組みを理解（1時間）
+5️⃣  01_全体像.md             ← 全体を俯瞰（1時間）
+```
 
 ---
 
-## 🛠️ ローカル開発
+## 🛠️ 主要コマンド
 
-### 必要なもの
+### 開発
 
-- Python 3.11以上
-- Node.js 18以上
-- GCPプロジェクト（設定済み）
-
-### 起動方法
-
-> 💡 各コマンドの意味は `learning/md/06_コマンド解説.md` を参照
-
-**ターミナル1（バックエンド）:**
-```bash
-cd backend                              # backendフォルダに移動
-pip install -r requirements.txt         # 必要なパッケージをインストール
-functions-framework --target=main --port=8080  # サーバーを起動
-```
-
-**ターミナル2（フロントエンド）:**
-```bash
-cd frontend                             # frontendフォルダに移動
-npm install                             # 必要なパッケージをインストール
-npm run dev                             # 開発サーバーを起動
-```
-
-**ブラウザで開く:** http://localhost:5173/
-
-### コマンドの意味（簡易版）
-
-| コマンド | 意味 |
+| コマンド | 説明 |
 |----------|------|
-| `cd フォルダ名` | フォルダに移動する |
-| `pip install -r requirements.txt` | Python用のライブラリをインストール |
-| `npm install` | JavaScript用のライブラリをインストール |
-| `functions-framework --target=main --port=8080` | バックエンドサーバーを8080番ポートで起動 |
-| `npm run dev` | フロントエンドの開発サーバーを起動 |
+| `./start.sh` | 開発環境を起動 |
+| `Ctrl+C` | 停止 |
 
-詳しくは `learning/md/06_コマンド解説.md` を読んでください。
+### デプロイ
 
----
+| コマンド | 説明 |
+|----------|------|
+| `./deploy.sh` | 本番環境にデプロイ |
+| `./deploy.sh acme-corp` | 顧客別デプロイ |
 
-## 👥 顧客管理
-
-### 新しい顧客を追加
+### 顧客管理
 
 ```bash
-cd backend
-python scripts/manage_customer.py add acme-corp "株式会社ACME"
-```
+# 顧客追加
+python backend/scripts/manage_customer.py add acme-corp "株式会社ACME"
 
-### ユーザーを顧客に紐付け
-
-```bash
-python scripts/manage_customer.py add-user acme-corp yamada@acme.co.jp
+# ユーザー紐付け
+python backend/scripts/manage_customer.py add-user acme-corp yamada@acme.co.jp
 ```
 
 詳細は `CUSTOMER_GUIDE.md` を参照。
 
 ---
 
-## 📁 主要ファイル
+## 🏗️ 使用技術
 
-### バックエンド（Python）
+| 領域 | 技術 | 説明 |
+|------|------|------|
+| **AI** | LangGraph + Vertex AI | AIエージェントの心臓部 |
+| バックエンド | Python + Flask | API処理 |
+| フロントエンド | React + TypeScript | UI |
+| 認証 | Firebase Auth | Googleログイン |
+| データベース | Firestore | 会話履歴など |
+| ホスティング | Cloud Functions + Firebase Hosting | デプロイ先 |
 
-| ファイル | 役割 |
-|----------|------|
-| `backend/src/main.py` | APIエントリーポイント |
-| `backend/src/common/auth.py` | 認証・認可 |
-| `backend/src/agents/sample_agent/agent.py` | AIエージェント |
-| `backend/scripts/manage_customer.py` | 顧客管理スクリプト |
-
-### フロントエンド（React）
-
-| ファイル | 役割 |
-|----------|------|
-| `frontend/src/App.tsx` | メインコンポーネント |
-| `frontend/src/hooks/useAuth.ts` | ログイン処理 |
-| `frontend/src/hooks/useChat.ts` | チャット処理 |
+**LangGraph** は2025年最も成長しているAIエージェントフレームワークです。
+- 月間9,000万ダウンロード
+- Uber, LinkedIn, JPMorgan等が本番採用
+- AIエンジニアの必須スキル
 
 ---
 
 ## 🔒 セキュリティ
 
 - Firebase Authentication（Google OAuth）
-- ドメイン/メールによるアクセス制限
-- 顧客ごとのデータ分離（マルチテナント）
-- レート制限（10回/分/ユーザー）
-- 未紐付けユーザーのアクセス拒否
+- 顧客ごとのデータ完全分離（マルチテナント）
+- レート制限（DoS対策）
+- メッセージ長制限（コスト攻撃対策）
+- Custom Claimsによるアクセス制御
 
 ---
 
 ## ❓ 困ったら
 
-1. `learning/md/` フォルダの解説を読む
-2. `learning/md/06_コマンド解説.md` でコマンドの意味を確認
-3. Firebase Console / GCP Console でログを確認
-4. `SETUP.md` のトラブルシューティングを確認
+| 状況 | 対処 |
+|------|------|
+| コマンドの意味がわからない | `learning/md/06_コマンド解説.md` |
+| AIの応答を変えたい | `learning/md/08_AIカスタマイズ.md` |
+| 全体像を理解したい | `learning/md/01_全体像.md` |
+| エラーが出た | `SETUP.md` のトラブルシューティング |
+| 顧客を追加したい | `CUSTOMER_GUIDE.md` |
+
+---
+
+## 📊 プロジェクト情報
+
+| 項目 | 値 |
+|------|------|
+| 対象ユーザー | データサイエンスチーム、Python開発者 |
+| 必要スキル | Python基礎（React/TypeScriptは不要） |
+| 推定学習時間 | 1〜2日（基本操作） |
+| 本番運用開始 | 1週間〜 |

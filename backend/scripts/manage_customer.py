@@ -134,7 +134,18 @@ def cmd_add_user(db, customer_id, email):
 
     customer_name = customer_doc.to_dict().get('name', customer_id)
     print(f"\n✅ ユーザー '{email}' を '{customer_name}' に紐付けました！")
-    print(f"\n⚠️ 注意: ユーザーは再ログインが必要です")
+    print()
+    print("=" * 50)
+    print("⚠️  重要: ユーザーに再ログインをお願いしてください")
+    print("=" * 50)
+    print()
+    print("  Custom Claims（顧客情報）はIDトークンに含まれます。")
+    print("  現在のセッションでは古いトークンが使われるため、")
+    print("  紐付け完了後は必ず再ログインが必要です。")
+    print()
+    print("  再ログインしないと「顧客に紐付けされていません」")
+    print("  エラーが発生します。")
+    print()
 
 
 def cmd_show(db, customer_id):

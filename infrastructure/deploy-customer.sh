@@ -1,23 +1,39 @@
 #!/bin/bash
 # =============================================================================
-# 顧客別フロントエンドデプロイスクリプト
+# 顧客別デプロイスクリプト（バックエンド + フロントエンド）
 # =============================================================================
 #
 # 【このスクリプトでやること】
-#   1. 指定した顧客のフロントエンドをビルド
-#   2. GCSバケットの顧客ディレクトリにアップロード
-#   3. キャッシュ設定の適用
+#   1. バックエンド（Cloud Functions）を顧客専用としてデプロイ
+#   2. 指定した顧客のフロントエンドをビルド
+#   3. GCSバケットの顧客ディレクトリにアップロード
+#   4. キャッシュ設定の適用
 #
 # 【使い方】
-#   ./deploy-customer.sh <customer_id>
+#   ./deploy-customer.sh <customer_id> [options]
+#
+#   オプション:
+#     --frontend-only    フロントエンドのみデプロイ
+#     --backend-only     バックエンドのみデプロイ
 #
 # 【例】
-#   ./deploy-customer.sh customer-a
-#   ./deploy-customer.sh customer-b
+#   ./deploy-customer.sh customer-a              # 両方デプロイ
+#   ./deploy-customer.sh customer-a --frontend-only  # フロントエンドのみ
+#   ./deploy-customer.sh customer-a --backend-only   # バックエンドのみ
 #
 # 【前提条件】
 #   - frontend/ ディレクトリにフロントエンドのソースがあること
+#   - backend/customer-configs/{customer_id}.env が存在すること
 #   - GCSバケットが設定済みであること（setup-gcs-hosting.sh）
+#
+# 【GCS構造】
+#   gs://{project}-frontend/
+#     common/                  # 共通ファイル（利用規約など）
+#     customers/
+#       {customer_id}/         # 顧客ごとのフロントエンド
+#         index.html
+#         assets/
+#         config.json
 #
 # =============================================================================
 
@@ -71,13 +87,45 @@ log_step() {
 # -----------------------------------------------------------------------------
 # 引数チェック
 # -----------------------------------------------------------------------------
-CUSTOMER_ID="$1"
+CUSTOMER_ID=""
+DEPLOY_FRONTEND=true
+DEPLOY_BACKEND=true
+
+# 引数解析
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --frontend-only)
+            DEPLOY_BACKEND=false
+            shift
+            ;;
+        --backend-only)
+            DEPLOY_FRONTEND=false
+            shift
+            ;;
+        -*)
+            log_error "不明なオプション: $1"
+            exit 1
+            ;;
+        *)
+            if [ -z "$CUSTOMER_ID" ]; then
+                CUSTOMER_ID="$1"
+            fi
+            shift
+            ;;
+    esac
+done
 
 if [ -z "$CUSTOMER_ID" ]; then
     log_error "顧客IDを指定してください"
     echo ""
-    echo "使い方: ./deploy-customer.sh <customer_id>"
+    echo "使い方: ./deploy-customer.sh <customer_id> [options]"
+    echo ""
+    echo "オプション:"
+    echo "  --frontend-only    フロントエンドのみデプロイ"
+    echo "  --backend-only     バックエンドのみデプロイ"
+    echo ""
     echo "例:     ./deploy-customer.sh customer-a"
+    echo "        ./deploy-customer.sh customer-a --backend-only"
     exit 1
 fi
 
@@ -87,11 +135,145 @@ if [ "$PROJECT_ID" = "your-project-id" ]; then
     exit 1
 fi
 
+# バックエンド設定ファイルのパス
+BACKEND_CONFIG_DIR="${PROJECT_ROOT}/backend/customer-configs"
+BACKEND_CONFIG_FILE="${BACKEND_CONFIG_DIR}/${CUSTOMER_ID}.env"
+
 # -----------------------------------------------------------------------------
-# Step 1: 顧客設定ファイルの確認/作成
+# Step 0: バックエンド設定ファイルの確認
+# -----------------------------------------------------------------------------
+check_backend_config() {
+    if [ "$DEPLOY_BACKEND" = false ]; then
+        return 0
+    fi
+
+    log_step "Step 0: バックエンド設定ファイルの確認"
+
+    # 設定ディレクトリ作成
+    mkdir -p "$BACKEND_CONFIG_DIR"
+
+    # 設定ファイルが存在しない場合はテンプレートをコピー
+    if [ ! -f "$BACKEND_CONFIG_FILE" ]; then
+        TEMPLATE_FILE="${BACKEND_CONFIG_DIR}/template.env"
+
+        if [ -f "$TEMPLATE_FILE" ]; then
+            log_warn "バックエンド設定ファイルが見つかりません: $BACKEND_CONFIG_FILE"
+            log_info "テンプレートから作成します..."
+
+            cp "$TEMPLATE_FILE" "$BACKEND_CONFIG_FILE"
+
+            # CUSTOMER_ID を自動で置換
+            sed -i.bak "s/CUSTOMER_ID=your-customer-id/CUSTOMER_ID=${CUSTOMER_ID}/" "$BACKEND_CONFIG_FILE"
+            rm -f "${BACKEND_CONFIG_FILE}.bak"
+
+            log_info "テンプレートを作成しました: $BACKEND_CONFIG_FILE"
+            echo ""
+            echo "============================================"
+            echo "  重要: バックエンド設定ファイルを編集してください"
+            echo "============================================"
+            echo ""
+            echo "  ファイル: $BACKEND_CONFIG_FILE"
+            echo ""
+            echo "  特に以下の値を確認してください:"
+            echo "    - DEFAULT_AGENT: デフォルトで使用するエージェント"
+            echo "    - ALLOWED_AGENTS: 使用を許可するエージェント（カンマ区切り）"
+            echo ""
+            echo "  編集後、このスクリプトを再実行してください。"
+            echo ""
+            exit 0
+        else
+            log_error "テンプレートファイルが見つかりません: $TEMPLATE_FILE"
+            exit 1
+        fi
+    fi
+
+    log_info "バックエンド設定ファイルを確認しました: $BACKEND_CONFIG_FILE"
+
+    # 設定内容を読み込んで表示
+    log_info "設定内容:"
+    grep -E "^(CUSTOMER_ID|DEFAULT_AGENT|ALLOWED_AGENTS)=" "$BACKEND_CONFIG_FILE" | while read line; do
+        echo "  $line"
+    done
+}
+
+# -----------------------------------------------------------------------------
+# Step 1: バックエンドのデプロイ（Cloud Functions）
+# -----------------------------------------------------------------------------
+deploy_backend() {
+    if [ "$DEPLOY_BACKEND" = false ]; then
+        return 0
+    fi
+
+    log_step "Step 1: バックエンドのデプロイ"
+
+    cd "${PROJECT_ROOT}/backend"
+
+    # 顧客専用の Cloud Functions 名
+    CUSTOMER_FUNCTION_NAME="${CUSTOMER_ID}-api"
+
+    # 環境変数を設定ファイルから読み込み
+    log_info "環境変数を読み込み中..."
+
+    # .env ファイルをソース（export）
+    set -a
+    source "$BACKEND_CONFIG_FILE"
+    set +a
+
+    # 追加の環境変数を設定
+    export GOOGLE_CLOUD_PROJECT="$PROJECT_ID"
+
+    # 環境変数をカンマ区切りの文字列に変換
+    ENV_VARS="GOOGLE_CLOUD_PROJECT=${PROJECT_ID}"
+    ENV_VARS="${ENV_VARS},CUSTOMER_ID=${CUSTOMER_ID}"
+    ENV_VARS="${ENV_VARS},DEFAULT_AGENT=${DEFAULT_AGENT:-sample}"
+    ENV_VARS="${ENV_VARS},ALLOWED_AGENTS=${ALLOWED_AGENTS:-}"
+    ENV_VARS="${ENV_VARS},VERTEX_AI_LOCATION=${VERTEX_AI_LOCATION:-asia-northeast1}"
+
+    log_info "Cloud Functions をデプロイ中: ${CUSTOMER_FUNCTION_NAME}"
+    log_info "環境変数:"
+    log_info "  CUSTOMER_ID=${CUSTOMER_ID}"
+    log_info "  DEFAULT_AGENT=${DEFAULT_AGENT:-sample}"
+    log_info "  ALLOWED_AGENTS=${ALLOWED_AGENTS:-（制限なし）}"
+    # 注: ENV_VARS全体は出力しない（機密情報保護のため）
+
+    # Cloud Functions v2 でデプロイ
+    # --allow-unauthenticated について:
+    #   GCPレベルでは認証なしでアクセス可能にしています。
+    #   これは、Firebase Authentication でアプリケーションレベルの認証を
+    #   行っているため、GCP IAM での二重認証は不要という設計です。
+    #   全てのAPIリクエストは main.py の authenticate_request() で
+    #   Firebase IDトークンを検証しています。
+    gcloud functions deploy "$CUSTOMER_FUNCTION_NAME" \
+        --gen2 \
+        --runtime python311 \
+        --region "$REGION" \
+        --source ./src \
+        --entry-point main \
+        --trigger-http \
+        --allow-unauthenticated \
+        --set-env-vars "$ENV_VARS" \
+        --memory 512MB \
+        --timeout 300s \
+        --min-instances 0 \
+        --max-instances 10
+
+    # デプロイしたFunctionのURLを取得
+    CUSTOMER_FUNCTION_URL=$(gcloud functions describe "$CUSTOMER_FUNCTION_NAME" --region="$REGION" --format='value(serviceConfig.uri)')
+    log_info "デプロイ完了: ${CUSTOMER_FUNCTION_URL}"
+
+    # URLをエクスポート（フロントエンド設定で使用）
+    export CUSTOMER_FUNCTION_URL
+}
+
+# -----------------------------------------------------------------------------
+# Step 2: 顧客フロントエンド設定ファイルの確認/作成
 # -----------------------------------------------------------------------------
 create_customer_config() {
-    log_step "Step 1: 顧客設定ファイルの準備"
+    if [ "$DEPLOY_FRONTEND" = false ]; then
+        return 0
+    fi
+
+    log_step "Step 2: フロントエンド設定ファイルの準備"
 
     CONFIG_DIR="${PROJECT_ROOT}/frontend/customer-configs"
     CONFIG_FILE="${CONFIG_DIR}/${CUSTOMER_ID}.json"
@@ -99,17 +281,21 @@ create_customer_config() {
     # 設定ディレクトリ作成
     mkdir -p "$CONFIG_DIR"
 
+    # 顧客専用の Cloud Functions 名
+    CUSTOMER_FUNCTION_NAME="${CUSTOMER_ID}-api"
+
     # 設定ファイルが存在しない場合はテンプレートを作成
     if [ ! -f "$CONFIG_FILE" ]; then
         log_warn "設定ファイルが見つかりません: $CONFIG_FILE"
         log_info "テンプレートを作成します..."
 
         # Cloud FunctionsのURLを取得
-        FUNCTION_URL=$(gcloud functions describe "$FUNCTION_NAME" --region="$REGION" --format='value(serviceConfig.uri)' 2>/dev/null || echo "")
+        FUNCTION_URL=$(gcloud functions describe "$CUSTOMER_FUNCTION_NAME" --region="$REGION" --format='value(serviceConfig.uri)' 2>/dev/null || echo "")
 
         if [ -z "$FUNCTION_URL" ]; then
-            FUNCTION_URL="https://${REGION}-${PROJECT_ID}.cloudfunctions.net/${FUNCTION_NAME}"
-            log_warn "Cloud FunctionsのURLを自動取得できませんでした。デフォルトURLを使用します。"
+            # バックエンドデプロイで取得したURLを使用
+            FUNCTION_URL="${CUSTOMER_FUNCTION_URL:-https://${REGION}-${PROJECT_ID}.cloudfunctions.net/${CUSTOMER_FUNCTION_NAME}}"
+            log_warn "Cloud FunctionsのURLを自動取得できませんでした。推測URLを使用します。"
         fi
 
         # Firebase設定を取得（できれば）
@@ -118,11 +304,11 @@ create_customer_config() {
 
         cat > "$CONFIG_FILE" << EOF
 {
-  "customer_id": "${CUSTOMER_ID}",
-  "customer_name": "${CUSTOMER_ID} 様",
+  "customerId": "${CUSTOMER_ID}",
+  "customerName": "${CUSTOMER_ID} 様",
   "theme": {
-    "primary_color": "#1976d2",
-    "secondary_color": "#dc004e"
+    "primaryColor": "#1976d2",
+    "secondaryColor": "#dc004e"
   },
   "firebase": {
     "apiKey": "${FIREBASE_API_KEY}",
@@ -130,7 +316,21 @@ create_customer_config() {
     "projectId": "${PROJECT_ID}"
   },
   "api": {
-    "base_url": "${FUNCTION_URL}"
+    "baseUrl": "${FUNCTION_URL}"
+  },
+  "chatRenderer": {
+    "output": {
+      "enableTables": true,
+      "enableCharts": false,
+      "enableCodeHighlight": true,
+      "enableMarkdown": true,
+      "maxWidth": "800px"
+    },
+    "styling": {
+      "userMessageBg": "#e3f2fd",
+      "assistantMessageBg": "#f5f5f5",
+      "fontFamily": "system-ui, sans-serif"
+    }
   }
 }
 EOF
@@ -157,10 +357,14 @@ EOF
 }
 
 # -----------------------------------------------------------------------------
-# Step 2: フロントエンドのビルド
+# Step 3: フロントエンドのビルド
 # -----------------------------------------------------------------------------
 build_frontend() {
-    log_step "Step 2: フロントエンドのビルド"
+    if [ "$DEPLOY_FRONTEND" = false ]; then
+        return 0
+    fi
+
+    log_step "Step 3: フロントエンドのビルド"
 
     cd "${PROJECT_ROOT}/frontend"
 
@@ -180,19 +384,23 @@ build_frontend() {
     log_info "ビルド中..."
 
     # vite.config.ts に base パスを設定するために環境変数を使用
-    VITE_BASE_PATH="/${CUSTOMER_ID}/" npm run build
+    VITE_BASE_PATH="/customers/${CUSTOMER_ID}/" npm run build
 
     log_info "ビルド完了"
 }
 
 # -----------------------------------------------------------------------------
-# Step 3: GCSへのアップロード
+# Step 4: GCSへのアップロード
 # -----------------------------------------------------------------------------
 upload_to_gcs() {
-    log_step "Step 3: GCSへのアップロード"
+    if [ "$DEPLOY_FRONTEND" = false ]; then
+        return 0
+    fi
+
+    log_step "Step 4: GCSへのアップロード"
 
     DIST_DIR="${PROJECT_ROOT}/frontend/dist"
-    GCS_PATH="gs://${BUCKET_NAME}/${CUSTOMER_ID}/"
+    GCS_PATH="gs://${BUCKET_NAME}/customers/${CUSTOMER_ID}/"
 
     if [ ! -d "$DIST_DIR" ]; then
         log_error "ビルド成果物が見つかりません: $DIST_DIR"
@@ -215,12 +423,16 @@ upload_to_gcs() {
 }
 
 # -----------------------------------------------------------------------------
-# Step 4: キャッシュ設定
+# Step 5: キャッシュ設定
 # -----------------------------------------------------------------------------
 configure_cache() {
-    log_step "Step 4: キャッシュ設定"
+    if [ "$DEPLOY_FRONTEND" = false ]; then
+        return 0
+    fi
 
-    GCS_PATH="gs://${BUCKET_NAME}/${CUSTOMER_ID}/"
+    log_step "Step 5: キャッシュ設定"
+
+    GCS_PATH="gs://${BUCKET_NAME}/customers/${CUSTOMER_ID}/"
 
     # HTMLファイル: 短いキャッシュ（5分）
     log_info "HTMLファイルのキャッシュ設定..."
@@ -251,24 +463,35 @@ configure_cache() {
 show_result() {
     # Load BalancerのドメインまたはGCS直接URLを表示
     DOMAIN="${DOMAIN:-app.example.com}"
+    CUSTOMER_FUNCTION_NAME="${CUSTOMER_ID}-api"
 
     echo ""
     echo "============================================================================="
     echo "  デプロイ完了: ${CUSTOMER_ID}"
     echo "============================================================================="
     echo ""
-    echo "  【アップロード先】"
-    echo "    gs://${BUCKET_NAME}/${CUSTOMER_ID}/"
-    echo ""
-    echo "  【アクセスURL】"
-    if [ "$DOMAIN" != "app.example.com" ]; then
-        echo "    本番: https://${DOMAIN}/${CUSTOMER_ID}/"
+
+    if [ "$DEPLOY_BACKEND" = true ]; then
+        echo "  【バックエンド（Cloud Functions）】"
+        echo "    関数名: ${CUSTOMER_FUNCTION_NAME}"
+        if [ -n "$CUSTOMER_FUNCTION_URL" ]; then
+            echo "    URL: ${CUSTOMER_FUNCTION_URL}"
+        fi
+        echo "    設定: ${BACKEND_CONFIG_FILE}"
+        echo ""
     fi
-    echo "    GCS直接: https://storage.googleapis.com/${BUCKET_NAME}/${CUSTOMER_ID}/index.html"
-    echo ""
-    echo "  【設定ファイル】"
-    echo "    ${PROJECT_ROOT}/frontend/customer-configs/${CUSTOMER_ID}.json"
-    echo ""
+
+    if [ "$DEPLOY_FRONTEND" = true ]; then
+        echo "  【フロントエンド（GCS）】"
+        echo "    アップロード先: gs://${BUCKET_NAME}/customers/${CUSTOMER_ID}/"
+        if [ "$DOMAIN" != "app.example.com" ]; then
+            echo "    本番URL: https://${DOMAIN}/customers/${CUSTOMER_ID}/"
+        fi
+        echo "    GCS直接: https://storage.googleapis.com/${BUCKET_NAME}/customers/${CUSTOMER_ID}/index.html"
+        echo "    設定: ${PROJECT_ROOT}/frontend/customer-configs/${CUSTOMER_ID}.json"
+        echo ""
+    fi
+
     echo "============================================================================="
 }
 
@@ -278,22 +501,41 @@ show_result() {
 main() {
     echo ""
     echo "============================================================================="
-    echo "  顧客別フロントエンドデプロイ"
+    echo "  顧客別デプロイ（バックエンド + フロントエンド）"
     echo "============================================================================="
     echo ""
-    echo "  顧客ID:     ${CUSTOMER_ID}"
-    echo "  プロジェクト: ${PROJECT_ID}"
-    echo "  バケット:    gs://${BUCKET_NAME}/"
+    echo "  顧客ID:       ${CUSTOMER_ID}"
+    echo "  プロジェクト:   ${PROJECT_ID}"
+    echo "  リージョン:     ${REGION}"
+    echo ""
+    echo "  デプロイ対象:"
+    [ "$DEPLOY_BACKEND" = true ] && echo "    - バックエンド（Cloud Functions）"
+    [ "$DEPLOY_FRONTEND" = true ] && echo "    - フロントエンド（GCS: gs://${BUCKET_NAME}/customers/）"
     echo ""
 
     gcloud config set project "$PROJECT_ID"
 
+    # Step 0: バックエンド設定確認
+    check_backend_config
+
+    # Step 1: バックエンドデプロイ
+    deploy_backend
+
+    # Step 2: フロントエンド設定確認/作成
     create_customer_config
+
+    # Step 3: フロントエンドビルド
     build_frontend
+
+    # Step 4: GCSアップロード
     upload_to_gcs
+
+    # Step 5: キャッシュ設定
     configure_cache
+
+    # 結果表示
     show_result
 }
 
 # 実行
-main "$@"
+main
