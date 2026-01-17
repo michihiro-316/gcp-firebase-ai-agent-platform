@@ -15,30 +15,26 @@ import json
 def get_page_config():
     """ページの設定（タイトル、アイコン、説明）を返す"""
     return {
-        "00_はじめに読んでください": {
+        # 新しいナンバリング（理論学者向け学習順序）
+        "01_はじめに読んでください": {
             "icon": "📖",
             "desc": "学習ガイドの進め方",
             "category": "start"
         },
-        "01_全体像": {
+        "02_全体像": {
             "icon": "🏗️",
             "desc": "システムアーキテクチャ",
             "category": "basic"
         },
-        "02_バックエンド解説": {
+        "03_バックエンド解説": {
             "icon": "🐍",
             "desc": "Python/Flask の詳細",
             "category": "basic"
         },
-        "03_フロントエンド解説": {
+        "04_フロントエンド解説": {
             "icon": "⚛️",
             "desc": "React/TypeScript の詳細",
             "category": "basic"
-        },
-        "04_動かしてみよう": {
-            "icon": "🚀",
-            "desc": "ローカル環境での実行",
-            "category": "start"
         },
         "05_顧客管理の仕組み": {
             "icon": "👥",
@@ -60,6 +56,17 @@ def get_page_config():
             "desc": "AIの応答をカスタマイズ",
             "category": "advanced"
         },
+        "09_セットアップの流れ": {
+            "icon": "⚙️",
+            "desc": "環境構築の手順",
+            "category": "start"
+        },
+        "10_動かしてみよう": {
+            "icon": "🚀",
+            "desc": "ローカル環境での実行",
+            "category": "start"
+        },
+        # FLOWファイル（参考資料）
         "FLOW_01_チャット送信の流れ": {
             "icon": "💬",
             "desc": "メッセージ送信の仕組み",
@@ -68,11 +75,6 @@ def get_page_config():
         "FLOW_02_ログインの流れ": {
             "icon": "🔐",
             "desc": "認証フローの解説",
-            "category": "flow"
-        },
-        "FLOW_03_セットアップの流れ": {
-            "icon": "⚙️",
-            "desc": "環境構築の手順",
             "category": "flow"
         },
         "FLOW_04_セッション管理の流れ": {
@@ -102,7 +104,7 @@ def get_base_template():
     </a>
     <nav class="header-nav">
       <a href="index.html">ホーム</a>
-      <a href="FLOW_03_セットアップの流れ.html">セットアップ</a>
+      <a href="09_セットアップの流れ.html">セットアップ</a>
       <a href="https://github.com" target="_blank">GitHub</a>
     </nav>
     <button class="menu-toggle" onclick="toggleSidebar()">
@@ -115,45 +117,45 @@ def get_base_template():
   <div class="layout">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-section">
-        <div class="sidebar-title">🚀 はじめに</div>
+        <div class="sidebar-title">📖 はじめに</div>
         <ul class="sidebar-nav">
-          <li><a href="00_はじめに読んでください.html" {active_00}>はじめに読んでください</a></li>
-          <li><a href="04_動かしてみよう.html" {active_04}>動かしてみよう</a></li>
+          <li><a href="01_はじめに読んでください.html" {active_01}>はじめに読んでください</a></li>
         </ul>
       </div>
 
       <div class="sidebar-section">
-        <div class="sidebar-title">📖 基礎知識</div>
+        <div class="sidebar-title">🏗️ Phase1: 仕組みを理解</div>
         <ul class="sidebar-nav">
-          <li><a href="01_全体像.html" {active_01}>全体像</a></li>
-          <li><a href="02_バックエンド解説.html" {active_02}>バックエンド解説</a></li>
-          <li><a href="03_フロントエンド解説.html" {active_03}>フロントエンド解説</a></li>
-        </ul>
-      </div>
-
-      <div class="sidebar-section">
-        <div class="sidebar-title">🔄 フロー解説</div>
-        <ul class="sidebar-nav">
-          <li><a href="FLOW_01_チャット送信の流れ.html" {active_flow01}>チャット送信の流れ</a></li>
-          <li><a href="FLOW_02_ログインの流れ.html" {active_flow02}>ログインの流れ</a></li>
-          <li><a href="FLOW_03_セットアップの流れ.html" {active_flow03}>セットアップの流れ</a></li>
-          <li><a href="FLOW_04_セッション管理の流れ.html" {active_flow04}>セッション管理の流れ</a></li>
-        </ul>
-      </div>
-
-      <div class="sidebar-section">
-        <div class="sidebar-title">🔧 上級編</div>
-        <ul class="sidebar-nav">
+          <li><a href="02_全体像.html" {active_02}>全体像</a></li>
+          <li><a href="03_バックエンド解説.html" {active_03}>バックエンド解説</a></li>
+          <li><a href="04_フロントエンド解説.html" {active_04}>フロントエンド解説</a></li>
           <li><a href="05_顧客管理の仕組み.html" {active_05}>顧客管理の仕組み</a></li>
-          <li><a href="08_AIカスタマイズ.html" {active_08}>AIカスタマイズ</a></li>
         </ul>
       </div>
 
       <div class="sidebar-section">
-        <div class="sidebar-title">📚 リファレンス</div>
+        <div class="sidebar-title">💻 Phase2: 操作を知る</div>
         <ul class="sidebar-nav">
           <li><a href="06_コマンド解説.html" {active_06}>コマンド解説</a></li>
           <li><a href="07_ファイル形式と設定ファイル.html" {active_07}>ファイル形式と設定</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🚀 Phase3: 動かす</div>
+        <ul class="sidebar-nav">
+          <li><a href="08_AIカスタマイズ.html" {active_08}>AIカスタマイズ</a></li>
+          <li><a href="09_セットアップの流れ.html" {active_09}>セットアップの流れ</a></li>
+          <li><a href="10_動かしてみよう.html" {active_10}>動かしてみよう</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔄 参考: フロー解説</div>
+        <ul class="sidebar-nav">
+          <li><a href="FLOW_01_チャット送信の流れ.html" {active_flow01}>チャット送信の流れ</a></li>
+          <li><a href="FLOW_02_ログインの流れ.html" {active_flow02}>ログインの流れ</a></li>
+          <li><a href="FLOW_04_セッション管理の流れ.html" {active_flow04}>セッション管理の流れ</a></li>
         </ul>
       </div>
     </aside>
@@ -205,7 +207,7 @@ def get_index_template():
     </a>
     <nav class="header-nav">
       <a href="index.html">ホーム</a>
-      <a href="FLOW_03_セットアップの流れ.html">セットアップ</a>
+      <a href="09_セットアップの流れ.html">セットアップ</a>
       <a href="https://github.com" target="_blank">GitHub</a>
     </nav>
     <button class="menu-toggle" onclick="toggleSidebar()">
@@ -218,45 +220,45 @@ def get_index_template():
   <div class="layout">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-section">
-        <div class="sidebar-title">🚀 はじめに</div>
+        <div class="sidebar-title">📖 はじめに</div>
         <ul class="sidebar-nav">
-          <li><a href="00_はじめに読んでください.html">はじめに読んでください</a></li>
-          <li><a href="04_動かしてみよう.html">動かしてみよう</a></li>
+          <li><a href="01_はじめに読んでください.html">はじめに読んでください</a></li>
         </ul>
       </div>
 
       <div class="sidebar-section">
-        <div class="sidebar-title">📖 基礎知識</div>
+        <div class="sidebar-title">🏗️ Phase1: 仕組みを理解</div>
         <ul class="sidebar-nav">
-          <li><a href="01_全体像.html">全体像</a></li>
-          <li><a href="02_バックエンド解説.html">バックエンド解説</a></li>
-          <li><a href="03_フロントエンド解説.html">フロントエンド解説</a></li>
-        </ul>
-      </div>
-
-      <div class="sidebar-section">
-        <div class="sidebar-title">🔄 フロー解説</div>
-        <ul class="sidebar-nav">
-          <li><a href="FLOW_01_チャット送信の流れ.html">チャット送信の流れ</a></li>
-          <li><a href="FLOW_02_ログインの流れ.html">ログインの流れ</a></li>
-          <li><a href="FLOW_03_セットアップの流れ.html">セットアップの流れ</a></li>
-          <li><a href="FLOW_04_セッション管理の流れ.html">セッション管理の流れ</a></li>
-        </ul>
-      </div>
-
-      <div class="sidebar-section">
-        <div class="sidebar-title">🔧 上級編</div>
-        <ul class="sidebar-nav">
+          <li><a href="02_全体像.html">全体像</a></li>
+          <li><a href="03_バックエンド解説.html">バックエンド解説</a></li>
+          <li><a href="04_フロントエンド解説.html">フロントエンド解説</a></li>
           <li><a href="05_顧客管理の仕組み.html">顧客管理の仕組み</a></li>
-          <li><a href="08_AIカスタマイズ.html">AIカスタマイズ</a></li>
         </ul>
       </div>
 
       <div class="sidebar-section">
-        <div class="sidebar-title">📚 リファレンス</div>
+        <div class="sidebar-title">💻 Phase2: 操作を知る</div>
         <ul class="sidebar-nav">
           <li><a href="06_コマンド解説.html">コマンド解説</a></li>
           <li><a href="07_ファイル形式と設定ファイル.html">ファイル形式と設定</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🚀 Phase3: 動かす</div>
+        <ul class="sidebar-nav">
+          <li><a href="08_AIカスタマイズ.html">AIカスタマイズ</a></li>
+          <li><a href="09_セットアップの流れ.html">セットアップの流れ</a></li>
+          <li><a href="10_動かしてみよう.html">動かしてみよう</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔄 参考: フロー解説</div>
+        <ul class="sidebar-nav">
+          <li><a href="FLOW_01_チャット送信の流れ.html">チャット送信の流れ</a></li>
+          <li><a href="FLOW_02_ログインの流れ.html">ログインの流れ</a></li>
+          <li><a href="FLOW_04_セッション管理の流れ.html">セッション管理の流れ</a></li>
         </ul>
       </div>
     </aside>
@@ -265,7 +267,7 @@ def get_index_template():
       <article class="content">
         <div class="index-hero">
           <h1>📚 GCP AI Agent Platform<br>学習ガイド</h1>
-          <p>GASを少し触ったことがある新卒エンジニアが<br>1〜2日で理解して作業できるための学習資料</p>
+          <p>理論学者向け：仕組みを理解してから動かす学習資料</p>
         </div>
 
         <h2 class="section-title">🚀 まずはここから</h2>
@@ -397,7 +399,6 @@ def build_documentation():
 
         # サイドバーのアクティブ状態を設定
         active_states = {
-            'active_00': get_active_class(filename, '00_'),
             'active_01': get_active_class(filename, '01_'),
             'active_02': get_active_class(filename, '02_'),
             'active_03': get_active_class(filename, '03_'),
@@ -406,9 +407,10 @@ def build_documentation():
             'active_06': get_active_class(filename, '06_'),
             'active_07': get_active_class(filename, '07_'),
             'active_08': get_active_class(filename, '08_'),
+            'active_09': get_active_class(filename, '09_'),
+            'active_10': get_active_class(filename, '10_'),
             'active_flow01': get_active_class(filename, 'FLOW_01'),
             'active_flow02': get_active_class(filename, 'FLOW_02'),
-            'active_flow03': get_active_class(filename, 'FLOW_03'),
             'active_flow04': get_active_class(filename, 'FLOW_04'),
         }
 
