@@ -44,3 +44,6 @@ Thumbs.db
 # Firebase
 .firebase/
 firebase-debug.log
+
+# GitHub Pages（HTMLは自動生成）
+learning/github-pages/*.html
