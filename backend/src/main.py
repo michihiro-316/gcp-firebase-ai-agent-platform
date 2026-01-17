@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 from common.config import config
 from common.cors import setup_cors
 from common.auth import authenticate_request
-from common.rate_limiter import check_rate_limit, get_remaining_requests
+from common.rate_limiter import check_rate_limit
 from common.errors import error_response, success_response
 from common.firebase_init import db
 
@@ -141,9 +141,8 @@ def prepare_chat_request():
 
     # レート制限チェック
     if not check_rate_limit(user_id):
-        remaining = get_remaining_requests(user_id)
         raise ChatRequestError(
-            f"リクエスト制限を超えました。(残り: {remaining}回/分)",
+            "リクエスト制限を超えました。1分後に再度お試しください。",
             429
         )
 

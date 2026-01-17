@@ -326,24 +326,31 @@ def authenticate_request(request):
     return user_info  # 全部通過！
 
 
-def get_user_customer_id(uid):
+def get_user_customer_id(uid, email=None):
     """
     ユーザーの所属会社（顧客ID）を取得
 
-    【Custom Claims から取得】
-    - サーバー側でしか設定できない
-    - ユーザーが改ざんできない
-    - 「この人は株式会社ACMEの社員です」という情報
+    【自動振り分け対応】
+    1. まずCustom Claimsに customer_id があるか確認
+    2. なければ、メールのドメインから顧客を自動検索
+    3. 見つかれば自動でCustom Claimsを設定
     """
     user = auth.get_user(uid)
     claims = user.custom_claims or {}
     customer_id = claims.get("customer_id")
 
-    if not customer_id:
-        # 会社に登録されていないユーザーは拒否！
-        raise ValueError("顧客に紐付けされていません。管理者に連絡してください。")
+    # 既にCustom Claimsがあればそれを返す
+    if customer_id:
+        return customer_id
 
-    return customer_id
+    # 自動振り分けを試行
+    if email:
+        customer_id = auto_assign_customer(uid, email)
+        if customer_id:
+            return customer_id
+
+    # どちらにも該当しない場合はエラー
+    raise ValueError("顧客に紐付けされていません。管理者に連絡してください。")
 ```
 
 ---
@@ -370,29 +377,63 @@ def get_user_customer_id(uid):
 ※ ACMEの人はベータのデータを見れない（情報漏洩防止）
 ```
 
-### 管理者の作業手順
+### 管理者の作業手順（推奨：自動振り分け）
 
 ```bash
 # ターミナルで実行（管理者が行う）
+cd backend
 
 # 1. 会社を追加
-python manage_customer.py add acme-corp "株式会社ACME"
-# → 結果: ✅ 顧客 '株式会社ACME' を追加しました！
+python scripts/manage_customer.py add acme-corp "株式会社ACME"
+# → 結果: ✅ 顧客 '株式会社ACME' を作成しました
 
-# 2. ユーザーを会社に紐付け
-python manage_customer.py add-user acme-corp yamada@acme.co.jp
-# → 結果: ✅ ユーザー 'yamada@acme.co.jp' を 'acme-corp' に紐付けました！
-# → ⚠️ 注意: ユーザーは再ログインが必要です
+# 2. ドメインを登録（社員全員が自動振り分け）
+python scripts/manage_customer.py add-domain acme-corp acme.co.jp
+# → 結果: ✅ ドメイン '@acme.co.jp' を '株式会社ACME' に追加しました
+# → @acme.co.jp のユーザーは全員自動で振り分けられます！
 
-# 3. 確認
-python manage_customer.py show acme-corp
+# 3. 業務委託者など外部メールを個別追加（必要な場合のみ）
+python scripts/manage_customer.py add-email acme-corp tanaka@gmail.com
+
+# 4. 確認
+python scripts/manage_customer.py show acme-corp
 # → 結果:
-#   顧客名: 株式会社ACME
-#   所属ユーザー:
-#     yamada@acme.co.jp
+#   === 株式会社ACME ===
+#
+#   顧客ID: acme-corp
+#
+#   --- 自動振り分け設定 ---
+#   許可ドメイン:
+#     @acme.co.jp
+#
+#   --- 所属ユーザー ---
+#     yamada@acme.co.jp （自動）
 ```
 
-### なぜ再ログインが必要？
+### 自動振り分けの仕組み
+
+```
+【従来の方法】400人の会社を登録する場合
+  → 400回 add-user コマンドを実行... 大変！
+  → ユーザーは再ログインが必要
+
+【自動振り分け】
+  → 1回 add-domain を実行するだけ！
+  → @acme.co.jp のユーザーは全員自動で振り分け
+  → 再ログインも不要！
+```
+
+### 手動紐付け（特殊ケースのみ）
+
+自動振り分けを使わない特殊なケースでは、手動紐付けも可能です。
+
+```bash
+# 手動紐付け（ユーザーがログイン済みの場合のみ使用可能）
+python scripts/manage_customer.py add-user acme-corp yamada@acme.co.jp
+# → ⚠️ 注意: ユーザーは再ログインが必要です
+```
+
+### 手動紐付けで再ログインが必要な理由
 
 ```
 【IDトークンの仕組み】
@@ -410,6 +451,8 @@ python manage_customer.py show acme-corp
 
 だから:
   再ログインして新しいトークンを取得する必要がある
+
+※ 自動振り分けの場合は、ログイン時に自動設定されるため再ログイン不要
 ```
 
 ---
@@ -448,13 +491,15 @@ python manage_customer.py show acme-corp
 
 【管理ツール】
 
-┌──────────────┐
-│manage_customer.py│  ← 顧客・ユーザー管理
-│              │
-│ add          │ → 顧客を追加
-│ add-user     │ → ユーザーを顧客に紐付け
-│ show         │ → 顧客情報を表示
-└──────────────┘
+┌──────────────────────┐
+│ manage_customer.py    │  ← 顧客・ユーザー管理
+│                      │
+│ add                  │ → 顧客を追加
+│ add-domain           │ → ドメインを追加（自動振り分け）
+│ add-email            │ → メールを追加（個別登録）
+│ add-user             │ → ユーザーを手動紐付け
+│ show                 │ → 顧客情報を表示
+└──────────────────────┘
 ```
 
 ---
@@ -509,5 +554,5 @@ Firebase Console を開いて、以下を確認してみよう：
 
 ## 次に読むべきドキュメント
 
-- `FLOW_03_セットアップの流れ.md` - 環境構築の手順
+- `09_セットアップの流れ.md` - 環境構築の手順
 - `FLOW_01_チャット送信の流れ.md` - チャット処理の詳細

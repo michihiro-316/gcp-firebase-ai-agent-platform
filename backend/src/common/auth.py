@@ -5,8 +5,15 @@ Firebase Authenticationのトークン検証と
 ドメイン/メールアドレスによるアクセス制御を行います。
 
 【マルチテナント】
-ユーザーのcustomer_idはCustom Claimsから取得します。
-設定方法: manage_customer.py add-user <customer_id> <email>
+ユーザーのcustomer_idは以下の順序で決定されます：
+1. Custom Claimsに既に設定されている場合はそれを使用
+2. 未設定の場合、顧客の allowed_emails にメールアドレスが含まれているか確認
+3. 未設定の場合、顧客の allowed_domains にドメインが含まれているか確認
+4. 自動マッチした場合、Custom Claimsを自動設定
+
+手動設定: manage_customer.py add-user <customer_id> <email>
+ドメイン追加: manage_customer.py add-domain <customer_id> <domain>
+メール追加: manage_customer.py add-email <customer_id> <email>
 """
 import time
 from firebase_admin import auth
@@ -106,12 +113,107 @@ def is_user_allowed(email: str) -> bool:
     return False
 
 
-def get_user_customer_id(uid: str) -> str:
+def find_customer_by_email(email: str) -> str | None:
     """
-    ユーザーのcustomer_idをCustom Claimsから取得
+    メールアドレスから顧客を検索（allowed_emails）
+
+    Args:
+        email: ユーザーのメールアドレス
+
+    Returns:
+        customer_id or None
+    """
+    try:
+        # allowed_emails にメールが含まれる顧客を検索
+        customers = db.collection("customers").where(
+            "allowed_emails", "array_contains", email
+        ).limit(1).get()
+
+        for doc in customers:
+            return doc.id
+        return None
+    except Exception:
+        return None
+
+
+def find_customer_by_domain(email: str) -> str | None:
+    """
+    メールドメインから顧客を検索（allowed_domains）
+
+    Args:
+        email: ユーザーのメールアドレス
+
+    Returns:
+        customer_id or None
+    """
+    if not email or "@" not in email:
+        return None
+
+    domain = email.split("@")[1]
+
+    try:
+        # allowed_domains にドメインが含まれる顧客を検索
+        customers = db.collection("customers").where(
+            "allowed_domains", "array_contains", domain
+        ).limit(1).get()
+
+        for doc in customers:
+            return doc.id
+        return None
+    except Exception:
+        return None
+
+
+def auto_assign_customer(uid: str, email: str) -> str | None:
+    """
+    メールアドレスから顧客を自動検索し、Custom Claimsを設定
 
     Args:
         uid: Firebase Auth ユーザーID
+        email: ユーザーのメールアドレス
+
+    Returns:
+        customer_id or None（マッチしなかった場合）
+    """
+    # 1. allowed_emails でメール完全一致を検索
+    customer_id = find_customer_by_email(email)
+
+    # 2. allowed_domains でドメイン一致を検索
+    if not customer_id:
+        customer_id = find_customer_by_domain(email)
+
+    if not customer_id:
+        return None
+
+    # Custom Claimsを自動設定
+    try:
+        auth.set_custom_user_claims(uid, {"customer_id": customer_id})
+
+        # Firestoreにも記録（バックアップ・監査用）
+        from google.cloud.firestore import SERVER_TIMESTAMP
+        db.collection("users").document(uid).set({
+            "email": email,
+            "customer_id": customer_id,
+            "auto_assigned": True,
+            "updated_at": SERVER_TIMESTAMP,
+        }, merge=True)
+
+        return customer_id
+    except Exception:
+        return None
+
+
+def get_user_customer_id(uid: str, email: str = None) -> str:
+    """
+    ユーザーのcustomer_idを取得（自動振り分け対応）
+
+    取得順序:
+    1. Custom Claimsに既に設定されている場合はそれを使用
+    2. 未設定の場合、allowed_emails / allowed_domains から自動検索・設定
+
+    Args:
+        uid: Firebase Auth ユーザーID
+        email: ユーザーのメールアドレス（自動振り分け用）
 
     Returns:
         customer_id
@@ -123,9 +225,18 @@ def get_user_customer_id(uid: str) -> str:
         user = auth.get_user(uid)
         claims = user.custom_claims or {}
         customer_id = claims.get("customer_id")
-        if not customer_id:
-            raise ValueError("顧客に紐付けされていません。管理者に連絡してください。")
-        return customer_id
+
+        # 既にCustom Claimsがあればそれを返す
+        if customer_id:
+            return customer_id
+
+        # 自動振り分けを試行
+        if email:
+            customer_id = auto_assign_customer(uid, email)
+            if customer_id:
+                return customer_id
+
+        raise ValueError("顧客に紐付けされていません。管理者に連絡してください。")
     except ValueError:
         raise
     except Exception as e:
@@ -162,9 +273,9 @@ def authenticate_request(request) -> dict:
     # アクセス制御チェック
     email = user_info.get("email", "")
     if not is_user_allowed(email):
-        raise ValueError(f"このメールアドレス ({email}) はアクセスが許可されていません")
+        raise ValueError("このアカウントはアクセスが許可されていません")
 
-    # customer_idを追加
-    user_info["customer_id"] = get_user_customer_id(user_info["uid"])
+    # customer_idを追加（自動振り分け対応）
+    user_info["customer_id"] = get_user_customer_id(user_info["uid"], email)
 
     return user_info

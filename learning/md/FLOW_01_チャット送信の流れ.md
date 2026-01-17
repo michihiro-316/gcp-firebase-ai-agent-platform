@@ -296,7 +296,7 @@ def chat():
     message = data.get("message")
 
     # 4. AIエージェントを呼び出し
-    agent = get_agent("sample", customer_id)
+    agent = get_agent("template", customer_id)
 
     # 5. ストリーミングで返す
     def generate():
@@ -418,13 +418,13 @@ Authorization: Bearer eyJhbGciOiJS...
 
 **解決**: エージェントを「差し替え可能」な形で作る
 
-### 場所: `backend/src/agents/sample_agent/agent.py`
+### 場所: `backend/src/agents/_template/agent.py`
 
 ```python
 # agent.py（簡略版）
 
-class SampleAgent(BaseAgent):
-    """サンプルQ&Aエージェント"""
+class TemplateAgent(BaseAgent):
+    """テンプレートQ&Aエージェント"""
 
     # ★ AIの「性格」を定義
     SYSTEM_PROMPT = """あなたは親切で丁寧なAIアシスタントです。
@@ -461,7 +461,7 @@ class SampleAgent(BaseAgent):
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    SampleAgent                               │
+│                   TemplateAgent                              │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  SYSTEM_PROMPT = "あなたは親切な..."  ← AIの性格を決める     │
@@ -494,7 +494,7 @@ class SampleAgent(BaseAgent):
 - Firestoreに保存して永続化
 - 会社（顧客）ごとにデータを分離
 
-### 場所: `backend/src/agents/firestore_checkpointer.py`
+### 場所: `backend/src/agents/_base/firestore_checkpointer.py`
 
 ```python
 # firestore_checkpointer.py（簡略版）
@@ -643,4 +643,4 @@ Network タブで以下を確認してみよう：
 ## 次に読むべきドキュメント
 
 - `FLOW_02_ログインの流れ.md` - ログイン処理の詳細
-- `FLOW_03_セットアップの流れ.md` - 環境構築の手順
+- `09_セットアップの流れ.md` - 環境構築の手順
