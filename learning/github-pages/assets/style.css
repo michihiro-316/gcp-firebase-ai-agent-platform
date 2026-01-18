@@ -632,6 +632,35 @@ ul.task-list li.checked::before {
   overflow-x: auto;
 }
 
+/* Ensure architecture-box content is readable */
+.architecture-box .box-title {
+  color: #f0f0f0;
+}
+
+.architecture-box .box-content {
+  color: var(--code-text);
+}
+
+/* Pre tags inside architecture-box should inherit and not have extra styling */
+.architecture-box pre,
+.architecture-box .codehilite pre {
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  color: inherit;
+}
+
+.architecture-box h3 {
+  color: #f0f0f0;
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.architecture-box p {
+  color: #d0d0d0;
+  margin-bottom: 0;
+}
+
 /* Flow diagram box */
 .flow-box {
   background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%);
@@ -640,6 +669,25 @@ ul.task-list li.checked::before {
   font-family: 'Noto Sans Mono CJK JP', 'Source Han Code JP', 'BIZ UDGothic', monospace;
   font-size: 14px;
   overflow-x: auto;
+}
+
+/* Flow box title styling */
+.flow-box .box-title {
+  color: #92400e;
+}
+
+/* Pre tags inside flow-box need dark text on light background */
+.flow-box pre,
+.flow-box .codehilite pre {
+  background: rgba(0, 0, 0, 0.05);
+  color: #333;
+  border-radius: 6px;
+  padding: 16px;
+  margin: 12px 0 0 0;
+}
+
+.flow-box pre code {
+  color: #333;
 }
 
 /* Summary box - celebration theme */
@@ -674,6 +722,32 @@ ul.task-list li.checked::before {
 .box-content {
   color: var(--text-color);
   line-height: 1.7;
+}
+
+/* Preserve line breaks in box content */
+.info-box .box-content,
+.warning-box .box-content,
+.tip-box .box-content,
+.point-box .box-content {
+  white-space: pre-line;
+}
+
+/* Strong tags in boxes need block display for proper spacing */
+.info-box .box-content strong,
+.warning-box .box-content strong,
+.tip-box .box-content strong,
+.point-box .box-content strong {
+  display: block;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  font-size: 15px;
+}
+
+.info-box .box-content strong:first-child,
+.warning-box .box-content strong:first-child,
+.tip-box .box-content strong:first-child,
+.point-box .box-content strong:first-child {
+  margin-top: 0;
 }
 
 .box-content ul, .box-content ol {
