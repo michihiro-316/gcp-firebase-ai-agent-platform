@@ -15,7 +15,7 @@ import json
 def get_page_config():
     """ページの設定（タイトル、アイコン、説明）を返す"""
     return {
-        # 新しいナンバリング（理論学者向け学習順序）
+        # 新しい学習順序（1日で完了できる構成）
         "01_はじめに読んでください": {
             "icon": "📖",
             "desc": "学習ガイドの進め方",
@@ -36,35 +36,25 @@ def get_page_config():
             "desc": "React/TypeScript の詳細",
             "category": "basic"
         },
-        "05_顧客管理の仕組み": {
-            "icon": "👥",
-            "desc": "マルチテナント設計",
-            "category": "advanced"
+        "05_セットアップの流れ": {
+            "icon": "⚙️",
+            "desc": "環境構築の手順",
+            "category": "start"
         },
         "06_コマンド解説": {
             "icon": "💻",
             "desc": "ターミナルコマンド集",
             "category": "reference"
         },
-        "07_ファイル形式と設定ファイル": {
-            "icon": "📁",
-            "desc": "設定ファイルの解説",
-            "category": "reference"
+        "07_動かしてみよう": {
+            "icon": "🚀",
+            "desc": "ローカル環境での実行",
+            "category": "start"
         },
         "08_AIカスタマイズ": {
             "icon": "🤖",
             "desc": "AIの応答をカスタマイズ",
             "category": "advanced"
-        },
-        "09_セットアップの流れ": {
-            "icon": "⚙️",
-            "desc": "環境構築の手順",
-            "category": "start"
-        },
-        "10_動かしてみよう": {
-            "icon": "🚀",
-            "desc": "ローカル環境での実行",
-            "category": "start"
         },
         # FLOWファイル（参考資料）
         "FLOW_01_チャット送信の流れ": {
@@ -104,7 +94,7 @@ def get_base_template():
     </a>
     <nav class="header-nav">
       <a href="index.html">ホーム</a>
-      <a href="09_セットアップの流れ.html">セットアップ</a>
+      <a href="05_セットアップの流れ.html">セットアップ</a>
       <a href="https://github.com" target="_blank">GitHub</a>
     </nav>
     <button class="menu-toggle" onclick="toggleSidebar()">
@@ -124,29 +114,27 @@ def get_base_template():
       </div>
 
       <div class="sidebar-section">
-        <div class="sidebar-title">🏗️ Phase1: 仕組みを理解</div>
+        <div class="sidebar-title">🏗️ 仕組みを理解</div>
         <ul class="sidebar-nav">
           <li><a href="02_全体像.html" {active_02}>全体像</a></li>
           <li><a href="03_バックエンド解説.html" {active_03}>バックエンド解説</a></li>
           <li><a href="04_フロントエンド解説.html" {active_04}>フロントエンド解説</a></li>
-          <li><a href="05_顧客管理の仕組み.html" {active_05}>顧客管理の仕組み</a></li>
         </ul>
       </div>
 
       <div class="sidebar-section">
-        <div class="sidebar-title">💻 Phase2: 操作を知る</div>
+        <div class="sidebar-title">🛠️ セットアップ</div>
         <ul class="sidebar-nav">
+          <li><a href="05_セットアップの流れ.html" {active_05}>セットアップの流れ</a></li>
           <li><a href="06_コマンド解説.html" {active_06}>コマンド解説</a></li>
-          <li><a href="07_ファイル形式と設定ファイル.html" {active_07}>ファイル形式と設定</a></li>
         </ul>
       </div>
 
       <div class="sidebar-section">
-        <div class="sidebar-title">🚀 Phase3: 動かす</div>
+        <div class="sidebar-title">🚀 動かす</div>
         <ul class="sidebar-nav">
+          <li><a href="07_動かしてみよう.html" {active_07}>動かしてみよう</a></li>
           <li><a href="08_AIカスタマイズ.html" {active_08}>AIカスタマイズ</a></li>
-          <li><a href="09_セットアップの流れ.html" {active_09}>セットアップの流れ</a></li>
-          <li><a href="10_動かしてみよう.html" {active_10}>動かしてみよう</a></li>
         </ul>
       </div>
 
@@ -207,7 +195,7 @@ def get_index_template():
     </a>
     <nav class="header-nav">
       <a href="index.html">ホーム</a>
-      <a href="09_セットアップの流れ.html">セットアップ</a>
+      <a href="05_セットアップの流れ.html">セットアップ</a>
       <a href="https://github.com" target="_blank">GitHub</a>
     </nav>
     <button class="menu-toggle" onclick="toggleSidebar()">
@@ -407,8 +395,6 @@ def build_documentation():
             'active_06': get_active_class(filename, '06_'),
             'active_07': get_active_class(filename, '07_'),
             'active_08': get_active_class(filename, '08_'),
-            'active_09': get_active_class(filename, '09_'),
-            'active_10': get_active_class(filename, '10_'),
             'active_flow01': get_active_class(filename, 'FLOW_01'),
             'active_flow02': get_active_class(filename, 'FLOW_02'),
             'active_flow04': get_active_class(filename, 'FLOW_04'),
