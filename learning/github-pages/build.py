@@ -18,7 +18,7 @@ def get_page_config():
         # 新しい学習順序（1日で完了できる構成）
         "01_はじめに読んでください": {
             "icon": "📖",
-            "desc": "学習ガイドの進め方",
+            "desc": "設計資料の使い方",
             "category": "start"
         },
         "02_全体像": {
@@ -82,7 +82,7 @@ def get_base_template():
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{title} - GCP AI Agent Platform 学習ガイド</title>
+  <title>{title} - GCP AI Agent 設計資料</title>
   <link rel="stylesheet" href="assets/style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
 </head>
@@ -90,11 +90,11 @@ def get_base_template():
   <header class="header">
     <a href="index.html" class="header-logo">
       <span>📚</span>
-      <span>GCP AI Agent 学習ガイド</span>
+      <span>GCP AI Agent 設計資料</span>
     </a>
     <nav class="header-nav">
       <a href="index.html">ホーム</a>
-      <a href="05_セットアップの流れ.html">セットアップ</a>
+      <a href="02_全体像.html">全体像</a>
       <a href="https://github.com" target="_blank">GitHub</a>
     </nav>
     <button class="menu-toggle" onclick="toggleSidebar()">
@@ -153,7 +153,7 @@ def get_base_template():
         {content}
       </article>
       <footer class="footer">
-        GCP AI Agent Platform 学習ガイド | Built with Python & Markdown
+        GCP AI Agent 設計資料 | Built with Python & Markdown
       </footer>
     </main>
   </div>
@@ -183,7 +183,7 @@ def get_index_template():
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GCP AI Agent Platform 学習ガイド</title>
+  <title>GCP AI Agent 設計資料</title>
   <link rel="stylesheet" href="assets/style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
 </head>
@@ -191,11 +191,11 @@ def get_index_template():
   <header class="header">
     <a href="index.html" class="header-logo">
       <span>📚</span>
-      <span>GCP AI Agent 学習ガイド</span>
+      <span>GCP AI Agent 設計資料</span>
     </a>
     <nav class="header-nav">
       <a href="index.html">ホーム</a>
-      <a href="05_セットアップの流れ.html">セットアップ</a>
+      <a href="02_全体像.html">全体像</a>
       <a href="https://github.com" target="_blank">GitHub</a>
     </nav>
     <button class="menu-toggle" onclick="toggleSidebar()">
@@ -254,8 +254,8 @@ def get_index_template():
     <main class="main">
       <article class="content">
         <div class="index-hero">
-          <h1>📚 GCP AI Agent Platform<br>学習ガイド</h1>
-          <p>理論学者向け：仕組みを理解してから動かす学習資料</p>
+          <h1>📚 GCP AI Agent<br>設計資料</h1>
+          <p>AIチャットシステムのアーキテクチャと実装ガイド</p>
         </div>
 
         <h2 class="section-title">🚀 まずはここから</h2>
@@ -279,7 +279,7 @@ def get_index_template():
         </div>
       </article>
       <footer class="footer">
-        GCP AI Agent Platform 学習ガイド | Built with Python & Markdown
+        GCP AI Agent 設計資料 | Built with Python & Markdown
       </footer>
     </main>
   </div>

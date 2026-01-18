@@ -1,4 +1,4 @@
-# GitHub Pages へ学習ドキュメントをデプロイ
+# GitHub Pages へ設計資料をデプロイ
 #
 # 【使い方】
 # 1. GitHubリポジトリにプッシュ
@@ -11,7 +11,7 @@
 # - シンタックスハイライト
 # - レスポンシブ対応
 
-name: Deploy Learning Docs
+name: Deploy Design Docs
 
 on:
   push:

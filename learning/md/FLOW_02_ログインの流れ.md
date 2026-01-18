@@ -13,35 +13,38 @@
 
 ### なぜGoogleログインを使うの？
 
-```
-【方法1: 自分でパスワード管理】
-
-  ユーザー → パスワード → 自分のサーバー
-                           ↓
-                    パスワードを保存
-                           ↓
-                    もしハッキングされたら...
-                    全ユーザーのパスワードが漏洩！
-
-【方法2: Googleに任せる（OAuth）】← 今回はこっち
-
-  ユーザー → Googleアカウント → Google
-                                  ↓
-                           「この人は本物です」
-                                  ↓
-                           自分のサーバー
-
-  ✅ パスワードを保存しなくてよい
-  ✅ Googleのセキュリティに守られる
-  ✅ 2段階認証も自動で使える
-```
+<div class="flow-box">
+<h3>🔑 認証方式の比較</h3>
+<p><strong>【方法1: 自分でパスワード管理】</strong></p>
+<pre>
+ユーザー → パスワード → 自分のサーバー
+                         ↓
+                  パスワードを保存
+                         ↓
+                  もしハッキングされたら...
+                  全ユーザーのパスワードが漏洩！
+</pre>
+<p><strong>【方法2: Googleに任せる（OAuth）】← 今回はこっち</strong></p>
+<pre>
+ユーザー → Googleアカウント → Google
+                                ↓
+                         「この人は本物です」
+                                ↓
+                         自分のサーバー
+</pre>
+<ul>
+<li>✅ パスワードを保存しなくてよい</li>
+<li>✅ Googleのセキュリティに守られる</li>
+<li>✅ 2段階認証も自動で使える</li>
+</ul>
+</div>
 
 ### Custom Claims（カスタムクレーム）とは？
 
-```
-【銀行の例えで説明】
-
-身分証明書（IDトークン）:
+<div class="info-box">
+<h3>🎫 Custom Claims - 銀行の例えで説明</h3>
+<p><strong>身分証明書（IDトークン）:</strong></p>
+<pre>
 ┌─────────────────────────────────────┐
 │  名前: 山田太郎                       │
 │  生年月日: 1990/1/1                   │
@@ -51,16 +54,17 @@
 │  所属会社: 株式会社ACME                │  ← サーバーだけが書ける
 │  社員番号: A001                       │  ← ユーザーは改ざんできない
 └─────────────────────────────────────┘
-
-この身分証があれば、
-「株式会社ACMEの山田太郎さん」だと証明できる
-```
+</pre>
+<p>この身分証があれば、<br>「株式会社ACMEの山田太郎さん」だと証明できる</p>
+</div>
 
 ---
 
 ## 全体フロー図
 
-```
+<div class="architecture-box">
+<h3>🔄 ログインの全体フロー</h3>
+<pre>
 【ブラウザ】                          【外部サービス】
 
 1. 「Googleでログイン」
@@ -92,7 +96,8 @@
             ↓
 2. ログイン完了！
    チャット画面に切り替わる
-```
+</pre>
+</div>
 
 ---
 
@@ -209,19 +214,19 @@ export const googleProvider = new GoogleAuthProvider()
 
 ### 環境変数とは？
 
-```
-【問題】APIキーをコードに直接書くと...
-
-const apiKey = "AIzaSyXXXXXXXXXX"  // ← GitHubに公開される！
-
-【解決】.env ファイルに書く
-
+<div class="warning-box">
+<h3>⚠️ APIキーの管理</h3>
+<p><strong>【問題】APIキーをコードに直接書くと...</strong></p>
+<pre>const apiKey = "AIzaSyXXXXXXXXXX"  // ← GitHubに公開される！</pre>
+<p><strong>【解決】.env ファイルに書く</strong></p>
+<pre>
 # .env ファイル（GitHubにはアップしない）
 VITE_FIREBASE_API_KEY=AIzaSyXXXXXXXXXX
 
 # コードでは環境変数から読む
 const apiKey = import.meta.env.VITE_FIREBASE_API_KEY
-```
+</pre>
+</div>
 
 ---
 
@@ -229,33 +234,21 @@ const apiKey = import.meta.env.VITE_FIREBASE_API_KEY
 
 ### signInWithPopup の動作
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                    ログインの10ステップ                        │
-├──────────────────────────────────────────────────────────────┤
-│                                                              │
-│  1. signInWithPopup() を呼ぶ                                 │
-│         ↓                                                    │
-│  2. 新しいウィンドウ（ポップアップ）が開く                      │
-│         ↓                                                    │
-│  3. Googleの「アカウントを選択」画面が表示                      │
-│         ↓                                                    │
-│  4. ユーザーがアカウントを選択                                 │
-│         ↓                                                    │
-│  5. Google: 「この人は本物です」                              │
-│         ↓                                                    │
-│  6. Firebase Auth にユーザー情報が保存                        │
-│         ↓                                                    │
-│  7. ポップアップが自動で閉じる                                 │
-│         ↓                                                    │
-│  8. onAuthStateChanged が自動で呼ばれる                       │
-│         ↓                                                    │
-│  9. setUser(user) で状態が更新                               │
-│         ↓                                                    │
-│  10. 画面がチャット画面に切り替わる                            │
-│                                                              │
-└──────────────────────────────────────────────────────────────┘
-```
+<div class="flow-box">
+<h3>🔟 ログインの10ステップ</h3>
+<ol>
+<li>signInWithPopup() を呼ぶ</li>
+<li>新しいウィンドウ（ポップアップ）が開く</li>
+<li>Googleの「アカウントを選択」画面が表示</li>
+<li>ユーザーがアカウントを選択</li>
+<li>Google: 「この人は本物です」</li>
+<li>Firebase Auth にユーザー情報が保存</li>
+<li>ポップアップが自動で閉じる</li>
+<li>onAuthStateChanged が自動で呼ばれる</li>
+<li>setUser(user) で状態が更新</li>
+<li>画面がチャット画面に切り替わる</li>
+</ol>
+</div>
 
 ### 認証状態の変化パターン
 
@@ -272,15 +265,13 @@ const apiKey = import.meta.env.VITE_FIREBASE_API_KEY
 
 ### なぜサーバー側でも検証が必要？
 
-```
-【問題】フロントエンドだけで認証すると...
-
-悪意のあるユーザーが、
-ブラウザの開発者ツールで
-「ログイン済み」に偽装できてしまう！
-
-【解決】サーバー側でも必ずトークンを検証する
-
+<div class="warning-box">
+<h3>⚠️ フロントエンドだけで認証すると...</h3>
+<p>悪意のあるユーザーが、<br>
+ブラウザの開発者ツールで<br>
+「ログイン済み」に偽装できてしまう！</p>
+<p><strong>【解決】サーバー側でも必ずトークンを検証する</strong></p>
+<pre>
 フロントエンド: 「私は山田太郎です」
         ↓ IDトークンを送信
 サーバー: 「本当に？Googleに確認するね」
@@ -288,7 +279,8 @@ const apiKey = import.meta.env.VITE_FIREBASE_API_KEY
 Google: 「本物の山田太郎さんです」
         ↓
 サーバー: 「OK、処理を続けます」
-```
+</pre>
+</div>
 
 ### 場所: `backend/src/common/auth.py`
 
@@ -359,9 +351,9 @@ def get_user_customer_id(uid, email=None):
 
 ### なぜ顧客紐付けが必要？
 
-```
-【このシステムの構造】
-
+<div class="info-box">
+<h3>🏢 このシステムの構造</h3>
+<pre>
 顧客（会社）
   └── ユーザー（社員）
        └── データ（会話履歴など）
@@ -375,7 +367,8 @@ def get_user_customer_id(uid, email=None):
   └── 田中一郎 → ベータの会話履歴
 
 ※ ACMEの人はベータのデータを見れない（情報漏洩防止）
-```
+</pre>
+</div>
 
 ### 管理者の作業手順（推奨：自動振り分け）
 
@@ -412,16 +405,20 @@ python scripts/manage_customer.py show acme-corp
 
 ### 自動振り分けの仕組み
 
-```
-【従来の方法】400人の会社を登録する場合
-  → 400回 add-user コマンドを実行... 大変！
-  → ユーザーは再ログインが必要
-
-【自動振り分け】
-  → 1回 add-domain を実行するだけ！
-  → @acme.co.jp のユーザーは全員自動で振り分け
-  → 再ログインも不要！
-```
+<div class="tip-box">
+<h3>💡 自動振り分け vs 手動登録</h3>
+<p><strong>【従来の方法】400人の会社を登録する場合</strong></p>
+<ul>
+<li>→ 400回 add-user コマンドを実行... 大変！</li>
+<li>→ ユーザーは再ログインが必要</li>
+</ul>
+<p><strong>【自動振り分け】</strong></p>
+<ul>
+<li>→ 1回 add-domain を実行するだけ！</li>
+<li>→ @acme.co.jp のユーザーは全員自動で振り分け</li>
+<li>→ 再ログインも不要！</li>
+</ul>
+</div>
 
 ### 手動紐付け（特殊ケースのみ）
 
@@ -435,31 +432,31 @@ python scripts/manage_customer.py add-user acme-corp yamada@acme.co.jp
 
 ### 手動紐付けで再ログインが必要な理由
 
-```
-【IDトークンの仕組み】
-
-ログイン時:
-  Custom Claims が入った IDトークンが発行される
-  ┌─────────────────────────────┐
-  │ name: 山田太郎               │
-  │ email: yamada@acme.co.jp    │
-  │ customer_id: acme-corp      │ ← ここに入る
-  └─────────────────────────────┘
-
-管理者が紐付けを変更しても:
-  既に発行されたトークンは変わらない！
-
-だから:
-  再ログインして新しいトークンを取得する必要がある
-
-※ 自動振り分けの場合は、ログイン時に自動設定されるため再ログイン不要
-```
+<div class="info-box">
+<h3>🎫 IDトークンの仕組み</h3>
+<p><strong>ログイン時:</strong><br>
+Custom Claims が入った IDトークンが発行される</p>
+<pre>
+┌─────────────────────────────┐
+│ name: 山田太郎               │
+│ email: yamada@acme.co.jp    │
+│ customer_id: acme-corp      │ ← ここに入る
+└─────────────────────────────┘
+</pre>
+<p><strong>管理者が紐付けを変更しても:</strong><br>
+既に発行されたトークンは変わらない！</p>
+<p><strong>だから:</strong><br>
+再ログインして新しいトークンを取得する必要がある</p>
+<p>※ 自動振り分けの場合は、ログイン時に自動設定されるため再ログイン不要</p>
+</div>
 
 ---
 
 ## まとめ：ファイルの繋がり
 
-```
+<div class="architecture-box">
+<h3>📁 ファイル構成と役割</h3>
+<pre>
 【ブラウザ側（フロントエンド）】
 
 ┌──────────────┐
@@ -500,7 +497,8 @@ python scripts/manage_customer.py add-user acme-corp yamada@acme.co.jp
 │ add-user             │ → ユーザーを手動紐付け
 │ show                 │ → 顧客情報を表示
 └──────────────────────┘
-```
+</pre>
+</div>
 
 ---
 

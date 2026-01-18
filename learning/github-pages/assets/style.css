@@ -255,10 +255,15 @@ pre {
   padding: 20px 24px;
   border-radius: 8px;
   overflow-x: auto;
-  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-family: 'Noto Sans Mono CJK JP', 'Source Han Code JP', 'BIZ UDGothic', 'MS Gothic', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.5;
   margin: 1.5em 0;
+  /* Prevent ASCII art from breaking */
+  white-space: pre;
+  word-wrap: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 pre code {
@@ -573,6 +578,211 @@ ul.task-list li.checked::before {
     box-shadow: none;
     max-width: none;
   }
+}
+
+/* ========================================
+   Custom Info Boxes (replacing ASCII art)
+   ======================================== */
+
+/* Base box style */
+.info-box, .warning-box, .tip-box, .point-box, .architecture-box, .flow-box, .summary-box {
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin: 1.5em 0;
+  position: relative;
+}
+
+/* Info box - blue theme */
+.info-box {
+  background: linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 100%);
+  border: 1px solid #b8daff;
+  border-left: 4px solid #007bff;
+}
+
+/* Warning box - yellow theme */
+.warning-box {
+  background: linear-gradient(135deg, #fff8e6 0%, #fffdf5 100%);
+  border: 1px solid #ffeeba;
+  border-left: 4px solid #ffc107;
+}
+
+/* Tip/Hint box - green theme */
+.tip-box {
+  background: linear-gradient(135deg, #e8f8e8 0%, #f0fff0 100%);
+  border: 1px solid #b8e6b8;
+  border-left: 4px solid var(--primary-color);
+}
+
+/* Point box - purple theme */
+.point-box {
+  background: linear-gradient(135deg, #f3e8ff 0%, #faf5ff 100%);
+  border: 1px solid #d8b4fe;
+  border-left: 4px solid #8b5cf6;
+}
+
+/* Architecture/System box - gray theme with code style */
+.architecture-box {
+  background: var(--code-bg);
+  border: 1px solid #4a5568;
+  border-radius: 8px;
+  color: var(--code-text);
+  font-family: 'Noto Sans Mono CJK JP', 'Source Han Code JP', 'BIZ UDGothic', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+/* Flow diagram box */
+.flow-box {
+  background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%);
+  border: 1px solid #fcd34d;
+  border-left: 4px solid #f59e0b;
+  font-family: 'Noto Sans Mono CJK JP', 'Source Han Code JP', 'BIZ UDGothic', monospace;
+  font-size: 14px;
+  overflow-x: auto;
+}
+
+/* Summary box - celebration theme */
+.summary-box {
+  background: linear-gradient(135deg, var(--primary-light) 0%, #fff 100%);
+  border: 2px solid var(--primary-color);
+  border-radius: 12px;
+  text-align: center;
+}
+
+/* Box titles */
+.box-title {
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-box .box-title { color: #0056b3; }
+.warning-box .box-title { color: #856404; }
+.tip-box .box-title { color: #2d6a2d; }
+.point-box .box-title { color: #6b21a8; }
+.summary-box .box-title {
+  color: var(--primary-hover);
+  justify-content: center;
+  font-size: 18px;
+}
+
+/* Box content */
+.box-content {
+  color: var(--text-color);
+  line-height: 1.7;
+}
+
+.box-content ul, .box-content ol {
+  margin: 0.5em 0;
+  padding-left: 1.2em;
+}
+
+.box-content li {
+  margin: 0.3em 0;
+}
+
+/* Step indicator boxes */
+.step-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 20px;
+  background: #f8fafc;
+  border-radius: 8px;
+  margin: 12px 0;
+  border: 1px solid #e2e8f0;
+}
+
+.step-number {
+  background: var(--primary-color);
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.step-content {
+  flex: 1;
+}
+
+.step-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* Learning goal box */
+.goal-box {
+  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+  border: 1px solid #93c5fd;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 1.5em 0;
+}
+
+.goal-box .box-title {
+  color: #1d4ed8;
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+
+.goal-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.goal-list li {
+  padding: 8px 0;
+  padding-left: 28px;
+  position: relative;
+}
+
+.goal-list li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+/* Hero section for chapter headers */
+.chapter-hero {
+  text-align: center;
+  padding: 32px 24px;
+  background: linear-gradient(135deg, var(--primary-light) 0%, #fff 100%);
+  border-radius: 16px;
+  margin-bottom: 32px;
+  border: 2px solid var(--primary-color);
+}
+
+.chapter-hero h1 {
+  border: none;
+  padding: 0;
+  margin: 0 0 12px 0;
+  font-size: 32px;
+  color: var(--text-color);
+}
+
+.chapter-hero .subtitle {
+  color: var(--text-muted);
+  font-size: 18px;
+  margin: 0;
+}
+
+.chapter-hero .emoji {
+  font-size: 48px;
+  margin-bottom: 16px;
+  display: block;
 }
 
 /* Animations */
