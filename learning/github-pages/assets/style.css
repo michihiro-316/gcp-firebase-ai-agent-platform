@@ -721,15 +721,16 @@ ul.task-list li.checked::before {
 /* Box content */
 .box-content {
   color: var(--text-color);
-  line-height: 1.7;
+  line-height: 1.5;
 }
 
-/* Preserve line breaks in box content, but reset for lists */
+/* Tighter spacing for box content */
 .info-box .box-content,
 .warning-box .box-content,
 .tip-box .box-content,
 .point-box .box-content {
   white-space: normal;
+  line-height: 1.4;
 }
 
 .info-box .box-content ul,
@@ -740,15 +741,16 @@ ul.task-list li.checked::before {
 .warning-box .box-content ol,
 .tip-box .box-content ol,
 .point-box .box-content ol {
-  margin: 0.5em 0;
+  margin: 0.3em 0;
+  padding-left: 1.5em;
 }
 
 .info-box .box-content li,
 .warning-box .box-content li,
 .tip-box .box-content li,
 .point-box .box-content li {
-  margin: 0.25em 0;
-  line-height: 1.5;
+  margin: 0.1em 0;
+  line-height: 1.4;
 }
 
 /* Strong tags in boxes need block display for proper spacing */
