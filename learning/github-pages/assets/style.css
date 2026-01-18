@@ -724,12 +724,31 @@ ul.task-list li.checked::before {
   line-height: 1.7;
 }
 
-/* Preserve line breaks in box content */
+/* Preserve line breaks in box content, but reset for lists */
 .info-box .box-content,
 .warning-box .box-content,
 .tip-box .box-content,
 .point-box .box-content {
-  white-space: pre-line;
+  white-space: normal;
+}
+
+.info-box .box-content ul,
+.warning-box .box-content ul,
+.tip-box .box-content ul,
+.point-box .box-content ul,
+.info-box .box-content ol,
+.warning-box .box-content ol,
+.tip-box .box-content ol,
+.point-box .box-content ol {
+  margin: 0.5em 0;
+}
+
+.info-box .box-content li,
+.warning-box .box-content li,
+.tip-box .box-content li,
+.point-box .box-content li {
+  margin: 0.25em 0;
+  line-height: 1.5;
 }
 
 /* Strong tags in boxes need block display for proper spacing */
