@@ -15,7 +15,7 @@
 ║                                                                              ║
 ║  🔒 セキュリティ:                                                            ║
 ║     - Firebase認証トークンの検証                                             ║
-║     - Gateway からの内部ヘッダー認証（X-Gateway-Verified + HMAC署名検証）    ║
+║     - Gateway からの内部ヘッダー認証（X-Gateway-Verified）                   ║
 ║     - 顧客IDによるデータ分離（マルチテナント）                                ║
 ║     - レート制限（DoS対策）                                                  ║
 ║     - メッセージ長制限（コスト攻撃対策）                                      ║
@@ -29,19 +29,17 @@
 
 【マルチテナント設計】
 顧客ごとにデータを完全分離。customer_idはFirebase Custom Claimsから取得。
-Gateway経由の場合は X-Gateway-Verified ヘッダー + HMAC署名で認証済みと判定。
+Gateway経由の場合は X-Gateway-Verified ヘッダーで認証済みと判定。
 
 【セキュリティ】
-Gateway-Backend 間は共有シークレット（HMAC署名）で保護。
-GATEWAY_SECRET 環境変数の設定が必須（Gateway と同じ値を設定）。
+Cloud Run IAM で Backend へのアクセスを Gateway のみに制限することを推奨。
+これにより X-Gateway-Verified ヘッダーの偽装を防止。
 
 【エージェント追加方法】
 1. agents/ に新しいディレクトリを作成（_templateをコピー）
 2. 下記のAGENTS辞書にクラスを追加
 """
 import os
-import hmac
-import hashlib
 import asyncio
 import re
 import uuid
@@ -52,12 +50,6 @@ import functions_framework
 # ロギング設定
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# ===== Gateway-Backend 間認証 =====
-# Gateway と同じシークレットを設定（必須）
-GATEWAY_SECRET = os.environ.get("GATEWAY_SECRET", "")
-if not GATEWAY_SECRET:
-    logger.warning("GATEWAY_SECRET が未設定です。本番環境では必ず設定してください。")
 
 # 共通モジュール
 from common.config import config
@@ -129,49 +121,16 @@ class ChatRequestError(Exception):
         super().__init__(message)
 
 
-def verify_gateway_signature(user_id: str, customer_id: str, signature: str) -> bool:
-    """
-    Gateway からの署名を検証
-
-    【なぜ必要か】
-    X-Gateway-Verified ヘッダーだけでは、攻撃者が直接 Backend にアクセスして
-    ヘッダーを偽装できてしまう。この署名検証により、正規の Gateway からの
-    リクエストのみを受け付ける。
-
-    Args:
-        user_id: ユーザーID
-        customer_id: 顧客ID
-        signature: Gateway が生成した HMAC-SHA256 署名
-
-    Returns:
-        署名が正しければ True、そうでなければ False
-    """
-    if not GATEWAY_SECRET:
-        # シークレットが未設定の場合は警告を出して許可（開発環境用）
-        logger.warning("GATEWAY_SECRET が未設定のため、署名検証をスキップします")
-        return True
-
-    if not signature:
-        return False
-
-    # Gateway と同じ方法で署名を生成
-    message = f"{user_id}:{customer_id}".encode()
-    expected_signature = hmac.new(
-        GATEWAY_SECRET.encode(),
-        message,
-        hashlib.sha256
-    ).hexdigest()
-
-    # タイミング攻撃を防ぐため、hmac.compare_digest を使用
-    return hmac.compare_digest(signature, expected_signature)
-
-
 def authenticate_request_with_gateway(request) -> dict:
     """
     Gateway 経由のリクエストを認証
 
     Gateway が認証済みの場合（X-Gateway-Verified ヘッダーがある場合）、
-    HMAC 署名を検証した上で X-User-Id と X-Customer-Id ヘッダーを信頼する。
+    X-User-Id と X-Customer-Id ヘッダーを信頼する。
+
+    【セキュリティ補足】
+    Backend への直接アクセスを防ぐため、Cloud Run IAM で
+    Gateway のサービスアカウントのみアクセス可能に設定することを推奨。
 
     Gateway 経由でない場合は、従来の Firebase トークン認証を行う。
 
@@ -188,15 +147,9 @@ def authenticate_request_with_gateway(request) -> dict:
         # Gateway からの内部ヘッダーを取得
         user_id = request.headers.get("X-User-Id")
         customer_id = request.headers.get("X-Customer-Id")
-        signature = request.headers.get("X-Gateway-Signature", "")
 
         if not user_id or not customer_id:
             raise ValueError("Gateway からの内部ヘッダーが不足しています")
-
-        # 署名を検証（偽装防止）
-        if not verify_gateway_signature(user_id, customer_id, signature):
-            logger.warning(f"Gateway 署名検証失敗: user_id={user_id}, customer_id={customer_id}")
-            raise ValueError("Gateway の署名が無効です")
 
         logger.info(f"Gateway 経由の認証成功: user_id={user_id}, customer_id={customer_id}")
         return {

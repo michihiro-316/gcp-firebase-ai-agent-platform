@@ -26,13 +26,11 @@
 - Company Cloud Functions に処理を委譲する
 
 【セキュリティ】
-- Gateway-Backend 間は共有シークレット（HMAC署名）で保護
-- GATEWAY_SECRET 環境変数の設定が必須
+- Firebase Authentication でユーザー認証
+- Cloud Run IAM で Backend へのアクセスを Gateway のみに制限（推奨）
 """
 import os
 import time
-import hmac
-import hashlib
 import logging
 from flask import Flask, request, Response
 import requests
@@ -45,17 +43,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # ===== 設定 =====
-# 環境（development / production）
-ENV = os.environ.get("ENV", "development")
-
-# Gateway-Backend 間の認証用シークレット（本番環境では必須）
-GATEWAY_SECRET = os.environ.get("GATEWAY_SECRET", "")
-if not GATEWAY_SECRET:
-    if ENV == "production":
-        logger.error("GATEWAY_SECRET が本番環境で未設定です。セキュリティリスクがあります。")
-    else:
-        logger.warning("GATEWAY_SECRET が未設定です。開発環境のみ許可されます。")
-
 # 許可するオリジン（CORS）
 ALLOWED_ORIGINS = os.environ.get(
     "ALLOWED_ORIGINS",
@@ -86,33 +73,6 @@ def get_cors_origin() -> str:
     if origin in ALLOWED_ORIGINS:
         return origin
     return ALLOWED_ORIGINS[0] if ALLOWED_ORIGINS else "*"
-
-
-def create_gateway_signature(user_id: str, customer_id: str) -> str:
-    """
-    Gateway-Backend 間の認証用署名を生成
-
-    Args:
-        user_id: ユーザーID
-        customer_id: 顧客ID
-
-    Returns:
-        HMAC-SHA256 署名（16進数文字列）
-
-    【なぜ必要か】
-    Backend が直接インターネットからアクセス可能な場合、
-    攻撃者が X-Gateway-Verified ヘッダーを偽装できてしまう。
-    この署名により、正規の Gateway からのリクエストのみを受け付ける。
-    """
-    if not GATEWAY_SECRET:
-        return ""
-
-    message = f"{user_id}:{customer_id}".encode()
-    return hmac.new(
-        GATEWAY_SECRET.encode(),
-        message,
-        hashlib.sha256
-    ).hexdigest()
 
 
 def error_response(message: str, status_code: int, detail: str = None):
@@ -321,9 +281,6 @@ def proxy(path):
 
     logger.info(f"転送: {request.method} /{path} -> {target_url} (customer={customer_id})")
 
-    # Gateway-Backend 間の認証用署名を生成
-    signature = create_gateway_signature(uid, customer_id)
-
     try:
         # リクエストを転送
         # stream=True: レスポンスを一度に全部メモリに読み込まず、少しずつ受信
@@ -336,8 +293,6 @@ def proxy(path):
                 "X-Gateway-Verified": "true",
                 "X-User-Id": uid,
                 "X-Customer-Id": customer_id,
-                # 署名（Backend 側で検証）
-                "X-Gateway-Signature": signature,
                 # 元のリクエストのヘッダー
                 "Content-Type": request.content_type or "application/json",
             },

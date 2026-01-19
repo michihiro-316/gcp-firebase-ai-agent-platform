@@ -231,45 +231,27 @@ gcp-firebase-ai-agent-platform/
 
 1. フロントエンドが Firebase Token を取得
 2. Gateway が Token を検証し、customer_id を取得
-3. Gateway が内部ヘッダー（`X-Gateway-Verified`, `X-User-Id`, `X-Customer-Id`, `X-Gateway-Signature`）を付与
-4. Company Cloud Functions が **HMAC 署名を検証** した上で内部ヘッダーを信頼
+3. Gateway が内部ヘッダー（`X-Gateway-Verified`, `X-User-Id`, `X-Customer-Id`）を付与
+4. Company Cloud Functions が内部ヘッダーを信頼
 
-### Gateway-Backend 間の認証（HMAC署名）
+### Backend への直接アクセス防止（Cloud Run IAM）
 
-**なぜ必要か？**
-
-`X-Gateway-Verified` ヘッダーだけでは、攻撃者が直接 Backend にアクセスしてヘッダーを偽装できてしまいます。
-共有シークレット（HMAC署名）により、正規の Gateway からのリクエストのみを受け付けます。
-
-**署名の仕組み:**
-
-```python
-# Gateway 側: 署名を生成
-message = f"{user_id}:{customer_id}".encode()
-signature = hmac.new(
-    GATEWAY_SECRET.encode(),
-    message,
-    hashlib.sha256
-).hexdigest()
-
-# Backend 側: 署名を検証
-expected_signature = hmac.new(...)
-if hmac.compare_digest(signature, expected_signature):
-    # 正規の Gateway からのリクエスト
-```
-
-**環境変数の設定:**
-
-Gateway と Backend の両方に同じ `GATEWAY_SECRET` を設定する必要があります:
+**重要**: Backend への直接アクセスを防ぐため、Cloud Run IAM で Gateway のみアクセス可能に設定することを推奨します。
 
 ```bash
-# 安全なシークレットを生成
-openssl rand -hex 32
+# Backend を非公開に設定
+gcloud run services update backend \
+  --no-allow-unauthenticated \
+  --region=asia-northeast1
 
-# Cloud Functions にシークレットを設定
-gcloud functions deploy gateway --set-env-vars GATEWAY_SECRET=<生成した値>
-gcloud functions deploy backend --set-env-vars GATEWAY_SECRET=<同じ値>
+# Gateway のサービスアカウントに Backend へのアクセス権を付与
+gcloud run services add-iam-policy-binding backend \
+  --member="serviceAccount:gateway@PROJECT_ID.iam.gserviceaccount.com" \
+  --role="roles/run.invoker" \
+  --region=asia-northeast1
 ```
+
+これにより、インターネットから直接 Backend にアクセスできなくなり、`X-Gateway-Verified` ヘッダーの偽装を防止できます。
 
 ### 直接アクセスの場合
 
@@ -277,9 +259,8 @@ Gateway を経由しない場合でも、Company Cloud Functions は従来通り
 
 ```python
 if gateway_verified == "true":
-    # Gateway 経由 → 署名を検証
-    if verify_gateway_signature(user_id, customer_id, signature):
-        # 正規の Gateway からのリクエスト
+    # Gateway 経由 → 内部ヘッダーを信頼
+    return {"uid": user_id, "customer_id": customer_id}
 else:
     # 従来の認証
     return authenticate_request(request)
