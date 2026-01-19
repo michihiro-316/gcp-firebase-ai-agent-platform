@@ -76,6 +76,10 @@ backend/src/agents/_template/agent.py
 │       ├── 06_コマンド解説.md            ← ★コマンドの意味
 │       └── 08_AIカスタマイズ.md          ← ★AI編集ガイド
 │
+├── 🚪 gateway/              ← 【Gateway】（触らなくてOK）
+│   └── src/
+│       └── main.py          ← 認証・ルーティング（マルチテナント用）
+│
 ├── ⚙️ backend/              ← 【バックエンド】
 │   └── src/
 │       ├── main.py          ← APIエントリーポイント（触らなくてOK）
@@ -103,6 +107,7 @@ backend/src/agents/_template/agent.py
 | **新人エンジニア** | `00_はじめに〜.md` → `04_動かしてみよう.md` |
 | **PM** | `01_全体像.md` → `CUSTOMER_GUIDE.md` |
 | **フルスタック** | `02_バックエンド解説.md` → `03_フロントエンド解説.md` |
+| **インフラ担当** | `10_Gatewayアーキテクチャ.md` → マルチテナント構成 |
 
 ### 推奨学習順序
 
