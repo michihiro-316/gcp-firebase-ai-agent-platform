@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>05 顧客管理の仕組み - GCP AI Agent Platform 学習ガイド</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="header-logo">
+      <span>📚</span>
+      <span>GCP AI Agent 学習ガイド</span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">ホーム</a>
+      <a href="FLOW_03_セットアップの流れ.html">セットアップ</a>
+      <a href="https://github.com" target="_blank">GitHub</a>
+    </nav>
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">🚀 はじめに</div>
+        <ul class="sidebar-nav">
+          <li><a href="00_はじめに読んでください.html" >はじめに読んでください</a></li>
+          <li><a href="04_動かしてみよう.html" >動かしてみよう</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">📖 基礎知識</div>
+        <ul class="sidebar-nav">
+          <li><a href="01_全体像.html" >全体像</a></li>
+          <li><a href="02_バックエンド解説.html" >バックエンド解説</a></li>
+          <li><a href="03_フロントエンド解説.html" >フロントエンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔄 フロー解説</div>
+        <ul class="sidebar-nav">
+          <li><a href="FLOW_01_チャット送信の流れ.html" >チャット送信の流れ</a></li>
+          <li><a href="FLOW_02_ログインの流れ.html" >ログインの流れ</a></li>
+          <li><a href="FLOW_03_セットアップの流れ.html" >セットアップの流れ</a></li>
+          <li><a href="FLOW_04_セッション管理の流れ.html" >セッション管理の流れ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔧 上級編</div>
+        <ul class="sidebar-nav">
+          <li><a href="05_顧客管理の仕組み.html" class="active">顧客管理の仕組み</a></li>
+          <li><a href="08_AIカスタマイズ.html" >AIカスタマイズ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">📚 リファレンス</div>
+        <ul class="sidebar-nav">
+          <li><a href="06_コマンド解説.html" >コマンド解説</a></li>
+          <li><a href="07_ファイル形式と設定ファイル.html" >ファイル形式と設定</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <article class="content">
+        <h1 id="顧客管理の仕組み">顧客管理の仕組み<a class="header-link" href="#顧客管理の仕組み" title="Permanent link">&para;</a></h1>
+<p>複数の顧客（会社）にサービスを提供する仕組みを解説します。</p>
+<hr />
+<h2 id="顧客とユーザーの違い">顧客とユーザーの違い<a class="header-link" href="#顧客とユーザーの違い" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><code>顧客（Customer）= 会社
+  ├── ユーザーA（山田さん）
+  ├── ユーザーB（田中さん）
+  └── ユーザーC（佐藤さん）
+</code></pre></div>
+
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>例</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>顧客</td>
+<td>株式会社ACME</td>
+<td>サービスを契約している会社</td>
+</tr>
+<tr>
+<td>ユーザー</td>
+<td>yamada@acme.co.jp</td>
+<td>実際に使う人</td>
+</tr>
+<tr>
+<td>顧客ID</td>
+<td>acme-corp</td>
+<td>システム上の識別子</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="データの分離">データの分離<a class="header-link" href="#データの分離" title="Permanent link">&para;</a></h2>
+<h3 id="なぜ分離が必要">なぜ分離が必要？<a class="header-link" href="#なぜ分離が必要" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code>A社の社員がB社のデータを見れたら大問題！
+→ 顧客ごとにデータを完全に分離する必要がある
+</code></pre></div>
+
+<h3 id="どうやって分離している">どうやって分離している？<a class="header-link" href="#どうやって分離している" title="Permanent link">&para;</a></h3>
+<p>Firestoreの階層構造で分離:</p>
+<div class="codehilite"><pre><span></span><code>customers/
+├── acme-corp/                 ← A社のデータ
+│   ├── name: &quot;株式会社ACME&quot;
+│   └── checkpoints/
+│       ├── user1_abc123/      ← A社ユーザーの会話
+│       └── user2_def456/
+│
+├── beta-inc/                  ← B社のデータ
+│   ├── name: &quot;ベータ株式会社&quot;
+│   └── checkpoints/
+│       └── user3_ghi789/      ← B社ユーザーの会話
+</code></pre></div>
+
+<p>A社のユーザーは <code>customers/acme-corp/</code> 以下にしかアクセスできない。</p>
+<hr />
+<h2 id="custom-claims-とは">Custom Claims とは？<a class="header-link" href="#custom-claims-とは" title="Permanent link">&para;</a></h2>
+<p>Firebase Authの「カスタム属性」機能。</p>
+<h3 id="イメージ">イメージ<a class="header-link" href="#イメージ" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="err">【</span><span class="n">普通のログイン情報</span><span class="err">】</span>
+<span class="o">-</span><span class="w"> </span><span class="nl">uid</span><span class="p">:</span><span class="w"> </span><span class="ss">&quot;abc123&quot;</span>
+<span class="o">-</span><span class="w"> </span><span class="nl">email</span><span class="p">:</span><span class="w"> </span><span class="ss">&quot;yamada@acme.co.jp&quot;</span>
+<span class="o">-</span><span class="w"> </span><span class="nl">displayName</span><span class="p">:</span><span class="w"> </span><span class="ss">&quot;山田太郎&quot;</span>
+
+<span class="err">【</span><span class="n">Custom</span><span class="w"> </span><span class="n">Claims</span><span class="w"> </span><span class="n">を追加</span><span class="err">】</span>
+<span class="o">-</span><span class="w"> </span><span class="nl">uid</span><span class="p">:</span><span class="w"> </span><span class="ss">&quot;abc123&quot;</span>
+<span class="o">-</span><span class="w"> </span><span class="nl">email</span><span class="p">:</span><span class="w"> </span><span class="ss">&quot;yamada@acme.co.jp&quot;</span>
+<span class="o">-</span><span class="w"> </span><span class="nl">displayName</span><span class="p">:</span><span class="w"> </span><span class="ss">&quot;山田太郎&quot;</span>
+<span class="o">-</span><span class="w"> </span><span class="nl">customer_id</span><span class="p">:</span><span class="w"> </span><span class="ss">&quot;acme-corp&quot;</span><span class="w">  </span><span class="err">←</span><span class="w"> </span><span class="n">これ</span><span class="err">！</span>
+</code></pre></div>
+
+<h3 id="なぜ-custom-claims-を使う">なぜ Custom Claims を使う？<a class="header-link" href="#なぜ-custom-claims-を使う" title="Permanent link">&para;</a></h3>
+<ol>
+<li>IDトークンに含まれる → API呼び出しのたびに取得不要</li>
+<li>Firebase が管理 → 安全</li>
+<li>サーバー側でしか設定できない → ユーザーが改ざんできない</li>
+</ol>
+<hr />
+<h2 id="顧客管理の操作">顧客管理の操作<a class="header-link" href="#顧客管理の操作" title="Permanent link">&para;</a></h2>
+<h3 id="管理スクリプト">管理スクリプト<a class="header-link" href="#管理スクリプト" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>backend
+
+<span class="c1"># 顧客一覧を見る</span>
+python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>list
+
+<span class="c1"># 新しい顧客を追加</span>
+python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>add<span class="w"> </span>test-corp<span class="w"> </span><span class="s2">&quot;株式会社テスト&quot;</span>
+
+<span class="c1"># ユーザーを顧客に紐付け</span>
+python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>add-user<span class="w"> </span>test-corp<span class="w"> </span>yamada@test.co.jp
+
+<span class="c1"># 顧客の詳細を見る</span>
+python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>show<span class="w"> </span>test-corp
+
+<span class="c1"># ユーザーの詳細を見る</span>
+python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>show-user<span class="w"> </span>yamada@test.co.jp
+</code></pre></div>
+
+<h3 id="紐付けの流れ">紐付けの流れ<a class="header-link" href="#紐付けの流れ" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">顧客を作成</span>
+<span class="w">   </span><span class="n">python</span><span class="w"> </span><span class="n">scripts</span><span class="o">/</span><span class="n">manage_customer</span><span class="mf">.</span><span class="n">py</span><span class="w"> </span><span class="n">add</span><span class="w"> </span><span class="n">acme</span><span class="o">-</span><span class="n">corp</span><span class="w"> </span><span class="s">&quot;株式会社ACME&quot;</span>
+
+<span class="w">   </span><span class="n">Firestore</span><span class="p">:</span>
+<span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="n">customers</span><span class="o">/</span><span class="n">acme</span><span class="o">-</span><span class="n">corp</span><span class="o">/</span>
+<span class="w">       </span><span class="err">└──</span><span class="w"> </span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;株式会社ACME&quot;</span>
+
+<span class="mf">2.</span><span class="w"> </span><span class="n">ユーザーがGoogleログイン</span>
+<span class="w">   </span><span class="err">（</span><span class="n">まだ</span><span class="w"> </span><span class="n">customer_id</span><span class="w"> </span><span class="n">は未設定</span><span class="err">）</span>
+
+<span class="mf">3.</span><span class="w"> </span><span class="n">ユーザーを顧客に紐付け</span>
+<span class="w">   </span><span class="n">python</span><span class="w"> </span><span class="n">scripts</span><span class="o">/</span><span class="n">manage_customer</span><span class="mf">.</span><span class="n">py</span><span class="w"> </span><span class="n">add</span><span class="o">-</span><span class="n">user</span><span class="w"> </span><span class="n">acme</span><span class="o">-</span><span class="n">corp</span><span class="w"> </span><span class="n">yamada</span><span class="err">@</span><span class="n">acme</span><span class="mf">.</span><span class="n">co</span><span class="mf">.</span><span class="n">jp</span>
+
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Firebase</span><span class="w"> </span><span class="n">Auth</span><span class="w"> </span><span class="n">の</span><span class="w"> </span><span class="n">Custom</span><span class="w"> </span><span class="n">Claims</span><span class="w"> </span><span class="n">に</span><span class="w"> </span><span class="n">customer_id</span><span class="w"> </span><span class="n">を設定</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">Firestore</span><span class="w"> </span><span class="n">にもバックアップを保存</span>
+
+<span class="mf">4.</span><span class="w"> </span><span class="n">ユーザーが再ログイン</span>
+<span class="w">   </span><span class="err">（</span><span class="n">新しいIDトークンに</span><span class="w"> </span><span class="n">customer_id</span><span class="w"> </span><span class="n">が含まれる</span><span class="err">）</span>
+
+<span class="mf">5.</span><span class="w"> </span><span class="n">APIを呼び出すと</span><span class="mf">...</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">バックエンドが</span><span class="w"> </span><span class="n">customer_id</span><span class="w"> </span><span class="n">を取得</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">対応する顧客のデータにアクセス</span>
+</code></pre></div>
+
+<hr />
+<h2 id="コードの解説">コードの解説<a class="header-link" href="#コードの解説" title="Permanent link">&para;</a></h2>
+<h3 id="authpy">auth.py<a class="header-link" href="#authpy" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_user_customer_id</span><span class="p">(</span><span class="n">uid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Custom Claims から customer_id を取得</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">auth</span><span class="o">.</span><span class="n">get_user</span><span class="p">(</span><span class="n">uid</span><span class="p">)</span>           <span class="c1"># Firebase Auth からユーザー情報を取得</span>
+    <span class="n">claims</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">custom_claims</span> <span class="ow">or</span> <span class="p">{}</span>    <span class="c1"># Custom Claims を取得</span>
+    <span class="k">return</span> <span class="n">claims</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;customer_id&quot;</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">)</span>  <span class="c1"># customer_id を返す</span>
+</code></pre></div>
+
+<h3 id="firestore_checkpointerpy">firestore_checkpointer.py<a class="header-link" href="#firestore_checkpointerpy" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_get_checkpoint_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">thread_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    顧客別のパスを生成</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">collection</span><span class="p">(</span><span class="s2">&quot;customers&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">document</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">customer_id</span><span class="p">)</span>      <span class="c1"># ← 顧客ID</span>
+        <span class="o">.</span><span class="n">collection</span><span class="p">(</span><span class="s2">&quot;checkpoints&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">document</span><span class="p">(</span><span class="n">thread_id</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">collection</span><span class="p">(</span><span class="s2">&quot;checkpoints&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="c1"># → customers/{customer_id}/checkpoints/{thread_id}/checkpoints/</span>
+</code></pre></div>
+
+<hr />
+<h2 id="注意事項">注意事項<a class="header-link" href="#注意事項" title="Permanent link">&para;</a></h2>
+<h3 id="1-再ログインが必要">1. 再ログインが必要<a class="header-link" href="#1-再ログインが必要" title="Permanent link">&para;</a></h3>
+<p>Custom Claims を設定した後、ユーザーは再ログインが必要。<br />
+IDトークンは発行時の情報を持っているため。</p>
+<h3 id="2-1ユーザー--1顧客">2. 1ユーザー = 1顧客<a class="header-link" href="#2-1ユーザー--1顧客" title="Permanent link">&para;</a></h3>
+<p>現在の設計では、1人のユーザーは1つの顧客にしか所属できない。<br />
+複数顧客に所属させたい場合は設計変更が必要。</p>
+<h3 id="3-デフォルト顧客">3. デフォルト顧客<a class="header-link" href="#3-デフォルト顧客" title="Permanent link">&para;</a></h3>
+<p>customer_id が未設定のユーザーは「default」顧客として扱われる。<br />
+本番では default へのアクセスを制限することを推奨。</p>
+<hr />
+<h2 id="firebaseコンソールでの確認">Firebaseコンソールでの確認<a class="header-link" href="#firebaseコンソールでの確認" title="Permanent link">&para;</a></h2>
+<h3 id="custom-claims-を確認">Custom Claims を確認<a class="header-link" href="#custom-claims-を確認" title="Permanent link">&para;</a></h3>
+<p>Firebase Console → Authentication → Users<br />
+→ ユーザーをクリック → カスタム クレーム</p>
+<h3 id="firestoreのデータを確認">Firestoreのデータを確認<a class="header-link" href="#firestoreのデータを確認" title="Permanent link">&para;</a></h3>
+<p>Firebase Console → Firestore Database<br />
+→ customers コレクションを展開</p>
+<hr />
+<h2 id="まとめ">まとめ<a class="header-link" href="#まとめ" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><code>【顧客追加の流れ】
+
+1. manage_customer.py add でFirestoreに顧客を作成
+
+2. ユーザーにGoogleログインしてもらう
+
+3. manage_customer.py add-user で紐付け
+   <span class="k">-</span> Custom Claims に customer_id を設定
+   <span class="k">-</span> Firestore にバックアップ
+
+4. ユーザーに再ログインしてもらう
+
+5. 完了！ユーザーは顧客別のデータにアクセスできる
+</code></pre></div>
+      </article>
+      <footer class="footer">
+        GCP AI Agent Platform 学習ガイド | Built with Python & Markdown
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.querySelector('.menu-toggle');
+      if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

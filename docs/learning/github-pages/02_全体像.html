@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>02 全体像 - GCP AI Agent 設計資料</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="header-logo">
+      <span>📚</span>
+      <span>GCP AI Agent 設計資料</span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">ホーム</a>
+      <a href="02_全体像.html">全体像</a>
+      <a href="https://github.com" target="_blank">GitHub</a>
+    </nav>
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">📖 はじめに</div>
+        <ul class="sidebar-nav">
+          <li><a href="01_はじめに読んでください.html" >はじめに読んでください</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🏗️ 仕組みを理解</div>
+        <ul class="sidebar-nav">
+          <li><a href="02_全体像.html" class="active">全体像</a></li>
+          <li><a href="03_バックエンド解説.html" >バックエンド解説</a></li>
+          <li><a href="04_フロントエンド解説.html" >フロントエンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🛠️ セットアップ</div>
+        <ul class="sidebar-nav">
+          <li><a href="05_セットアップの流れ.html" >セットアップの流れ</a></li>
+          <li><a href="06_コマンド解説.html" >コマンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🚀 動かす</div>
+        <ul class="sidebar-nav">
+          <li><a href="07_動かしてみよう.html" >動かしてみよう</a></li>
+          <li><a href="08_AIカスタマイズ.html" >AIカスタマイズ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔄 参考: フロー解説</div>
+        <ul class="sidebar-nav">
+          <li><a href="FLOW_01_チャット送信の流れ.html" >チャット送信の流れ</a></li>
+          <li><a href="FLOW_02_ログインの流れ.html" >ログインの流れ</a></li>
+          <li><a href="FLOW_04_セッション管理の流れ.html" >セッション管理の流れ</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <article class="content">
+        <h1 id="システム全体像---5分で掴む">システム全体像 - 5分で掴む！<a class="header-link" href="#システム全体像---5分で掴む" title="Permanent link">&para;</a></h1>
+<div class="goal-box">
+<div class="box-title">🎯 このページのゴール</div>
+<div class="box-content">
+
+「このシステムってこういう仕組みなんだ！」と説明できるようになる
+
+</div>
+</div>
+
+<hr />
+<h2 id="ズバリ何をするシステム">ズバリ、何をするシステム？<a class="header-link" href="#ズバリ何をするシステム" title="Permanent link">&para;</a></h2>
+<div class="flow-box">
+<div class="box-content" style="text-align: center;">
+
+<strong>👤 ユーザー → 💬 チャット送信 → 🤖 AI回答 → 📱 画面表示</strong>
+
+つまり「ChatGPTみたいなもの」を
+自分で作って提供するシステム！
+
+</div>
+</div>
+
+<hr />
+<h2 id="アーキテクチャ全体図">アーキテクチャ全体図<a class="header-link" href="#アーキテクチャ全体図" title="Permanent link">&para;</a></h2>
+<div class="architecture-box">
+<div class="box-title">🏗️ システム構成図</div>
+<div class="box-content" style="text-align: center;">
+
+<strong>👤 ユーザー（ブラウザ）</strong>
+↓ ① 画面を見る
+
+<strong>🖥️ フロントエンド（画面担当）</strong>
+React + TypeScript「見た目」を作る
+↓ ② APIリクエスト
+
+<strong>🐍 バックエンド（処理担当）</strong>
+Python + Flask「中身」を作る
+↓
+
+<table>
+<tr><th>🔐 認証</th><th>💾 DB</th><th>🤖 AI</th></tr>
+<tr><td>Firebase Auth</td><td>Firestore</td><td>Vertex AI (Gemini)</td></tr>
+</table>
+
+</div>
+</div>
+
+<hr />
+<h2 id="各パーツの役割レストランで例える">各パーツの役割（レストランで例える）<a class="header-link" href="#各パーツの役割レストランで例える" title="Permanent link">&para;</a></h2>
+<div class="info-box">
+<div class="box-title">🍽️ レストランに例えると...</div>
+<div class="box-content">
+
+<table>
+<tr><th>技術</th><th>役割</th><th>レストランで言うと</th></tr>
+<tr><td>React</td><td>画面を作る</td><td>内装・メニュー表</td></tr>
+<tr><td>Python/Flask</td><td>処理をする</td><td>厨房</td></tr>
+<tr><td>Firebase Auth</td><td>ログイン</td><td>受付・会員証確認</td></tr>
+<tr><td>Firestore</td><td>データ保存</td><td>冷蔵庫・倉庫</td></tr>
+<tr><td>Vertex AI (Gemini)</td><td>AI回答生成</td><td>シェフの頭脳</td></tr>
+</table>
+
+</div>
+</div>
+
+<hr />
+<h2 id="データの流れ①-ログイン">データの流れ①: ログイン<a class="header-link" href="#データの流れ①-ログイン" title="Permanent link">&para;</a></h2>
+<div class="flow-box">
+<div class="box-title">🔐 ログインの流れ</div>
+<div class="box-content">
+
+1️⃣ ユーザーが「Googleでログイン」をクリック
+↓
+2️⃣ Googleの画面が出る（おなじみのやつ！）
+↓
+3️⃣ ログイン成功 → 「IDトークン」をもらう（これが「私は〇〇です」の証明書）
+↓
+4️⃣ このトークンを使ってAPIを呼び出す
+
+</div>
+</div>
+
+<p><strong>IDトークンって何？</strong></p>
+<div class="info-box">
+<div class="box-title">📜 IDトークン = デジタル身分証明書</div>
+<div class="box-content">
+
+中身（イメージ）:
+
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;山田太郎&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;yamada@acme.co.jp&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;会社&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;株式会社ACME&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;有効期限&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-01-16 15:00&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;署名&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Google公式のお墨付き ✅&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+
+✅ Googleが「この人は本物」と保証
+✅ 改ざんすると署名が壊れる → 偽造不可能
+
+</div>
+</div>
+
+<hr />
+<h2 id="データの流れ②-チャット送信">データの流れ②: チャット送信<a class="header-link" href="#データの流れ②-チャット送信" title="Permanent link">&para;</a></h2>
+<div class="flow-box">
+<div class="box-title">💬 チャット送信の流れ</div>
+<div class="box-content">
+
+1️⃣ ユーザーが「こんにちは」と入力して送信
+↓
+2️⃣ フロントエンド → バックエンドにリクエスト（IDトークン付き）
+↓
+3️⃣ バックエンドでトークン検証
+　「この人、本物？」→ ✅ OK!
+　「許可されてる？」→ ✅ OK!
+↓
+4️⃣ Vertex AI (Gemini) に質問
+↓
+5️⃣ AIが回答を生成
+↓
+6️⃣ ストリーミングで少しずつ返す（「こん」→「にち」→「は！」）
+↓
+7️⃣ 画面にリアルタイム表示（かっこいい！）
+
+</div>
+</div>
+
+<hr />
+<h2 id="マルチテナント複数会社対応">マルチテナント（複数会社対応）<a class="header-link" href="#マルチテナント複数会社対応" title="Permanent link">&para;</a></h2>
+<div class="architecture-box">
+<div class="box-title">🏢 会社ごとにデータを分離</div>
+<div class="box-content">
+
+**Firestore（データベース）**
+
+
+<div class="codehilite"><pre><span></span><code>customers/
+├── 🏢 acme-corp/          ← A社のデータ
+│   ├── name: &quot;株式会社ACME&quot;
+│   └── checkpoints/       ← A社の会話履歴
+│       ├── user1_abc/
+│       └── user2_def/
+│
+├── 🏢 beta-inc/           ← B社のデータ
+│   ├── name: &quot;ベータ株式会社&quot;
+│   └── checkpoints/       ← B社の会話履歴
+│
+└── 🏢 gamma-llc/          ← C社のデータ
+</code></pre></div>
+
+
+
+💡 A社の人はB社のデータを見れない！（セキュリティ確保）
+
+</div>
+</div>
+
+<p><strong>自動振り分けの仕組み</strong></p>
+<div class="tip-box">
+<div class="box-title">🎯 ドメインで自動振り分け</div>
+<div class="box-content">
+
+<strong>【従来】</strong> 400人の社員を1人ずつ登録... 😓 大変！
+
+<strong>【今のシステム】</strong>
+<ol>
+<li>管理者:「acme.co.jp を登録しておくね」</li>
+<li>yamada@acme.co.jp がログイン</li>
+<li>システム:「@acme.co.jp だ！→ A社のデータに振り分け」</li>
+<li>完了！✅（再ログイン不要）</li>
+</ol>
+
+</div>
+</div>
+
+<hr />
+<h2 id="重要なファイル一覧">重要なファイル一覧<a class="header-link" href="#重要なファイル一覧" title="Permanent link">&para;</a></h2>
+<div class="info-box">
+<div class="box-title">📁 覚えておきたいファイル</div>
+<div class="box-content">
+
+**【バックエンド】backend/src/**
+
+<div class="codehilite"><pre><span></span><code>├── main.py              ★ すべての入口
+├── common/
+│   ├── auth.py          ★ 認証処理（自動振り分け）
+│   └── rate_limiter.py    使いすぎ防止
+└── agents/
+    └── _template/
+        └── agent.py     ★ AI処理本体
+</code></pre></div>
+
+
+
+**【フロントエンド】frontend/src/**
+
+<div class="codehilite"><pre><span></span><code>├── App.tsx              ★ 画面の入口
+├── hooks/
+│   ├── useAuth.ts       ★ ログイン処理
+│   ├── useChat.ts       ★ チャット処理
+│   └── useSessions.ts     セッション管理
+└── services/
+    ├── firebase.ts        Firebase接続
+    └── api.ts             サーバー通信
+</code></pre></div>
+
+
+
+**【管理ツール】backend/scripts/**
+
+<div class="codehilite"><pre><span></span><code>└── manage_customer.py   ★ 顧客管理コマンド
+</code></pre></div>
+
+
+
+</div>
+</div>
+
+<hr />
+<h2 id="理解度チェック">理解度チェック<a class="header-link" href="#理解度チェック" title="Permanent link">&para;</a></h2>
+<p>以下の質問に答えられたら、全体像はバッチリ！</p>
+<table>
+<thead>
+<tr>
+<th>質問</th>
+<th>ヒント</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ユーザーが送ったメッセージは、どの順番で処理される？</td>
+<td>フロント→バック→AI→...</td>
+</tr>
+<tr>
+<td>会社Aのデータが会社Bに見えないのはなぜ？</td>
+<td>customer_id で分離</td>
+</tr>
+<tr>
+<td>ログイン後、何がもらえる？</td>
+<td>IDトークン</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="次のステップ">次のステップ<a class="header-link" href="#次のステップ" title="Permanent link">&para;</a></h2>
+<div class="summary-box">
+<div class="box-title">✅ 全体像を把握できた！</div>
+<div class="box-content">
+
+<strong>→ 次は 03_バックエンド解説.md でPython/AIの仕組みを学ぼう！</strong>
+
+</div>
+</div>
+      </article>
+      <footer class="footer">
+        GCP AI Agent 設計資料 | Built with Python & Markdown
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.querySelector('.menu-toggle');
+      if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

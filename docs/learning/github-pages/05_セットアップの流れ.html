@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>05 セットアップの流れ - GCP AI Agent 設計資料</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="header-logo">
+      <span>📚</span>
+      <span>GCP AI Agent 設計資料</span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">ホーム</a>
+      <a href="02_全体像.html">全体像</a>
+      <a href="https://github.com" target="_blank">GitHub</a>
+    </nav>
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">📖 はじめに</div>
+        <ul class="sidebar-nav">
+          <li><a href="01_はじめに読んでください.html" >はじめに読んでください</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🏗️ 仕組みを理解</div>
+        <ul class="sidebar-nav">
+          <li><a href="02_全体像.html" >全体像</a></li>
+          <li><a href="03_バックエンド解説.html" >バックエンド解説</a></li>
+          <li><a href="04_フロントエンド解説.html" >フロントエンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🛠️ セットアップ</div>
+        <ul class="sidebar-nav">
+          <li><a href="05_セットアップの流れ.html" class="active">セットアップの流れ</a></li>
+          <li><a href="06_コマンド解説.html" >コマンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🚀 動かす</div>
+        <ul class="sidebar-nav">
+          <li><a href="07_動かしてみよう.html" >動かしてみよう</a></li>
+          <li><a href="08_AIカスタマイズ.html" >AIカスタマイズ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔄 参考: フロー解説</div>
+        <ul class="sidebar-nav">
+          <li><a href="FLOW_01_チャット送信の流れ.html" >チャット送信の流れ</a></li>
+          <li><a href="FLOW_02_ログインの流れ.html" >ログインの流れ</a></li>
+          <li><a href="FLOW_04_セッション管理の流れ.html" >セッション管理の流れ</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <article class="content">
+        <h1 id="セットアップの流れ">セットアップの流れ<a class="header-link" href="#セットアップの流れ" title="Permanent link">&para;</a></h1>
+<div class="chapter-hero">
+<span class="emoji">🛠️</span>
+<h1>セットアップの流れ</h1>
+<p class="subtitle">「手順は多いけど、一つ一つは簡単！」<br>「焦らずゆっくり進めよう」</p>
+</div>
+
+<hr />
+<h2 id="この章で学ぶこと">この章で学ぶこと<a class="header-link" href="#この章で学ぶこと" title="Permanent link">&para;</a></h2>
+<div class="goal-box">
+<h3>📚 学習目標</h3>
+<ol>
+<li>GCPプロジェクトの作成</li>
+<li>Firebase の設定</li>
+<li>サービスアカウントの作成</li>
+<li>環境変数の設定</li>
+<li>依存パッケージのインストール</li>
+<li>顧客の登録と自動振り分け</li>
+</ol>
+<p><strong>⏱️ 想定作業時間: 30-45分</strong></p>
+</div>
+
+<hr />
+<h2 id="gas経験者向け-環境構築の違い">GAS経験者向け: 環境構築の違い<a class="header-link" href="#gas経験者向け-環境構築の違い" title="Permanent link">&para;</a></h2>
+<div class="info-box">
+<h3>📊 GAS vs 本番システム</h3>
+<p><strong>【GASの場合】</strong><br>
+Googleドライブ → 新規作成 → Google Apps Script<br>
+→ すぐコードが書ける！（環境構築不要）</p>
+<p><strong>【本番システムの場合】</strong><br>
+GCPプロジェクト作成 → Firebase設定 → サービスアカウント作成 → ...<br>
+→ 手順が多い（でも一度やれば終わり！）</p>
+<table>
+<tr><th>項目</th><th>GAS</th><th>本番システム</th></tr>
+<tr><td>管理者</td><td>Googleが全部管理</td><td>自分で管理（自由度が高い）</td></tr>
+<tr><td>ユーザー想定</td><td>1人で使う前提</td><td>複数ユーザー・複数会社</td></tr>
+<tr><td>セキュリティ</td><td>Google任せ</td><td>自分で設定</td></tr>
+<tr><td>料金</td><td>無料の範囲</td><td>使った分だけ課金</td></tr>
+</table>
+</div>
+
+<hr />
+<h2 id="全体の流れ">全体の流れ<a class="header-link" href="#全体の流れ" title="Permanent link">&para;</a></h2>
+<div class="flow-box">
+<h3>🗺️ セットアップの全体像</h3>
+<p><strong>【事前準備】</strong></p>
+<pre>
+┌──────────┐   ┌──────────┐   ┌──────────────────┐
+│ 1. GCP   │ → │ 2. Fire- │ → │ 3. サービス      │
+│ プロジェ │   │   base   │   │   アカウント     │
+│ クト作成 │   │   設定   │   │   作成           │
+└──────────┘   └──────────┘   └──────────────────┘
+</pre>
+<p><strong>【環境変数設定】</strong></p>
+<pre>
+┌──────────────────┐   ┌──────────────────┐
+│ 4. backend/.env  │   │ 5. frontend/.env │
+└──────────────────┘   └──────────────────┘
+</pre>
+<p><strong>【依存関係インストール】</strong></p>
+<pre>
+┌──────────────────┐   ┌──────────────────┐
+│ 6. pip install   │   │ 7. npm install   │
+└──────────────────┘   └──────────────────┘
+</pre>
+<p><strong>【初期データ設定】</strong></p>
+<pre>
+┌──────────────────┐   ┌──────────────────┐
+│ 8. 顧客を追加    │ → │ 9. ドメイン登録  │
+└──────────────────┘   └──────────────────┘
+</pre>
+<p><strong>【起動】</strong></p>
+<pre>
+┌──────────────────┐   ┌──────────────────┐   ┌──────────┐
+│ 10. バックエンド │ → │ 11. フロント     │ → │ 12. 動作 │
+│     起動         │   │     エンド起動   │   │   確認   │
+└──────────────────┘   └──────────────────┘   └──────────┘
+</pre>
+</div>
+
+<hr />
+<h2 id="ステップ1-gcpプロジェクト作成">ステップ1: GCPプロジェクト作成<a class="header-link" href="#ステップ1-gcpプロジェクト作成" title="Permanent link">&para;</a></h2>
+<h3 id="11-google-cloud-console-を開く">1.1 Google Cloud Console を開く<a class="header-link" href="#11-google-cloud-console-を開く" title="Permanent link">&para;</a></h3>
+<ol>
+<li>https://console.cloud.google.com/ にアクセス</li>
+<li>右上のGoogleアカウントでログイン</li>
+</ol>
+<h3 id="12-新しいプロジェクトを作成">1.2 新しいプロジェクトを作成<a class="header-link" href="#12-新しいプロジェクトを作成" title="Permanent link">&para;</a></h3>
+<ol>
+<li>左上の「プロジェクトを選択」をクリック</li>
+<li>「新しいプロジェクト」をクリック</li>
+<li>プロジェクト名を入力（例: <code>my-ai-agent</code>）</li>
+<li>「作成」をクリック</li>
+</ol>
+<div class="tip-box">
+<h3>💡 なぜプロジェクトが必要？</h3>
+<p>GCPのすべてのリソース（データベース、AI、認証など）は<br>
+プロジェクト単位で管理される。<br>
+請求もプロジェクト単位で行われる。</p>
+<p><strong>イメージ:</strong> プロジェクト = 1つのアプリ用の「箱」</p>
+</div>
+
+<h3 id="13-必要なapiを有効化">1.3 必要なAPIを有効化<a class="header-link" href="#13-必要なapiを有効化" title="Permanent link">&para;</a></h3>
+<p>左メニュー → 「APIとサービス」 → 「ライブラリ」</p>
+<p>以下を検索して「有効にする」:<br />
+- <strong>Vertex AI API</strong> - AIモデルを使うため<br />
+- <strong>Cloud Firestore API</strong> - データベースを使うため<br />
+- <strong>Identity and Access Management (IAM) API</strong> - 権限管理のため</p>
+<hr />
+<h2 id="ステップ2-firebase設定">ステップ2: Firebase設定<a class="header-link" href="#ステップ2-firebase設定" title="Permanent link">&para;</a></h2>
+<h3 id="21-firebase-console-を開く">2.1 Firebase Console を開く<a class="header-link" href="#21-firebase-console-を開く" title="Permanent link">&para;</a></h3>
+<ol>
+<li>https://console.firebase.google.com/ にアクセス</li>
+<li>「プロジェクトを追加」をクリック</li>
+<li><strong>既存のGCPプロジェクトを選択</strong>（さっき作ったもの）</li>
+<li>「続行」を数回クリック</li>
+</ol>
+<div class="tip-box">
+<h3>💡 なぜFirebase？</h3>
+<p>Firebase は GCP の上に作られた「使いやすい層」</p>
+<pre>
+┌─────────────────────────────────────────┐
+│  Firebase（使いやすい）                  │
+│  ┌──────────────────────────────────┐   │
+│  │  GCP（パワフル）                  │   │
+│  └──────────────────────────────────┘   │
+└─────────────────────────────────────────┘
+</pre>
+<p>認証（ログイン機能）が特に簡単に作れる！</p>
+</div>
+
+<h3 id="22-authentication-を設定">2.2 Authentication を設定<a class="header-link" href="#22-authentication-を設定" title="Permanent link">&para;</a></h3>
+<ol>
+<li>左メニュー → 「Authentication」</li>
+<li>「始める」をクリック</li>
+<li>「Sign-in method」タブ</li>
+<li>「Google」を選択 → 「有効にする」</li>
+<li>サポートメール（自分のメール）を入力</li>
+<li>「保存」</li>
+</ol>
+<h3 id="23-firestore-を設定">2.3 Firestore を設定<a class="header-link" href="#23-firestore-を設定" title="Permanent link">&para;</a></h3>
+<ol>
+<li>左メニュー → 「Firestore Database」</li>
+<li>「データベースを作成」をクリック</li>
+<li>「本番モードで開始」を選択</li>
+<li>ロケーション: <code>asia-northeast1</code>（東京）を選択</li>
+<li>「有効にする」</li>
+</ol>
+<h3 id="24-firestore-セキュリティルール">2.4 Firestore セキュリティルール<a class="header-link" href="#24-firestore-セキュリティルール" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Firebase Console → Firestore Database</li>
+<li>「ルール」タブをクリック</li>
+<li>以下のルールをコピー＆ペースト:</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="nx">rules_version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;2&#39;</span><span class="p">;</span>
+<span class="nx">service</span><span class="w"> </span><span class="nx">cloud</span><span class="p">.</span><span class="nx">firestore</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">match</span><span class="w"> </span><span class="o">/</span><span class="nx">databases</span><span class="o">/</span><span class="p">{</span><span class="nx">database</span><span class="p">}</span><span class="o">/</span><span class="nx">documents</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// 基本: 全て拒否（明示的に許可したものだけアクセス可能）</span>
+<span class="w">    </span><span class="nx">match</span><span class="w"> </span><span class="o">/</span><span class="p">{</span><span class="nb">document</span><span class="o">=**</span><span class="p">}</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">allow</span><span class="w"> </span><span class="nx">read</span><span class="p">,</span><span class="w"> </span><span class="nx">write</span><span class="o">:</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<ol start="4">
+<li>「公開」をクリック</li>
+</ol>
+<div class="info-box">
+<h3>🔒 セキュリティルールの意味</h3>
+<pre>allow read, write: if false;</pre>
+<p>→ 「すべてのドキュメントに対して、読み書きを禁止」</p>
+<p>でも、サーバー（Admin SDK）はこのルールを無視できる<br>
+→ サーバー経由でのみデータにアクセスできる<br>
+→ ブラウザから直接Firestoreを触れない（セキュア！）</p>
+<p><strong>【GASで例えると】</strong><br>
+セキュリティルール = スプレッドシートの保護<br>
+「シートを保護」→「自分だけ編集可能」に設定</p>
+</div>
+
+<h3 id="25-webアプリを登録">2.5 Webアプリを登録<a class="header-link" href="#25-webアプリを登録" title="Permanent link">&para;</a></h3>
+<ol>
+<li>プロジェクト設定（歯車アイコン）→ 「全般」</li>
+<li>下の方の「アプリを追加」→ Web（&lt;/&gt;アイコン）</li>
+<li>アプリのニックネーム: <code>frontend</code></li>
+<li>「アプリを登録」</li>
+</ol>
+<p>表示された設定をメモ:</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">firebaseConfig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">apiKey</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;AIzaSy...&quot;</span><span class="p">,</span><span class="w">              </span><span class="c1">// ← これをメモ</span>
+<span class="w">  </span><span class="nx">authDomain</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;xxx.firebaseapp.com&quot;</span><span class="p">,</span><span class="w"> </span><span class="c1">// ← これをメモ</span>
+<span class="w">  </span><span class="nx">projectId</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;your-project-id&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// ← これをメモ</span>
+<span class="p">};</span>
+</code></pre></div>
+
+<hr />
+<h2 id="ステップ3-サービスアカウント作成">ステップ3: サービスアカウント作成<a class="header-link" href="#ステップ3-サービスアカウント作成" title="Permanent link">&para;</a></h2>
+<h3 id="サービスアカウントとは">サービスアカウントとは？<a class="header-link" href="#サービスアカウントとは" title="Permanent link">&para;</a></h3>
+<div class="info-box">
+<h3>🤖 サービスアカウント</h3>
+<p><strong>【人間のアカウント】</strong><br>
+Googleアカウント（〇〇@gmail.com）<br>
+→ 人間がブラウザでログインする用</p>
+<p><strong>【サービスアカウント】</strong><br>
+xxx@project.iam.gserviceaccount.com<br>
+→ プログラム（バックエンド）がGCPにアクセスする用</p>
+<p><strong>イメージ:</strong> サービスアカウント = プログラム専用のGoogleアカウント</p>
+</div>
+
+<h3 id="31-サービスアカウントを作成">3.1 サービスアカウントを作成<a class="header-link" href="#31-サービスアカウントを作成" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Google Cloud Console を開く</li>
+<li>左メニュー → 「IAMと管理」 → 「サービスアカウント」</li>
+<li>「サービスアカウントを作成」</li>
+</ol>
+<p>設定:<br />
+- 名前: <code>backend-service</code><br />
+- ID: <code>backend-service</code>（自動入力）<br />
+- 「作成して続行」</p>
+<h3 id="32-ロール権限を付与">3.2 ロール（権限）を付与<a class="header-link" href="#32-ロール権限を付与" title="Permanent link">&para;</a></h3>
+<p>以下のロールを追加:<br />
+- <strong>Firebase Admin SDK 管理者サービス エージェント</strong><br />
+- <strong>Cloud Datastore ユーザー</strong><br />
+- <strong>Vertex AI ユーザー</strong></p>
+<p>「続行」→「完了」</p>
+<h3 id="33-鍵をダウンロード">3.3 鍵をダウンロード<a class="header-link" href="#33-鍵をダウンロード" title="Permanent link">&para;</a></h3>
+<ol>
+<li>作成したサービスアカウントをクリック</li>
+<li>「鍵」タブ</li>
+<li>「鍵を追加」→「新しい鍵を作成」</li>
+<li>「JSON」を選択 →「作成」</li>
+</ol>
+<p>JSONファイルがダウンロードされる。</p>
+<h3 id="34-鍵ファイルを配置">3.4 鍵ファイルを配置<a class="header-link" href="#34-鍵ファイルを配置" title="Permanent link">&para;</a></h3>
+<p>ダウンロードしたJSONファイルを:</p>
+<div class="codehilite"><pre><span></span><code>backend/service-account.json
+</code></pre></div>
+
+<p>に配置（リネーム）。</p>
+<div class="warning-box">
+<h3>⚠️ 重要な注意</h3>
+<p><strong>このファイルは絶対にGitにコミットしないこと！</strong></p>
+<p>.gitignore に入っているか確認:</p>
+<pre>service-account.json</pre>
+<p>もし誤ってコミットしたら:</p>
+<ol>
+<li>即座に鍵を無効化（GCP Console）</li>
+<li>新しい鍵を作成</li>
+<li>Git履歴からも削除</li>
+</ol>
+</div>
+
+<hr />
+<h2 id="ステップ4-バックエンド環境変数設定">ステップ4: バックエンド環境変数設定<a class="header-link" href="#ステップ4-バックエンド環境変数設定" title="Permanent link">&para;</a></h2>
+<h3 id="場所-backendenv">場所: <code>backend/.env</code><a class="header-link" href="#場所-backendenv" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># ===== GCP設定 =====</span>
+<span class="c1"># GCPプロジェクトID（Firebase Consoleで確認）</span>
+<span class="nv">GOOGLE_CLOUD_PROJECT</span><span class="o">=</span>your-project-id
+
+<span class="c1"># サービスアカウントの鍵ファイルパス</span>
+<span class="nv">GOOGLE_APPLICATION_CREDENTIALS</span><span class="o">=</span>./service-account.json
+
+<span class="c1"># ===== CORS設定 =====</span>
+<span class="c1"># フロントエンドのURL（ローカル開発時）</span>
+<span class="nv">ALLOWED_ORIGINS</span><span class="o">=</span>http://localhost:5173
+
+<span class="c1"># ===== Vertex AI設定 =====</span>
+<span class="c1"># AIモデルのリージョン</span>
+<span class="nv">VERTEX_AI_LOCATION</span><span class="o">=</span>asia-northeast1
+
+<span class="c1"># ===== レート制限 =====</span>
+<span class="c1"># 1分あたりの最大リクエスト数</span>
+<span class="nv">RATE_LIMIT_REQUESTS</span><span class="o">=</span><span class="m">60</span>
+<span class="nv">RATE_LIMIT_WINDOW</span><span class="o">=</span><span class="m">60</span>
+</code></pre></div>
+
+<h3 id="各設定の意味">各設定の意味<a class="header-link" href="#各設定の意味" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>設定</th>
+<th>意味</th>
+<th>間違えると</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GOOGLE_CLOUD_PROJECT</code></td>
+<td>どのGCPプロジェクトを使うか</td>
+<td>Firestoreにアクセスできない</td>
+</tr>
+<tr>
+<td><code>GOOGLE_APPLICATION_CREDENTIALS</code></td>
+<td>認証情報ファイルの場所</td>
+<td>「認証エラー」が出る</td>
+</tr>
+<tr>
+<td><code>ALLOWED_ORIGINS</code></td>
+<td>どのURLからのアクセスを許可するか</td>
+<td>「CORSエラー」が出る</td>
+</tr>
+<tr>
+<td><code>VERTEX_AI_LOCATION</code></td>
+<td>AIモデルのリージョン</td>
+<td>「リージョンエラー」が出る</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="ステップ5-フロントエンド環境変数設定">ステップ5: フロントエンド環境変数設定<a class="header-link" href="#ステップ5-フロントエンド環境変数設定" title="Permanent link">&para;</a></h2>
+<h3 id="場所-frontendenv">場所: <code>frontend/.env</code><a class="header-link" href="#場所-frontendenv" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># ===== Firebase設定 =====</span>
+<span class="c1"># Firebase Console → プロジェクト設定 → Webアプリ から取得</span>
+<span class="nv">VITE_FIREBASE_API_KEY</span><span class="o">=</span>AIzaSyXXXXXXXXXXXXXXXXXXXX
+<span class="nv">VITE_FIREBASE_AUTH_DOMAIN</span><span class="o">=</span>your-project.firebaseapp.com
+<span class="nv">VITE_FIREBASE_PROJECT_ID</span><span class="o">=</span>your-project-id
+
+<span class="c1"># ===== API設定 =====</span>
+<span class="c1"># バックエンドのURL（ローカル開発時）</span>
+<span class="nv">VITE_API_BASE_URL</span><span class="o">=</span>http://localhost:8080
+</code></pre></div>
+
+<h3 id="なぜ-vite_-で始まる">なぜ VITE_ で始まる？<a class="header-link" href="#なぜ-vite_-で始まる" title="Permanent link">&para;</a></h3>
+<div class="info-box">
+<h3>🔐 Viteの環境変数ルール</h3>
+<p>VITE_ で始まる変数だけがブラウザ側のJavaScriptで使える</p>
+<ul>
+<li>✅ VITE_FIREBASE_API_KEY → ブラウザで使える</li>
+<li>❌ SECRET_KEY → ブラウザで使えない（サーバー側のみ）</li>
+</ul>
+<p>セキュリティのため、うっかり秘密情報がブラウザに渡らないようになっている</p>
+</div>
+
+<hr />
+<h2 id="ステップ6-バックエンド依存関係インストール">ステップ6: バックエンド依存関係インストール<a class="header-link" href="#ステップ6-バックエンド依存関係インストール" title="Permanent link">&para;</a></h2>
+<h3 id="ターミナルで実行">ターミナルで実行<a class="header-link" href="#ターミナルで実行" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># backendフォルダに移動</span>
+<span class="nb">cd</span><span class="w"> </span>backend
+
+<span class="c1"># 仮想環境を作成（推奨）</span>
+python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+
+<span class="c1"># 仮想環境を有効化</span>
+<span class="c1"># Mac/Linux:</span>
+<span class="nb">source</span><span class="w"> </span>venv/bin/activate
+<span class="c1"># Windows:</span>
+<span class="c1"># venv\Scripts\activate</span>
+
+<span class="c1"># 依存パッケージをインストール</span>
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</code></pre></div>
+
+<h3 id="requirementstxt-の中身抜粋">requirements.txt の中身（抜粋）<a class="header-link" href="#requirementstxt-の中身抜粋" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code>functions-framework==3.*   # Cloud Functions ローカル実行
+firebase-admin==6.*        # Firebase管理
+google-cloud-aiplatform==1.*  # Vertex AI
+langchain==0.3.*           # AIフレームワーク
+langgraph==0.2.*           # 状態管理付きAI
+flask==3.*                 # Webサーバー
+flask-cors==4.*            # CORS対応
+</code></pre></div>
+
+<hr />
+<h2 id="ステップ7-フロントエンド依存関係インストール">ステップ7: フロントエンド依存関係インストール<a class="header-link" href="#ステップ7-フロントエンド依存関係インストール" title="Permanent link">&para;</a></h2>
+<h3 id="ターミナルで実行_1">ターミナルで実行<a class="header-link" href="#ターミナルで実行_1" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># frontendフォルダに移動</span>
+<span class="nb">cd</span><span class="w"> </span>frontend
+
+<span class="c1"># 依存パッケージをインストール</span>
+npm<span class="w"> </span>install
+</code></pre></div>
+
+<p>成功すると:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">added</span><span class="w"> </span><span class="mi">200</span><span class="w"> </span><span class="nx">packages</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="mi">30</span><span class="nx">s</span>
+</code></pre></div>
+
+<hr />
+<h2 id="ステップ8-顧客を追加">ステップ8: 顧客を追加<a class="header-link" href="#ステップ8-顧客を追加" title="Permanent link">&para;</a></h2>
+<h3 id="なぜ顧客が必要">なぜ顧客が必要？<a class="header-link" href="#なぜ顧客が必要" title="Permanent link">&para;</a></h3>
+<div class="info-box">
+<h3>🏢 マルチテナント構造</h3>
+<pre>
+顧客（会社） → ユーザー（社員）
+            → データ（会話履歴など）
+</pre>
+<p>ユーザーは必ずどこかの顧客に所属する必要がある</p>
+<p><strong>例:</strong></p>
+<pre>
+株式会社ACME
+  ├── yamada@acme.co.jp（山田さん）
+  ├── tanaka@acme.co.jp（田中さん）
+  └── 会話履歴、設定など
+</pre>
+</div>
+
+<h3 id="実行">実行<a class="header-link" href="#実行" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># backendフォルダにいることを確認</span>
+<span class="nb">cd</span><span class="w"> </span>backend
+
+<span class="c1"># 顧客を追加</span>
+python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>add<span class="w"> </span>test-corp<span class="w"> </span><span class="s2">&quot;テスト株式会社&quot;</span>
+</code></pre></div>
+
+<p>成功すると:</p>
+<div class="codehilite"><pre><span></span><code>=== 顧客を作成 ===
+
+✅ 顧客 &#39;テスト株式会社&#39; (test-corp) を作成しました
+
+次のステップ:
+  python scripts/manage_customer.py add-domain test-corp example.com
+</code></pre></div>
+
+<hr />
+<h2 id="ステップ9-ドメインを登録自動振り分け">ステップ9: ドメインを登録（自動振り分け）<a class="header-link" href="#ステップ9-ドメインを登録自動振り分け" title="Permanent link">&para;</a></h2>
+<h3 id="推奨自動振り分けを使う">推奨：自動振り分けを使う<a class="header-link" href="#推奨自動振り分けを使う" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># ドメインを登録（社員全員が自動で振り分けられる）</span>
+python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>add-domain<span class="w"> </span>test-corp<span class="w"> </span>test-corp.co.jp
+</code></pre></div>
+
+<p>成功すると:</p>
+<div class="codehilite"><pre><span></span><code><span class="o">===</span><span class="w"> </span><span class="n">ドメインを追加</span><span class="w"> </span><span class="o">===</span>
+
+<span class="err">✅</span><span class="w"> </span><span class="n">ドメイン</span><span class="w"> </span><span class="s1">&#39;@test-corp.co.jp&#39;</span><span class="w"> </span><span class="n">を</span><span class="w"> </span><span class="s1">&#39;テスト株式会社&#39;</span><span class="w"> </span><span class="n">に追加しました</span>
+
+<span class="err">→</span><span class="w"> </span><span class="nv">@test</span><span class="o">-</span><span class="n">corp</span><span class="p">.</span><span class="n">co</span><span class="p">.</span><span class="n">jp</span><span class="w"> </span><span class="n">のユーザーはログイン時に自動で振り分けられます</span>
+</code></pre></div>
+
+<h3 id="テスト用に個別メールを登録する場合">テスト用に個別メールを登録する場合<a class="header-link" href="#テスト用に個別メールを登録する場合" title="Permanent link">&para;</a></h3>
+<p>Gmailなど会社ドメイン以外でテストする場合:</p>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>add-email<span class="w"> </span>test-corp<span class="w"> </span>your-email@gmail.com
+</code></pre></div>
+
+<div class="tip-box">
+<h3>✨ 自動振り分けの仕組み</h3>
+<p><strong>【従来の方法】400人の会社を登録する場合</strong><br>
+→ 400回 add-user コマンドを実行... 大変！</p>
+<p><strong>【自動振り分け】</strong><br>
+→ 1回 add-domain を実行するだけ！<br>
+→ @acme.co.jp のユーザーは全員自動で振り分け</p>
+<table>
+<tr><th>方法</th><th>コマンド</th><th>用途</th></tr>
+<tr><td>ドメイン登録</td><td>add-domain</td><td>社員全員を一括登録（@acme.co.jpなど）</td></tr>
+<tr><td>メール登録</td><td>add-email</td><td>業務委託者を個別登録（外部メール）</td></tr>
+</table>
+</div>
+
+<hr />
+<h2 id="ステップ10-バックエンド起動">ステップ10: バックエンド起動<a class="header-link" href="#ステップ10-バックエンド起動" title="Permanent link">&para;</a></h2>
+<h3 id="ターミナル1で実行">ターミナル1で実行<a class="header-link" href="#ターミナル1で実行" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># backendフォルダにいることを確認</span>
+<span class="nb">cd</span><span class="w"> </span>backend
+
+<span class="c1"># 仮想環境が有効か確認（プロンプトに(venv)があるか）</span>
+<span class="c1"># なければ: source venv/bin/activate</span>
+
+<span class="c1"># サーバーを起動</span>
+functions-framework<span class="w"> </span>--target<span class="o">=</span>main<span class="w"> </span>--port<span class="o">=</span><span class="m">8080</span>
+</code></pre></div>
+
+<p>成功すると:</p>
+<div class="codehilite"><pre><span></span><code> <span class="k">*</span> Serving Flask app &#39;main&#39;
+ <span class="k">*</span> Running on http://127.0.0.1:8080
+</code></pre></div>
+
+<hr />
+<h2 id="ステップ11-フロントエンド起動">ステップ11: フロントエンド起動<a class="header-link" href="#ステップ11-フロントエンド起動" title="Permanent link">&para;</a></h2>
+<h3 id="ターミナル2別のターミナルで実行">ターミナル2（別のターミナル）で実行<a class="header-link" href="#ターミナル2別のターミナルで実行" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># frontendフォルダに移動</span>
+<span class="nb">cd</span><span class="w"> </span>frontend
+
+<span class="c1"># 開発サーバーを起動</span>
+npm<span class="w"> </span>run<span class="w"> </span>dev
+</code></pre></div>
+
+<p>成功すると:</p>
+<div class="codehilite"><pre><span></span><code>  VITE v5.x.x  ready in 500ms
+
+  ➜  Local:   http://localhost:5173/
+</code></pre></div>
+
+<hr />
+<h2 id="ステップ12-動作確認">ステップ12: 動作確認<a class="header-link" href="#ステップ12-動作確認" title="Permanent link">&para;</a></h2>
+<h3 id="ブラウザでアクセス">ブラウザでアクセス<a class="header-link" href="#ブラウザでアクセス" title="Permanent link">&para;</a></h3>
+<p>http://localhost:5173/ を開く</p>
+<h3 id="ログイン">ログイン<a class="header-link" href="#ログイン" title="Permanent link">&para;</a></h3>
+<ol>
+<li>「Googleでログイン」をクリック</li>
+<li>Googleアカウントを選択</li>
+<li>自動振り分けが設定されていれば、そのままチャット画面へ</li>
+</ol>
+<h3 id="チャット">チャット<a class="header-link" href="#チャット" title="Permanent link">&para;</a></h3>
+<ol>
+<li>「こんにちは」と入力</li>
+<li>送信</li>
+<li>AIが返答する！</li>
+</ol>
+<hr />
+<h2 id="よくあるエラーと対処法">よくあるエラーと対処法<a class="header-link" href="#よくあるエラーと対処法" title="Permanent link">&para;</a></h2>
+<div class="warning-box">
+<h3>🔧 トラブルシューティング</h3>
+<p><strong>【エラー1】Module not found</strong><br>
+原因: 依存パッケージがインストールされていない<br>
+対処: pip install -r requirements.txt を再実行</p>
+<p><strong>【エラー2】CORS エラー</strong><br>
+原因: ALLOWED_ORIGINS の設定が違う<br>
+対処: backend/.env を確認<br>
+ALLOWED_ORIGINS=http://localhost:5173（末尾スラッシュなし）</p>
+<p><strong>【エラー3】認証エラー / トークンの検証に失敗</strong><br>
+原因: service-account.json がない、または環境変数が未設定<br>
+対処: ファイルの存在と.envの設定を確認</p>
+<p><strong>【エラー4】顧客に紐付けされていません</strong><br>
+原因: 自動振り分けにマッチしない<br>
+対処: add-email でメールを個別登録<br>
+<code>python scripts/manage_customer.py add-email test-corp you@gmail.com</code></p>
+<p><strong>【エラー5】Vertex AI API が無効です</strong><br>
+原因: APIが有効化されていない<br>
+対処: GCP Console → APIとサービス → Vertex AI API を有効化</p>
+</div>
+
+<hr />
+<h2 id="チェックリスト">チェックリスト<a class="header-link" href="#チェックリスト" title="Permanent link">&para;</a></h2>
+<p>セットアップが完了したか確認:</p>
+<ul>
+<li>[ ] GCPプロジェクトを作成した</li>
+<li>[ ] Vertex AI API を有効化した</li>
+<li>[ ] Firebase プロジェクトを設定した</li>
+<li>[ ] Authentication で Google を有効化した</li>
+<li>[ ] Firestore データベースを作成した</li>
+<li>[ ] Webアプリを登録してAPIキー等を取得した</li>
+<li>[ ] サービスアカウントを作成した</li>
+<li>[ ] 鍵をダウンロードして <code>backend/service-account.json</code> に配置した</li>
+<li>[ ] <code>backend/.env</code> を作成した</li>
+<li>[ ] <code>frontend/.env</code> を作成した</li>
+<li>[ ] <code>pip install -r requirements.txt</code> を実行した</li>
+<li>[ ] <code>npm install</code> を実行した</li>
+<li>[ ] 顧客を追加した</li>
+<li>[ ] ドメインまたはメールを登録した</li>
+<li>[ ] バックエンドが起動している</li>
+<li>[ ] フロントエンドが起動している</li>
+<li>[ ] チャットができた！</li>
+</ul>
+<hr />
+<h2 id="まとめ">まとめ<a class="header-link" href="#まとめ" title="Permanent link">&para;</a></h2>
+<div class="summary-box">
+<h3>🎓 この章で完了したこと</h3>
+<ul>
+<li>✅ GCPプロジェクトとFirebaseを設定</li>
+<li>✅ サービスアカウントで認証情報を取得</li>
+<li>✅ 環境変数を設定</li>
+<li>✅ バックエンド・フロントエンドを起動</li>
+<li>✅ 顧客を登録してチャットできる状態に</li>
+</ul>
+<p><strong>これで開発環境が整いました！</strong></p>
+</div>
+
+<hr />
+<h2 id="次に読むべきドキュメント">次に読むべきドキュメント<a class="header-link" href="#次に読むべきドキュメント" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>順番</th>
+<th>ドキュメント</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><a href="./06_コマンド解説.md">06_コマンド解説.md</a></td>
+<td>ターミナルコマンドの解説</td>
+</tr>
+<tr>
+<td>2</td>
+<td><a href="./07_動かしてみよう.md">07_動かしてみよう.md</a></td>
+<td>実際に動かしてみる</td>
+</tr>
+<tr>
+<td>3</td>
+<td><a href="./08_AIカスタマイズ.md">08_AIカスタマイズ.md</a></td>
+<td>AIの応答をカスタマイズ</td>
+</tr>
+</tbody>
+</table>
+      </article>
+      <footer class="footer">
+        GCP AI Agent 設計資料 | Built with Python & Markdown
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.querySelector('.menu-toggle');
+      if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>11 Gateway アーキテクチャ - GCP AI Agent 設計資料</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="header-logo">
+      <span>📚</span>
+      <span>GCP AI Agent 設計資料</span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">ホーム</a>
+      <a href="02_全体像.html">全体像</a>
+      <a href="https://github.com" target="_blank">GitHub</a>
+    </nav>
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">📖 はじめに</div>
+        <ul class="sidebar-nav">
+          <li><a href="01_はじめに読んでください.html">はじめに読んでください</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🏗️ 仕組みを理解</div>
+        <ul class="sidebar-nav">
+          <li><a href="02_全体像.html">全体像</a></li>
+          <li><a href="03_バックエンド解説.html">バックエンド解説</a></li>
+          <li><a href="04_フロントエンド解説.html">フロントエンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🛠️ セットアップ</div>
+        <ul class="sidebar-nav">
+          <li><a href="05_セットアップの流れ.html">セットアップの流れ</a></li>
+          <li><a href="06_コマンド解説.html">コマンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🚀 動かす</div>
+        <ul class="sidebar-nav">
+          <li><a href="07_動かしてみよう.html">動かしてみよう</a></li>
+          <li><a href="08_AIカスタマイズ.html">AIカスタマイズ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🏢 マルチテナント</div>
+        <ul class="sidebar-nav">
+          <li><a href="11_Gatewayアーキテクチャ.html" class="active">Gateway アーキテクチャ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔄 参考: フロー解説</div>
+        <ul class="sidebar-nav">
+          <li><a href="FLOW_01_チャット送信の流れ.html">チャット送信の流れ</a></li>
+          <li><a href="FLOW_02_ログインの流れ.html">ログインの流れ</a></li>
+          <li><a href="FLOW_04_セッション管理の流れ.html">セッション管理の流れ</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <article class="content">
+        <h1 id="gateway-アーキテクチャ">Gateway アーキテクチャ - 複数企業対応の仕組み<a class="header-link" href="#gateway-アーキテクチャ" title="Permanent link">&para;</a></h1>
+
+<div class="goal-box">
+<div class="box-title">🎯 このページのゴール</div>
+<div class="box-content">
+「Gateway + Company Cloud Functions 構成がなぜ必要か、どう動くか」を理解する
+
+🔥 ゴール達成後のあなた:
+「この構成なら、各企業のコードを独立させながら、認証を一元化できるね」と言えるようになる！
+</div>
+</div>
+
+<hr />
+
+<h2 id="なぜ-gateway-が必要">なぜ Gateway が必要？<a class="header-link" href="#なぜ-gateway-が必要" title="Permanent link">&para;</a></h2>
+
+<div class="info-box">
+<div class="box-title">🏢 受託開発の課題</div>
+<div class="box-content">
+<strong>【よくある問題】</strong>
+<ul>
+<li>A社のシステムを改修したら、B社にバグが...</li>
+<li>認証処理が各所に分散して管理が大変</li>
+<li>新しい顧客を追加するたびに大量のコードをコピペ</li>
+</ul>
+
+<strong>【この設計で解決】</strong>
+<ul>
+<li>各社のコードは完全に独立（影響ゼロ）</li>
+<li>認証は Gateway で一元管理</li>
+<li>新規顧客は Firestore に設定追加だけ</li>
+</ul>
+</div>
+</div>
+
+<hr />
+
+<h2 id="全体構成">全体構成<a class="header-link" href="#全体構成" title="Permanent link">&para;</a></h2>
+
+<div class="info-box">
+<div class="box-title">🏗️ アーキテクチャ図</div>
+<div class="box-content">
+<pre style="font-family: monospace; background: #1a1a2e; padding: 20px; border-radius: 8px; overflow-x: auto; color: #e0e0e0;">
+   ユーザー（ブラウザ）
+        │
+        │ HTTPS + Firebase Token
+        ▼
+┌─────────────────────────────────────────┐
+│     <span style="color: #4fc3f7;">Gateway Cloud Functions（1つ）</span>       │
+│                                         │
+│  やること（3つだけ）:                     │
+│  <span style="color: #81c784;">1. Firebase 認証チェック</span>                │
+│  <span style="color: #81c784;">2. customer_id から URL を取得</span>          │
+│  <span style="color: #81c784;">3. そのまま転送（プロキシ）</span>              │
+│                                         │
+└────────────────┬────────────────────────┘
+                 │
+                 │ + HMAC署名で保護
+                 ▼
+┌─────────────────────────────────────────┐
+│   <span style="color: #ffb74d;">Company Cloud Functions（会社ごと）</span>    │
+│                                         │
+│  バックエンド API + AI Agent             │
+│  → 既存の backend/src/main.py           │
+│                                         │
+└─────────────────────────────────────────┘
+</pre>
+</div>
+</div>
+
+<hr />
+
+<h2 id="gateway-の役割">Gateway の役割（3つだけ）<a class="header-link" href="#gateway-の役割" title="Permanent link">&para;</a></h2>
+
+<div class="info-box">
+<div class="box-title">🚪 Gateway = ホテルのフロントデスク</div>
+<div class="box-content">
+<strong>【Gateway の仕事】</strong>
+<ol>
+<li><strong>身分確認</strong>: Firebase トークンを検証</li>
+<li><strong>部屋番号を調べる</strong>: customer_id から転送先 URL を取得</li>
+<li><strong>案内する</strong>: リクエストをそのまま転送</li>
+</ol>
+
+<strong>【Gateway がやらないこと】</strong>
+<ul>
+<li>AI 処理（Company に任せる）</li>
+<li>ビジネスロジック（Company に任せる）</li>
+<li>UI ロジック（Company に任せる）</li>
+</ul>
+
+💡 シンプルに保つことで、バグが入りにくい！
+</div>
+</div>
+
+<hr />
+
+<h2 id="セキュリティ">セキュリティ：HMAC 署名で保護<a class="header-link" href="#セキュリティ" title="Permanent link">&para;</a></h2>
+
+<div class="warn-box">
+<div class="box-title">⚠️ なぜ署名が必要？</div>
+<div class="box-content">
+<strong>【問題】</strong>
+<code>X-Gateway-Verified: true</code> ヘッダーだけでは、攻撃者が直接 Backend にアクセスしてヘッダーを偽装できてしまう！
+
+<strong>【解決策】</strong>
+共有シークレット（GATEWAY_SECRET）を使った HMAC 署名で、正規の Gateway からのリクエストのみを受け付ける。
+</div>
+</div>
+
+<div class="info-box">
+<div class="box-title">🔐 署名の仕組み</div>
+<div class="box-content">
+<strong>【Gateway 側: 署名を生成】</strong>
+<pre style="background: #1a1a2e; padding: 15px; border-radius: 8px; color: #e0e0e0;">
+message = f"{user_id}:{customer_id}"
+signature = hmac.new(
+    GATEWAY_SECRET,
+    message,
+    sha256
+).hexdigest()
+# → ヘッダーに追加: X-Gateway-Signature
+</pre>
+
+<strong>【Backend 側: 署名を検証】</strong>
+<pre style="background: #1a1a2e; padding: 15px; border-radius: 8px; color: #e0e0e0;">
+expected = hmac.new(GATEWAY_SECRET, message, sha256).hexdigest()
+if hmac.compare_digest(signature, expected):
+    # OK: 正規の Gateway からのリクエスト
+else:
+    # NG: 偽装されたリクエスト
+</pre>
+
+💡 <code>hmac.compare_digest</code> を使うことで、タイミング攻撃も防止！
+</div>
+</div>
+
+<hr />
+
+<h2 id="環境変数の設定">環境変数の設定<a class="header-link" href="#環境変数の設定" title="Permanent link">&para;</a></h2>
+
+<div class="info-box">
+<div class="box-title">⚙️ GATEWAY_SECRET の設定方法</div>
+<div class="box-content">
+<strong>【1. シークレットを生成】</strong>
+<pre style="background: #1a1a2e; padding: 15px; border-radius: 8px; color: #e0e0e0;">
+# 安全なランダム文字列を生成
+openssl rand -hex 32
+# 出力例: a1b2c3d4e5f6...（64文字の16進数）
+</pre>
+
+<strong>【2. Gateway にシークレットを設定】</strong>
+<pre style="background: #1a1a2e; padding: 15px; border-radius: 8px; color: #e0e0e0;">
+gcloud functions deploy gateway \
+  --set-env-vars GATEWAY_SECRET=a1b2c3d4e5f6...
+</pre>
+
+<strong>【3. Backend にも同じシークレットを設定】</strong>
+<pre style="background: #1a1a2e; padding: 15px; border-radius: 8px; color: #e0e0e0;">
+gcloud functions deploy backend \
+  --set-env-vars GATEWAY_SECRET=a1b2c3d4e5f6...
+</pre>
+
+⚠️ 両方に同じ値を設定することが重要！
+</div>
+</div>
+
+<hr />
+
+<h2 id="firestore-スキーマ">Firestore スキーマ<a class="header-link" href="#firestore-スキーマ" title="Permanent link">&para;</a></h2>
+
+<div class="info-box">
+<div class="box-title">🗄️ customers コレクション</div>
+<div class="box-content">
+<pre style="background: #1a1a2e; padding: 15px; border-radius: 8px; color: #e0e0e0;">
+customers/{customer_id}
+├── name: "ACME Corporation"
+├── allowed_emails: ["user@acme.co.jp", ...]
+├── allowed_domains: ["acme.co.jp"]
+├── <span style="color: #81c784;">cloud_functions_url</span>: "https://xxx.cloudfunctions.net/..."
+├── <span style="color: #81c784;">enabled</span>: true
+└── created_at: timestamp
+</pre>
+
+<strong>新規フィールド:</strong>
+<ul>
+<li><code>cloud_functions_url</code>: Company の Cloud Functions URL</li>
+<li><code>enabled</code>: 顧客が有効かどうか（false で無効化）</li>
+</ul>
+</div>
+</div>
+
+<hr />
+
+<h2 id="ディレクトリ構造">ディレクトリ構造<a class="header-link" href="#ディレクトリ構造" title="Permanent link">&para;</a></h2>
+
+<div class="info-box">
+<div class="box-title">📁 プロジェクト構成</div>
+<div class="box-content">
+<pre style="background: #1a1a2e; padding: 15px; border-radius: 8px; color: #e0e0e0;">
+gcp-firebase-ai-agent-platform/
+│
+├── <span style="color: #4fc3f7;">gateway/</span>                          # 【新規】Gateway
+│   └── src/
+│       ├── main.py                   # Gateway 本体（約100行）
+│       └── requirements.txt          # 依存関係
+│
+├── <span style="color: #ffb74d;">backend/</span>                          # Company Cloud Functions
+│   └── src/
+│       ├── main.py                   # バックエンド本体
+│       ├── agents/                   # AI エージェント
+│       └── common/                   # 共通モジュール
+│
+├── frontend/                         # フロントエンド
+│
+└── infrastructure/
+    ├── <span style="color: #81c784;">deploy-gateway.sh</span>             # Gateway デプロイ
+    └── deploy-customer.sh            # Company デプロイ
+</pre>
+</div>
+</div>
+
+<hr />
+
+<h2 id="デプロイ方法">デプロイ方法<a class="header-link" href="#デプロイ方法" title="Permanent link">&para;</a></h2>
+
+<div class="info-box">
+<div class="box-title">🚀 Gateway のデプロイ</div>
+<div class="box-content">
+<pre style="background: #1a1a2e; padding: 15px; border-radius: 8px; color: #e0e0e0;">
+# 1. プロジェクトIDを設定
+export PROJECT_ID=your-project-id
+
+# 2. Gateway をデプロイ
+./infrastructure/deploy-gateway.sh
+
+# 3. ヘルスチェック
+curl https://gateway-xxx.cloudfunctions.net/health
+# → {"status": "healthy", "service": "gateway"}
+</pre>
+</div>
+</div>
+
+<hr />
+
+<h2 id="トラブルシューティング">トラブルシューティング<a class="header-link" href="#トラブルシューティング" title="Permanent link">&para;</a></h2>
+
+<div class="warn-box">
+<div class="box-title">🔧 よくあるエラーと対処法</div>
+<div class="box-content">
+<table style="width: 100%;">
+<tr><th>エラー</th><th>原因</th><th>対処法</th></tr>
+<tr>
+<td><code>401 認証が必要です</code></td>
+<td>Firebase Token が無効</td>
+<td>トークンを再取得</td>
+</tr>
+<tr>
+<td><code>403 顧客に紐付けされていません</code></td>
+<td>customer_id が未設定</td>
+<td>Custom Claims を設定</td>
+</tr>
+<tr>
+<td><code>404 顧客の設定が見つかりません</code></td>
+<td>Firestore に URL が未設定</td>
+<td>cloud_functions_url を追加</td>
+</tr>
+<tr>
+<td><code>Gateway の署名が無効です</code></td>
+<td>GATEWAY_SECRET が不一致</td>
+<td>両方の環境変数を確認</td>
+</tr>
+</table>
+</div>
+</div>
+
+<hr />
+
+<h2 id="この設計のメリット">この設計のメリット<a class="header-link" href="#この設計のメリット" title="Permanent link">&para;</a></h2>
+
+<div class="success-box">
+<div class="box-title">✨ 受託・長期運用に向いている理由</div>
+<div class="box-content">
+<ol>
+<li><strong>顧客ごとにコードをフォークできる</strong><br>A社だけ特殊な機能を追加しても、B社に影響なし</li>
+<li><strong>1社だけ特殊なカスタマイズも可能</strong><br>Company Cloud Functions は独立しているため</li>
+<li><strong>他社への影響ゼロ</strong><br>A社でバグが出ても、B社は動き続ける</li>
+<li><strong>新人エンジニアでも理解しやすい</strong><br>Gateway は「認証して転送するだけ」という単純な構造</li>
+<li><strong>Docker 不使用</strong><br>既存の Cloud Functions デプロイ方式をそのまま維持</li>
+</ol>
+</div>
+</div>
+
+      </article>
+      <footer class="footer">
+        GCP AI Agent 設計資料 | Built with Python & Markdown
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    document.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.querySelector('.menu-toggle');
+      if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

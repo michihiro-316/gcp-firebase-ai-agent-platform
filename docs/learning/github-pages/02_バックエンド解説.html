@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>02 バックエンド解説 - GCP AI Agent Platform 学習ガイド</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="header-logo">
+      <span>📚</span>
+      <span>GCP AI Agent 学習ガイド</span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">ホーム</a>
+      <a href="FLOW_03_セットアップの流れ.html">セットアップ</a>
+      <a href="https://github.com" target="_blank">GitHub</a>
+    </nav>
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">🚀 はじめに</div>
+        <ul class="sidebar-nav">
+          <li><a href="00_はじめに読んでください.html" >はじめに読んでください</a></li>
+          <li><a href="04_動かしてみよう.html" >動かしてみよう</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">📖 基礎知識</div>
+        <ul class="sidebar-nav">
+          <li><a href="01_全体像.html" >全体像</a></li>
+          <li><a href="02_バックエンド解説.html" class="active">バックエンド解説</a></li>
+          <li><a href="03_フロントエンド解説.html" >フロントエンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔄 フロー解説</div>
+        <ul class="sidebar-nav">
+          <li><a href="FLOW_01_チャット送信の流れ.html" >チャット送信の流れ</a></li>
+          <li><a href="FLOW_02_ログインの流れ.html" >ログインの流れ</a></li>
+          <li><a href="FLOW_03_セットアップの流れ.html" >セットアップの流れ</a></li>
+          <li><a href="FLOW_04_セッション管理の流れ.html" >セッション管理の流れ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔧 上級編</div>
+        <ul class="sidebar-nav">
+          <li><a href="05_顧客管理の仕組み.html" >顧客管理の仕組み</a></li>
+          <li><a href="08_AIカスタマイズ.html" >AIカスタマイズ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">📚 リファレンス</div>
+        <ul class="sidebar-nav">
+          <li><a href="06_コマンド解説.html" >コマンド解説</a></li>
+          <li><a href="07_ファイル形式と設定ファイル.html" >ファイル形式と設定</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <article class="content">
+        <h1 id="_1">"""<a class="header-link" href="#_1" title="Permanent link">&para;</a></h1>
+<h1 id="バックエンド解説勉強用">バックエンド解説（勉強用）<a class="header-link" href="#バックエンド解説勉強用" title="Permanent link">&para;</a></h1>
+<p>このファイルは「勉強用」です。<br />
+実際のコードは backend/src/ にあります。</p>
+<p>【読む順番】<br />
+1. main.py の全体構造を理解<br />
+2. 認証の流れを理解<br />
+3. チャットAPIの流れを理解</p>
+<p>========================================<br />
+"""</p>
+<h1 id="_2">========================================<a class="header-link" href="#_2" title="Permanent link">&para;</a></h1>
+<h1 id="1-mainpy-の構造">1. main.py の構造<a class="header-link" href="#1-mainpy-の構造" title="Permanent link">&para;</a></h1>
+<h1 id="_3">========================================<a class="header-link" href="#_3" title="Permanent link">&para;</a></h1>
+<p>"""<br />
+main.pyは「入口」です。<br />
+すべてのAPIリクエストはここに来ます。</p>
+<p>【構造のイメージ】</p>
+<p>┌─────────────────────────────────────┐<br />
+│            main.py                  │<br />
+├─────────────────────────────────────┤<br />
+│                                     │<br />
+│  /health  → ヘルスチェック           │<br />
+│            （サーバーが生きてるか確認）│<br />
+│                                     │<br />
+│  /chat    → チャットAPI              │<br />
+│            （メインの機能）           │<br />
+│                                     │<br />
+│  /agents  → エージェント一覧          │<br />
+│            （使えるAIの一覧）         │<br />
+│                                     │<br />
+└─────────────────────────────────────┘<br />
+"""</p>
+<h1 id="_4">========================================<a class="header-link" href="#_4" title="Permanent link">&para;</a></h1>
+<h1 id="2-認証の流れ">2. 認証の流れ<a class="header-link" href="#2-認証の流れ" title="Permanent link">&para;</a></h1>
+<h1 id="_5">========================================<a class="header-link" href="#_5" title="Permanent link">&para;</a></h1>
+<p>"""<br />
+認証とは「この人は本物か？」を確認すること。</p>
+<p>【なぜ必要？】<br />
+- 誰でもAPIを使えたら、悪い人に悪用される<br />
+- 顧客ごとにデータを分ける必要がある<br />
+- 使いすぎを防ぐ必要がある</p>
+<p>【流れ】</p>
+<ol>
+<li>
+<p>ユーザーがリクエストを送る<br />
+   ↓<br />
+   リクエストヘッダーに「IDトークン」が入っている<br />
+   （Authorization: Bearer xxxxx）</p>
+</li>
+<li>
+<p>verify_token() でトークンを検証<br />
+   ↓<br />
+   Firebase Authが「このトークンは本物か」を確認<br />
+   偽物なら → エラーを返す</p>
+</li>
+<li>
+<p>is_user_allowed() でアクセス権限を確認<br />
+   ↓<br />
+   「このメールアドレス/ドメインは許可されているか」<br />
+   許可されていない → エラーを返す</p>
+</li>
+<li>
+<p>get_user_customer_id() で顧客IDを取得<br />
+   ↓<br />
+   Custom Claimsから customer_id を取り出す<br />
+   これでどの顧客のデータを使うか決まる<br />
+"""</p>
+</li>
+</ol>
+<h1 id="-------簡略化したコード例-------">------ 簡略化したコード例 ------<a class="header-link" href="#-------簡略化したコード例-------" title="Permanent link">&para;</a></h1>
+<p>def authenticate_request_説明版(request):<br />
+    """<br />
+    リクエストを認証する（説明用の簡略版）<br />
+    """<br />
+    # ステップ1: ヘッダーからトークンを取り出す<br />
+    auth_header = request.headers.get("Authorization", "")<br />
+    if not auth_header:<br />
+        raise ValueError("トークンがありません")</p>
+<div class="codehilite"><pre><span></span><code><span class="gh">#</span> &quot;Bearer xxxxx&quot; という形式かチェック（セキュリティ強化）
+parts = auth_header.split(&quot; &quot;)
+if len(parts) != 2 or parts[0] != &quot;Bearer&quot;:
+    raise ValueError(&quot;認証ヘッダーの形式が不正です&quot;)
+
+id_token = parts[1]
+if not id_token:
+    raise ValueError(&quot;認証トークンが空です&quot;)
+
+<span class="gh">#</span> ステップ2: トークンを検証（Firebase Authが行う）
+<span class="gh">#</span> check_revoked=True で無効化されたトークンも拒否
+<span class="gh">#</span> → 失敗したらエラー
+user_info = verify_token(id_token, check_revoked=True)
+
+<span class="gh">#</span> ステップ3: このユーザーは許可されている？
+email = user_info.get(&quot;email&quot;, &quot;&quot;)
+if not is_user_allowed(email):
+    raise ValueError(&quot;このユーザーはアクセスできません&quot;)
+
+<span class="gh">#</span> ステップ4: 顧客IDを追加
+user_info[&quot;customer_id&quot;] = get_user_customer_id(user_info[&quot;uid&quot;])
+
+return user_info
+</code></pre></div>
+
+<h1 id="_6">========================================<a class="header-link" href="#_6" title="Permanent link">&para;</a></h1>
+<h1 id="3-チャットapiの流れ">3. チャットAPIの流れ<a class="header-link" href="#3-チャットapiの流れ" title="Permanent link">&para;</a></h1>
+<h1 id="_7">========================================<a class="header-link" href="#_7" title="Permanent link">&para;</a></h1>
+<p>"""<br />
+/chat エンドポイントの流れ</p>
+<p>【リクエスト】<br />
+POST /chat<br />
+{<br />
+    "message": "こんにちは",<br />
+    "thread_id": "xxx"  ← 省略可能（省略すると新しい会話）<br />
+}</p>
+<p>【セキュリティチェック】<br />
+- メッセージ長制限: 10,000文字まで（DoS/コスト攻撃対策）<br />
+- thread_id形式検証: 英数字、ハイフン、アンダースコアのみ</p>
+<p>【流れ】</p>
+<ol>
+<li>
+<p>prepare_chat_request() で前準備<br />
+   - 認証チェック<br />
+   - レート制限チェック（使いすぎ防止）<br />
+   - リクエストの中身を確認<br />
+   - 入力値検証（メッセージ長、thread_id形式）</p>
+</li>
+<li>
+<p>get_agent() でAIエージェントを取得<br />
+   - 顧客ごとに別々のエージェントを使う<br />
+   - キャッシュして再利用（毎回作るとコストがかかる）</p>
+</li>
+<li>
+<p>agent.run() でAIに質問<br />
+   - ストリーミングで少しずつ返答</p>
+</li>
+<li>
+<p>Server-Sent Events で返す<br />
+   - 「data: こん」<br />
+   - 「data: にち」<br />
+   - 「data: は」<br />
+   - 「data: [DONE]」</p>
+</li>
+<li>
+<p>エラー時<br />
+   - 詳細はサーバーログに記録<br />
+   - クライアントには汎用メッセージを返す（情報漏洩防止）<br />
+"""</p>
+</li>
+</ol>
+<h1 id="-------簡略化したコード例-------_1">------ 簡略化したコード例 ------<a class="header-link" href="#-------簡略化したコード例-------_1" title="Permanent link">&para;</a></h1>
+<p>def chat_説明版():<br />
+    """<br />
+    チャットAPI（説明用の簡略版）<br />
+    """<br />
+    # ステップ1: 前準備<br />
+    agent, message, thread_id, user_id, customer_id = prepare_chat_request()</p>
+<div class="codehilite"><pre><span></span><code><span class="err">#</span><span class="w"> </span><span class="nl">ステップ2</span><span class="p">:</span><span class="w"> </span><span class="n">AIに質問してストリーミングで返す</span>
+<span class="n">def</span><span class="w"> </span><span class="n">generate</span><span class="p">()</span><span class="err">:</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="n">chunk</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">agent</span><span class="p">.</span><span class="n">run</span><span class="p">(</span><span class="n">message</span><span class="p">,</span><span class="w"> </span><span class="n">thread_id</span><span class="p">)</span><span class="err">:</span>
+<span class="w">        </span><span class="err">#</span><span class="w"> </span><span class="n">少しずつ返答を返す</span>
+<span class="w">        </span><span class="n">yield</span><span class="w"> </span><span class="n">f</span><span class="ss">&quot;data: {chunk}\n\n&quot;</span>
+
+<span class="w">    </span><span class="err">#</span><span class="w"> </span><span class="n">終わりの合図</span>
+<span class="w">    </span><span class="n">yield</span><span class="w"> </span><span class="ss">&quot;data: [DONE]\n\n&quot;</span>
+
+<span class="err">#</span><span class="w"> </span><span class="n">Server</span><span class="o">-</span><span class="n">Sent</span><span class="w"> </span><span class="n">Events</span><span class="w"> </span><span class="n">形式で返す</span>
+<span class="k">return</span><span class="w"> </span><span class="n">Response</span><span class="p">(</span><span class="n">generate</span><span class="p">(),</span><span class="w"> </span><span class="n">mimetype</span><span class="o">=</span><span class="ss">&quot;text/event-stream&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<h1 id="_8">========================================<a class="header-link" href="#_8" title="Permanent link">&para;</a></h1>
+<h1 id="4-重要な概念">4. 重要な概念<a class="header-link" href="#4-重要な概念" title="Permanent link">&para;</a></h1>
+<h1 id="_9">========================================<a class="header-link" href="#_9" title="Permanent link">&para;</a></h1>
+<h1 id="----asyncawait-とは----">--- async/await とは？ ---<a class="header-link" href="#----asyncawait-とは----" title="Permanent link">&para;</a></h1>
+<p>"""<br />
+async/await は「非同期処理」のための書き方です。</p>
+<p>【なぜ必要？】<br />
+AIの返答を待っている間、サーバーが何もできないと困る。<br />
+async/await を使うと、待っている間に他の処理ができる。</p>
+<p>【イメージ】<br />
+普通の処理:<br />
+  料理を注文 → 料理ができるまで待つ → 次の客の注文を聞く</p>
+<p>非同期処理:<br />
+  料理を注文 → （待っている間に）次の客の注文を聞く → 料理ができたら運ぶ<br />
+"""</p>
+<h1 id="非同期関数の例">非同期関数の例<a class="header-link" href="#非同期関数の例" title="Permanent link">&para;</a></h1>
+<p>async def async_example():<br />
+    """<br />
+    async がついた関数は「非同期関数」<br />
+    中で await を使って「待つ」処理を書ける<br />
+    """<br />
+    # AIの返答を待つ（待っている間、他の処理ができる）<br />
+    result = await ai.generate("こんにちは")<br />
+    return result</p>
+<h1 id="----ジェネレーターyieldとは----">--- ジェネレーター（yield）とは？ ---<a class="header-link" href="#----ジェネレーターyieldとは----" title="Permanent link">&para;</a></h1>
+<p>"""<br />
+yield は「少しずつ値を返す」ための書き方です。</p>
+<p>【なぜ必要？】<br />
+AIの返答が長い場合、全部完成するまで待つと遅い。<br />
+yield を使うと、できたところから少しずつ返せる。<br />
+"""</p>
+<h1 id="ジェネレーターの例">ジェネレーターの例<a class="header-link" href="#ジェネレーターの例" title="Permanent link">&para;</a></h1>
+<p>def count_説明():<br />
+    """<br />
+    yield を使うと、呼び出すたびに次の値を返す<br />
+    """<br />
+    yield 1  # 1回目の呼び出しで 1 を返す<br />
+    yield 2  # 2回目の呼び出しで 2 を返す<br />
+    yield 3  # 3回目の呼び出しで 3 を返す</p>
+<h1 id="使い方">使い方<a class="header-link" href="#使い方" title="Permanent link">&para;</a></h1>
+<h1 id="for-num-in-count_説明">for num in count_説明():<a class="header-link" href="#for-num-in-count_説明" title="Permanent link">&para;</a></h1>
+<h1 id="printnum">print(num)<a class="header-link" href="#printnum" title="Permanent link">&para;</a></h1>
+<h1 id="-1-2-3-と表示される">→ 1, 2, 3 と表示される<a class="header-link" href="#-1-2-3-と表示される" title="Permanent link">&para;</a></h1>
+<h1 id="----デコレーターとは----">--- デコレーター（@）とは？ ---<a class="header-link" href="#----デコレーターとは----" title="Permanent link">&para;</a></h1>
+<p>"""<br />
+@ から始まる行は「デコレーター」です。<br />
+関数に「追加機能」を付けます。</p>
+<p>【よく使うデコレーター】</p>
+<p>@app.route("/chat", methods=["POST"])<br />
+→ この関数は /chat へのPOSTリクエストを処理する</p>
+<p>@functions_framework.http<br />
+→ この関数はCloud Functionsのエントリーポイント<br />
+"""</p>
+<h1 id="デコレーターの例">デコレーターの例<a class="header-link" href="#デコレーターの例" title="Permanent link">&para;</a></h1>
+<h1 id="approutehealth--health-へのリクエストを処理">@app.route("/health")  ← /health へのリクエストを処理<a class="header-link" href="#approutehealth--health-へのリクエストを処理" title="Permanent link">&para;</a></h1>
+<h1 id="def-health_check">def health_check():<a class="header-link" href="#def-health_check" title="Permanent link">&para;</a></h1>
+<h1 id="return-status-healthy">return {"status": "healthy"}<a class="header-link" href="#return-status-healthy" title="Permanent link">&para;</a></h1>
+<h1 id="_10">========================================<a class="header-link" href="#_10" title="Permanent link">&para;</a></h1>
+<h1 id="5-次に読むべきファイル">5. 次に読むべきファイル<a class="header-link" href="#5-次に読むべきファイル" title="Permanent link">&para;</a></h1>
+<h1 id="_11">========================================<a class="header-link" href="#_11" title="Permanent link">&para;</a></h1>
+<p>"""<br />
+1. backend/src/main.py<br />
+   → 今回説明した内容の本番コード</p>
+<ol start="2">
+<li>
+<p>backend/src/common/auth.py<br />
+   → 認証処理の詳細</p>
+</li>
+<li>
+<p>backend/src/agents/sample_agent/agent.py<br />
+   → AIエージェントの実装</p>
+</li>
+<li>
+<p>learning/03_フロントエンド解説.md<br />
+   → 画面側の解説<br />
+"""</p>
+</li>
+</ol>
+      </article>
+      <footer class="footer">
+        GCP AI Agent Platform 学習ガイド | Built with Python & Markdown
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.querySelector('.menu-toggle');
+      if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

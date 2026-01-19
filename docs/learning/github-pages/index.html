@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GCP AI Agent 設計資料</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="header-logo">
+      <span>📚</span>
+      <span>GCP AI Agent 設計資料</span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">ホーム</a>
+      <a href="02_全体像.html">全体像</a>
+      <a href="https://github.com" target="_blank">GitHub</a>
+    </nav>
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">📖 はじめに</div>
+        <ul class="sidebar-nav">
+          <li><a href="01_はじめに読んでください.html">はじめに読んでください</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🏗️ Phase1: 仕組みを理解</div>
+        <ul class="sidebar-nav">
+          <li><a href="02_全体像.html">全体像</a></li>
+          <li><a href="03_バックエンド解説.html">バックエンド解説</a></li>
+          <li><a href="04_フロントエンド解説.html">フロントエンド解説</a></li>
+          <li><a href="05_顧客管理の仕組み.html">顧客管理の仕組み</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">💻 Phase2: 操作を知る</div>
+        <ul class="sidebar-nav">
+          <li><a href="06_コマンド解説.html">コマンド解説</a></li>
+          <li><a href="07_ファイル形式と設定ファイル.html">ファイル形式と設定</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🚀 Phase3: 動かす</div>
+        <ul class="sidebar-nav">
+          <li><a href="08_AIカスタマイズ.html">AIカスタマイズ</a></li>
+          <li><a href="09_セットアップの流れ.html">セットアップの流れ</a></li>
+          <li><a href="10_動かしてみよう.html">動かしてみよう</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🏢 マルチテナント</div>
+        <ul class="sidebar-nav">
+          <li><a href="11_Gatewayアーキテクチャ.html">Gateway アーキテクチャ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔄 参考: フロー解説</div>
+        <ul class="sidebar-nav">
+          <li><a href="FLOW_01_チャット送信の流れ.html">チャット送信の流れ</a></li>
+          <li><a href="FLOW_02_ログインの流れ.html">ログインの流れ</a></li>
+          <li><a href="FLOW_04_セッション管理の流れ.html">セッション管理の流れ</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <article class="content">
+        <div class="index-hero">
+          <h1>📚 GCP AI Agent<br>設計資料</h1>
+          <p>AIチャットシステムのアーキテクチャと実装ガイド</p>
+        </div>
+
+        <h2 class="section-title">🚀 まずはここから</h2>
+        <div class="doc-grid">
+          <a href="01_はじめに読んでください.html" class="doc-card">
+      <div class="doc-card-icon">📖</div>
+      <div class="doc-card-title">01 はじめに読んでください</div>
+      <div class="doc-card-desc">設計資料の使い方</div>
+    </a>
+        <a href="05_セットアップの流れ.html" class="doc-card">
+      <div class="doc-card-icon">⚙️</div>
+      <div class="doc-card-title">05 セットアップの流れ</div>
+      <div class="doc-card-desc">環境構築の手順</div>
+    </a>
+        <a href="07_動かしてみよう.html" class="doc-card">
+      <div class="doc-card-icon">🚀</div>
+      <div class="doc-card-title">07 動かしてみよう</div>
+      <div class="doc-card-desc">ローカル環境での実行</div>
+    </a>
+        </div>
+
+        <h2 class="section-title">🔄 フローで理解する</h2>
+        <div class="doc-grid">
+          <a href="FLOW_01_チャット送信の流れ.html" class="doc-card">
+      <div class="doc-card-icon">💬</div>
+      <div class="doc-card-title">FLOW 01 チャット送信の流れ</div>
+      <div class="doc-card-desc">メッセージ送信の仕組み</div>
+    </a>
+        <a href="FLOW_02_ログインの流れ.html" class="doc-card">
+      <div class="doc-card-icon">🔐</div>
+      <div class="doc-card-title">FLOW 02 ログインの流れ</div>
+      <div class="doc-card-desc">認証フローの解説</div>
+    </a>
+        <a href="FLOW_04_セッション管理の流れ.html" class="doc-card">
+      <div class="doc-card-icon">📝</div>
+      <div class="doc-card-title">FLOW 04 セッション管理の流れ</div>
+      <div class="doc-card-desc">セッション管理の仕組み</div>
+    </a>
+        </div>
+
+        <h2 class="section-title">📖 基礎知識</h2>
+        <div class="doc-grid">
+          <a href="02_全体像.html" class="doc-card">
+      <div class="doc-card-icon">🏗️</div>
+      <div class="doc-card-title">02 全体像</div>
+      <div class="doc-card-desc">システムアーキテクチャ</div>
+    </a>
+        <a href="03_バックエンド解説.html" class="doc-card">
+      <div class="doc-card-icon">🐍</div>
+      <div class="doc-card-title">03 バックエンド解説</div>
+      <div class="doc-card-desc">Python/Flask の詳細</div>
+    </a>
+        <a href="04_フロントエンド解説.html" class="doc-card">
+      <div class="doc-card-icon">⚛️</div>
+      <div class="doc-card-title">04 フロントエンド解説</div>
+      <div class="doc-card-desc">React/TypeScript の詳細</div>
+    </a>
+        </div>
+
+        <h2 class="section-title">🔧 上級編 & リファレンス</h2>
+        <div class="doc-grid">
+          <a href="08_AIカスタマイズ.html" class="doc-card">
+      <div class="doc-card-icon">🤖</div>
+      <div class="doc-card-title">08 AIカスタマイズ</div>
+      <div class="doc-card-desc">AIの応答をカスタマイズ</div>
+    </a>
+        <a href="06_コマンド解説.html" class="doc-card">
+      <div class="doc-card-icon">💻</div>
+      <div class="doc-card-title">06 コマンド解説</div>
+      <div class="doc-card-desc">ターミナルコマンド集</div>
+    </a>
+        </div>
+
+        <h2 class="section-title">🏢 マルチテナント</h2>
+        <div class="doc-grid">
+          <a href="11_Gatewayアーキテクチャ.html" class="doc-card">
+      <div class="doc-card-icon">🚪</div>
+      <div class="doc-card-title">11 Gateway アーキテクチャ</div>
+      <div class="doc-card-desc">複数企業対応の仕組み</div>
+    </a>
+        </div>
+      </article>
+      <footer class="footer">
+        GCP AI Agent 設計資料 | Built with Python & Markdown
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    document.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.querySelector('.menu-toggle');
+      if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

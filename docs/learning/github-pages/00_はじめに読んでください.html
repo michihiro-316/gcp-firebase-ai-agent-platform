@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>00 はじめに読んでください - GCP AI Agent Platform 学習ガイド</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="header-logo">
+      <span>📚</span>
+      <span>GCP AI Agent 学習ガイド</span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">ホーム</a>
+      <a href="FLOW_03_セットアップの流れ.html">セットアップ</a>
+      <a href="https://github.com" target="_blank">GitHub</a>
+    </nav>
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">🚀 はじめに</div>
+        <ul class="sidebar-nav">
+          <li><a href="00_はじめに読んでください.html" class="active">はじめに読んでください</a></li>
+          <li><a href="04_動かしてみよう.html" >動かしてみよう</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">📖 基礎知識</div>
+        <ul class="sidebar-nav">
+          <li><a href="01_全体像.html" >全体像</a></li>
+          <li><a href="02_バックエンド解説.html" >バックエンド解説</a></li>
+          <li><a href="03_フロントエンド解説.html" >フロントエンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔄 フロー解説</div>
+        <ul class="sidebar-nav">
+          <li><a href="FLOW_01_チャット送信の流れ.html" >チャット送信の流れ</a></li>
+          <li><a href="FLOW_02_ログインの流れ.html" >ログインの流れ</a></li>
+          <li><a href="FLOW_03_セットアップの流れ.html" >セットアップの流れ</a></li>
+          <li><a href="FLOW_04_セッション管理の流れ.html" >セッション管理の流れ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔧 上級編</div>
+        <ul class="sidebar-nav">
+          <li><a href="05_顧客管理の仕組み.html" >顧客管理の仕組み</a></li>
+          <li><a href="08_AIカスタマイズ.html" >AIカスタマイズ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">📚 リファレンス</div>
+        <ul class="sidebar-nav">
+          <li><a href="06_コマンド解説.html" >コマンド解説</a></li>
+          <li><a href="07_ファイル形式と設定ファイル.html" >ファイル形式と設定</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <article class="content">
+        <h1 id="学習ガイド---12日で理解する">学習ガイド - 1〜2日で理解する<a class="header-link" href="#学習ガイド---12日で理解する" title="Permanent link">&para;</a></h1>
+<p>このフォルダは、<strong>GASを少し触ったことがある新卒エンジニア</strong>が<br />
+このシステムを<strong>1〜2日で理解して作業できる</strong>ための勉強資料です。</p>
+<hr />
+<h2 id="このシステムって何">このシステムって何？<a class="header-link" href="#このシステムって何" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
+│                    AIチャットシステム                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  できること:                                                 │
+│  ・Googleアカウントでログイン                                 │
+│  ・AIと会話（ChatGPTのような体験）                            │
+│  ・会話履歴の保存                                            │
+│  ・複数の会社で使える（マルチテナント）                        │
+│                                                             │
+│  使っている技術:                                             │
+│  ・フロントエンド: React + TypeScript                        │
+│  ・バックエンド: Python + Flask                              │
+│  ・AI: Google Vertex AI (Gemini)                            │
+│  ・データベース: Firestore                                   │
+│  ・認証: Firebase Authentication                            │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+</code></pre></div>
+
+<hr />
+<h2 id="読む順番推奨">読む順番（推奨）<a class="header-link" href="#読む順番推奨" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">FLOW_03_セットアップの流れ</span><span class="mf">.</span><span class="n">md</span><span class="w">  </span><span class="err">←</span><span class="w"> </span><span class="n">まずこれ</span><span class="err">！</span><span class="n">環境構築</span>
+<span class="mf">2.</span><span class="w"> </span><span class="mf">04</span><span class="n">_動かしてみよう</span><span class="mf">.</span><span class="n">md</span><span class="w">           </span><span class="err">←</span><span class="w"> </span><span class="n">ローカルで動かす</span>
+<span class="mf">3.</span><span class="w"> </span><span class="mf">08</span><span class="n">_AIカスタマイズ</span><span class="mf">.</span><span class="n">md</span><span class="w">           </span><span class="err">←</span><span class="w"> </span><span class="n">AIの応答を変えてみる</span><span class="w"> </span><span class="err">★</span><span class="n">実験</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">FLOW_01_チャット送信の流れ</span><span class="mf">.</span><span class="n">md</span><span class="w">  </span><span class="err">←</span><span class="w"> </span><span class="n">チャットの仕組みを理解</span>
+<span class="mf">5.</span><span class="w"> </span><span class="mf">01</span><span class="n">_全体像</span><span class="mf">.</span><span class="n">md</span><span class="w">                   </span><span class="err">←</span><span class="w"> </span><span class="n">全体アーキテクチャ</span>
+<span class="mf">6.</span><span class="w"> </span><span class="mf">05</span><span class="n">_顧客管理の仕組み</span><span class="mf">.</span><span class="n">md</span><span class="w">         </span><span class="err">←</span><span class="w"> </span><span class="n">顧客追加時に読む</span>
+</code></pre></div>
+
+<blockquote>
+<p><strong>💡 ヒント</strong>: 上記の順番で読めば、最短で理解できます。<br />
+3番目の「AIカスタマイズ」は手を動かす実験なので、まず試してみてください。<br />
+困ったときは <code>06_コマンド解説.md</code> や <code>07_ファイル形式.md</code> を参照。</p>
+</blockquote>
+<hr />
+<h2 id="学習の進め方フロー別学習">学習の進め方：フロー別学習<a class="header-link" href="#学習の進め方フロー別学習" title="Permanent link">&para;</a></h2>
+<p><strong>従来の学習</strong>と<strong>この資料の学習</strong>の違い：</p>
+<div class="codehilite"><pre><span></span><code>【従来】ファイル単位で学ぶ
+  main.py を読む → auth.py を読む → agent.py を読む
+  ❌ 「で、これらがどう繋がるの？」がわからない
+
+【この資料】フロー単位で学ぶ
+  「チャットを送信したら何が起きるか」を追う
+  ✅ ファイル間の繋がりがわかる！
+  ✅ 「なぜこのファイルがあるのか」がわかる！
+</code></pre></div>
+
+<hr />
+<h2 id="12日-クイックスタート">1〜2日 クイックスタート<a class="header-link" href="#12日-クイックスタート" title="Permanent link">&para;</a></h2>
+<h3 id="day-1-動かして理解する46時間">Day 1: 動かして理解する（4〜6時間）<a class="header-link" href="#day-1-動かして理解する46時間" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code>午前（2〜3時間）: 環境構築
+─────────────────────────────────────────────
+│
+├─→ まず読む: FLOW_03_セットアップの流れ.md
+│
+│   やること:
+│   ✅ GCPプロジェクト作成
+│   ✅ Firebase設定
+│   ✅ 環境変数設定
+│   ✅ バックエンド起動
+│   ✅ フロントエンド起動
+│   ✅ ログインしてチャット ← ここまでが目標！
+│
+└─→ 成功の確認: ブラウザでチャットできる
+
+午後（2〜3時間）: コードの流れを理解
+─────────────────────────────────────────────
+│
+├─→ 読む: FLOW_01_チャット送信の流れ.md
+│   ・ボタンを押してから返答が来るまでの全コード
+│   ・6つのファイルの繋がりを理解
+│
+└─→ 読む: FLOW_02_ログインの流れ.md
+     ・ログインボタンから認証完了までの流れ
+     ・Custom Claims（顧客紐付け）の仕組み
+</code></pre></div>
+
+<h3 id="day-2-深く理解する46時間">Day 2: 深く理解する（4〜6時間）<a class="header-link" href="#day-2-深く理解する46時間" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="nx">午前</span><span class="err">（</span><span class="mi">2</span><span class="err">〜</span><span class="mi">3</span><span class="nx">時間</span><span class="err">）</span><span class="p">:</span><span class="w"> </span><span class="nx">基礎知識の補強</span>
+<span class="err">─────────────────────────────────────────────</span>
+<span class="err">│</span>
+<span class="err">├─→</span><span class="w"> </span><span class="mi">06</span><span class="nx">_コマンド解説</span><span class="p">.</span><span class="nx">md</span><span class="err">（</span><span class="nx">ターミナルコマンドの意味</span><span class="err">）</span>
+<span class="err">│</span><span class="w">   </span><span class="nx">pip</span><span class="p">,</span><span class="w"> </span><span class="nx">npm</span><span class="p">,</span><span class="w"> </span><span class="nx">functions</span><span class="o">-</span><span class="nx">framework</span><span class="w"> </span><span class="nx">って何</span><span class="err">？</span>
+<span class="err">│</span>
+<span class="err">└─→</span><span class="w"> </span><span class="mi">07</span><span class="nx">_ファイル形式と設定ファイル</span><span class="p">.</span><span class="nx">md</span>
+<span class="w">     </span><span class="p">.</span><span class="nx">ts</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="nx">tsx</span><span class="p">,</span><span class="w"> </span><span class="kn">package</span><span class="p">.</span><span class="nx">json</span><span class="w"> </span><span class="nx">って何</span><span class="err">？</span>
+
+<span class="nx">午後</span><span class="err">（</span><span class="mi">2</span><span class="err">〜</span><span class="mi">3</span><span class="nx">時間</span><span class="err">）</span><span class="p">:</span><span class="w"> </span><span class="nx">個別ファイルの理解</span>
+<span class="err">─────────────────────────────────────────────</span>
+<span class="err">│</span>
+<span class="err">├─→</span><span class="w"> </span><span class="mi">01</span><span class="nx">_全体像</span><span class="p">.</span><span class="nx">md</span><span class="err">（</span><span class="nx">アーキテクチャ図</span><span class="err">）</span>
+<span class="err">│</span>
+<span class="err">├─→</span><span class="w"> </span><span class="mi">05</span><span class="nx">_顧客管理の仕組み</span><span class="p">.</span><span class="nx">md</span><span class="err">（</span><span class="nx">マルチテナント</span><span class="err">）</span>
+<span class="err">│</span>
+<span class="err">└─→</span><span class="w"> </span><span class="nx">実際のコードを開いてみる</span>
+<span class="w">     </span><span class="err">・</span><span class="nx">FLOW_01で登場したファイルを開く</span>
+<span class="w">     </span><span class="err">・</span><span class="nx">ドキュメントのコードと照らし合わせる</span>
+</code></pre></div>
+
+<hr />
+<h2 id="優先度付きドキュメント一覧">優先度付きドキュメント一覧<a class="header-link" href="#優先度付きドキュメント一覧" title="Permanent link">&para;</a></h2>
+<h3 id="最優先--必ず読む">最優先（★★★）- 必ず読む<a class="header-link" href="#最優先--必ず読む" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>ファイル</th>
+<th>内容</th>
+<th>読了時間</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>FLOW_03_セットアップの流れ.md</code></td>
+<td>環境構築の手順</td>
+<td>2時間</td>
+</tr>
+<tr>
+<td><code>FLOW_01_チャット送信の流れ.md</code></td>
+<td>チャット処理の全体像</td>
+<td>45分</td>
+</tr>
+<tr>
+<td><code>FLOW_02_ログインの流れ.md</code></td>
+<td>認証の仕組み</td>
+<td>30分</td>
+</tr>
+</tbody>
+</table>
+<h3 id="重要--できれば読む">重要（★★）- できれば読む<a class="header-link" href="#重要--できれば読む" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>ファイル</th>
+<th>内容</th>
+<th>いつ読むか</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>06_コマンド解説.md</code></td>
+<td>ターミナルコマンド</td>
+<td>コマンドがわからない時</td>
+</tr>
+<tr>
+<td><code>07_ファイル形式と設定ファイル.md</code></td>
+<td>ファイル形式</td>
+<td>.ts等がわからない時</td>
+</tr>
+<tr>
+<td><code>01_全体像.md</code></td>
+<td>アーキテクチャ</td>
+<td>全体を俯瞰したい時</td>
+</tr>
+<tr>
+<td><code>05_顧客管理の仕組み.md</code></td>
+<td>マルチテナント</td>
+<td>顧客追加が必要な時</td>
+</tr>
+</tbody>
+</table>
+<h3 id="参考--必要に応じて">参考（★）- 必要に応じて<a class="header-link" href="#参考--必要に応じて" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>ファイル</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>02_バックエンド解説.md</code></td>
+<td>Pythonコードの詳細解説</td>
+</tr>
+<tr>
+<td><code>03_フロントエンド解説.md</code></td>
+<td>React/TypeScriptの詳細解説</td>
+</tr>
+<tr>
+<td><code>04_動かしてみよう.md</code></td>
+<td>簡易版の起動手順</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="gas経験者向け-この技術って何">GAS経験者向け: この技術って何？<a class="header-link" href="#gas経験者向け-この技術って何" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>この資料で出てくる技術</th>
+<th>GASで言うと</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TypeScript</td>
+<td>GASのJavaScript（ただし型がある）</td>
+</tr>
+<tr>
+<td>React</td>
+<td>スプレッドシートのUI部分を作る仕組み</td>
+</tr>
+<tr>
+<td>Python</td>
+<td>GASのスクリプト部分（サーバー側で動く）</td>
+</tr>
+<tr>
+<td>Firebase Auth</td>
+<td>Googleアカウントでのログイン</td>
+</tr>
+<tr>
+<td>Firestore</td>
+<td>スプレッドシートの代わりのデータベース</td>
+</tr>
+<tr>
+<td>Vertex AI</td>
+<td>AIに質問する機能</td>
+</tr>
+<tr>
+<td>npm / pip</td>
+<td>GASの「ライブラリを追加」みたいなもの</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="ファイル構成クイックリファレンス">ファイル構成クイックリファレンス<a class="header-link" href="#ファイル構成クイックリファレンス" title="Permanent link">&para;</a></h2>
+<h3 id="フロントエンドブラウザで動く部分">フロントエンド（ブラウザで動く部分）<a class="header-link" href="#フロントエンドブラウザで動く部分" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code>frontend/src/
+├── App.tsx ─────────── 画面の入口
+├── hooks/
+│   ├── useAuth.ts ──── ログイン処理
+│   └── useChat.ts ──── チャット処理
+└── services/
+    ├── firebase.ts ─── Firebase接続
+    └── api.ts ──────── サーバーとの通信
+</code></pre></div>
+
+<h3 id="バックエンドサーバーで動く部分">バックエンド（サーバーで動く部分）<a class="header-link" href="#バックエンドサーバーで動く部分" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code>backend/src/
+├── main.py ─────────── APIの入口
+├── common/
+│   ├── auth.py ─────── 認証処理
+│   └── config.py ───── 設定読み込み
+└── agents/
+    └── sample_agent/
+        └── agent.py ── AI処理
+</code></pre></div>
+
+<hr />
+<h2 id="よくあるエラーと対処法">よくあるエラーと対処法<a class="header-link" href="#よくあるエラーと対処法" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>エラー</th>
+<th>原因</th>
+<th>どこを見る</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CORSエラー</td>
+<td>設定ミス</td>
+<td>FLOW_03 → 環境変数</td>
+</tr>
+<tr>
+<td>認証エラー</td>
+<td>トークン期限切れ</td>
+<td>再ログイン</td>
+</tr>
+<tr>
+<td>顧客に紐付けされていません</td>
+<td>未登録</td>
+<td>FLOW_02 → 顧客紐付け</td>
+</tr>
+<tr>
+<td>Module not found</td>
+<td>依存関係なし</td>
+<td><code>pip install</code> / <code>npm install</code></td>
+</tr>
+<tr>
+<td>コマンドがわからない</td>
+<td>-</td>
+<td>06_コマンド解説.md</td>
+</tr>
+<tr>
+<td>ファイル形式がわからない</td>
+<td>-</td>
+<td>07_ファイル形式.md</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="学習リソース">学習リソース<a class="header-link" href="#学習リソース" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>種類</th>
+<th>場所</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Markdown</td>
+<td><code>learning/md/</code></td>
+<td>テキストで読む解説</td>
+</tr>
+<tr>
+<td>Google Colab</td>
+<td><code>learning/colab/</code></td>
+<td>手を動かして学ぶ</td>
+</tr>
+<tr>
+<td>GitHub Pages</td>
+<td>自動生成</td>
+<td>ブラウザできれいに読む</td>
+</tr>
+</tbody>
+</table>
+<h3 id="google-colab-の使い方">Google Colab の使い方<a class="header-link" href="#google-colab-の使い方" title="Permanent link">&para;</a></h3>
+<ol>
+<li><a href="https://colab.research.google.com/">Google Colab</a> を開く</li>
+<li>「ファイル」→「ノートブックをアップロード」</li>
+<li><code>learning/colab/</code> の <code>.ipynb</code> ファイルを選択</li>
+<li>セルを上から順に実行（Shift + Enter）</li>
+</ol>
+<hr />
+<h2 id="学習の目標">学習の目標<a class="header-link" href="#学習の目標" title="Permanent link">&para;</a></h2>
+<p>この勉強を終えたら、以下ができるようになります：</p>
+<h3 id="レベル1-理解できる">レベル1: 理解できる<a class="header-link" href="#レベル1-理解できる" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] 「チャットを送信したら何が起きるか」を説明できる</li>
+<li>[ ] 各ファイルの役割を説明できる</li>
+<li>[ ] エラーが出た時に、どこを見ればいいかわかる</li>
+</ul>
+<h3 id="レベル2-修正できる">レベル2: 修正できる<a class="header-link" href="#レベル2-修正できる" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] AIのシステムプロンプトを変更できる</li>
+<li>[ ] 新しいユーザーを追加できる</li>
+<li>[ ] 環境変数を変更できる</li>
+</ul>
+<h3 id="レベル3-運用できる">レベル3: 運用できる<a class="header-link" href="#レベル3-運用できる" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] 新しい顧客を追加できる</li>
+<li>[ ] トラブルシューティングができる</li>
+<li>[ ] ログを見て問題を特定できる</li>
+</ul>
+<hr />
+<h2 id="困ったときの連絡先">困ったときの連絡先<a class="header-link" href="#困ったときの連絡先" title="Permanent link">&para;</a></h2>
+<ol>
+<li>まず該当するFLOWドキュメントを確認</li>
+<li>それでも解決しない場合は、以下を伝えて質問：<br />
+   - どのファイルの何行目か<br />
+   - 何をしようとしたか<br />
+   - どんなエラーが出たか（全文）</li>
+</ol>
+<hr />
+<p>さあ、<strong>FLOW_03_セットアップの流れ.md</strong> から始めましょう！</p>
+      </article>
+      <footer class="footer">
+        GCP AI Agent Platform 学習ガイド | Built with Python & Markdown
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.querySelector('.menu-toggle');
+      if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

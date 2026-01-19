@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>01 全体像 - GCP AI Agent Platform 学習ガイド</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="header-logo">
+      <span>📚</span>
+      <span>GCP AI Agent 学習ガイド</span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">ホーム</a>
+      <a href="FLOW_03_セットアップの流れ.html">セットアップ</a>
+      <a href="https://github.com" target="_blank">GitHub</a>
+    </nav>
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">🚀 はじめに</div>
+        <ul class="sidebar-nav">
+          <li><a href="00_はじめに読んでください.html" >はじめに読んでください</a></li>
+          <li><a href="04_動かしてみよう.html" >動かしてみよう</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">📖 基礎知識</div>
+        <ul class="sidebar-nav">
+          <li><a href="01_全体像.html" class="active">全体像</a></li>
+          <li><a href="02_バックエンド解説.html" >バックエンド解説</a></li>
+          <li><a href="03_フロントエンド解説.html" >フロントエンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔄 フロー解説</div>
+        <ul class="sidebar-nav">
+          <li><a href="FLOW_01_チャット送信の流れ.html" >チャット送信の流れ</a></li>
+          <li><a href="FLOW_02_ログインの流れ.html" >ログインの流れ</a></li>
+          <li><a href="FLOW_03_セットアップの流れ.html" >セットアップの流れ</a></li>
+          <li><a href="FLOW_04_セッション管理の流れ.html" >セッション管理の流れ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔧 上級編</div>
+        <ul class="sidebar-nav">
+          <li><a href="05_顧客管理の仕組み.html" >顧客管理の仕組み</a></li>
+          <li><a href="08_AIカスタマイズ.html" >AIカスタマイズ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">📚 リファレンス</div>
+        <ul class="sidebar-nav">
+          <li><a href="06_コマンド解説.html" >コマンド解説</a></li>
+          <li><a href="07_ファイル形式と設定ファイル.html" >ファイル形式と設定</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <article class="content">
+        <h1 id="システム全体像">システム全体像<a class="header-link" href="#システム全体像" title="Permanent link">&para;</a></h1>
+<p>このシステムは「AIチャットボット」を複数の顧客に提供するプラットフォームです。</p>
+<hr />
+<h2 id="何をするシステム">何をするシステム？<a class="header-link" href="#何をするシステム" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><code>ユーザー → チャット送信 → AI（Gemini）が返答 → 画面に表示
+</code></pre></div>
+
+<p>シンプルに言うと「ChatGPTみたいなもの」を自社で作って、<br />
+お客さんに提供するシステムです。</p>
+<hr />
+<h2 id="使っている技術">使っている技術<a class="header-link" href="#使っている技術" title="Permanent link">&para;</a></h2>
+<h3 id="全体図">全体図<a class="header-link" href="#全体図" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code>┌─────────────────────────────────────────────────┐
+│              ユーザーのブラウザ                    │
+│              （Chrome, Safari等）                 │
+└─────────────────────────────────────────────────┘
+                        │
+                        │ HTTPS通信
+                        ▼
+┌─────────────────────────────────────────────────┐
+│           Firebase Hosting                       │
+│           フロントエンド（React）                  │
+│           ※画面を表示する部分                     │
+└─────────────────────────────────────────────────┘
+                        │
+                        │ API呼び出し
+                        ▼
+┌─────────────────────────────────────────────────┐
+│           Cloud Run Functions                    │
+│           バックエンド（Python）                  │
+│           ※処理をする部分                        │
+└─────────────────────────────────────────────────┘
+                        │
+          ┌─────────────┼─────────────┐
+          │             │             │
+          ▼             ▼             ▼
+    ┌──────────┐  ┌──────────┐  ┌──────────┐
+    │ Firebase │  │ Firestore│  │ Vertex AI│
+    │   Auth   │  │(データベース)│  │ (Gemini) │
+    │(ログイン) │  │          │  │          │
+    └──────────┘  └──────────┘  └──────────┘
+</code></pre></div>
+
+<h3 id="各技術の役割">各技術の役割<a class="header-link" href="#各技術の役割" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>技術</th>
+<th>役割</th>
+<th>例えるなら</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Firebase Hosting</td>
+<td>画面を配信</td>
+<td>レストランの建物</td>
+</tr>
+<tr>
+<td>React</td>
+<td>画面を作る</td>
+<td>内装・インテリア</td>
+</tr>
+<tr>
+<td>Cloud Run Functions</td>
+<td>処理をする</td>
+<td>厨房</td>
+</tr>
+<tr>
+<td>Python</td>
+<td>処理を書く言語</td>
+<td>料理人の技術</td>
+</tr>
+<tr>
+<td>Firebase Auth</td>
+<td>ログイン管理</td>
+<td>受付係</td>
+</tr>
+<tr>
+<td>Firestore</td>
+<td>データ保存</td>
+<td>冷蔵庫・倉庫</td>
+</tr>
+<tr>
+<td>Vertex AI (Gemini)</td>
+<td>AIの頭脳</td>
+<td>シェフの知識</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="データの流れ">データの流れ<a class="header-link" href="#データの流れ" title="Permanent link">&para;</a></h2>
+<h3 id="1-ログイン時">1. ログイン時<a class="header-link" href="#1-ログイン時" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">ユーザーが</span><span class="err">「</span><span class="kr">Go</span><span class="n">ogleでログイン</span><span class="err">」</span><span class="n">をクリック</span>
+<span class="w">       </span><span class="err">↓</span>
+<span class="mf">2.</span><span class="w"> </span><span class="kr">Go</span><span class="n">ogleのログイン画面が表示される</span>
+<span class="w">       </span><span class="err">↓</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">ログイン成功すると</span><span class="err">「</span><span class="n">IDトークン</span><span class="err">」</span><span class="n">がもらえる</span>
+<span class="w">       </span><span class="err">↓</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">このトークンを使ってAPIを呼び出す</span>
+</code></pre></div>
+
+<h3 id="2-チャット送信時">2. チャット送信時<a class="header-link" href="#2-チャット送信時" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">ユーザーがメッセージを入力して送信</span>
+<span class="w">       </span><span class="err">↓</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">フロントエンドがバックエンドにAPIリクエスト</span>
+<span class="w">   </span><span class="err">（</span><span class="n">IDトークン付き</span><span class="err">）</span>
+<span class="w">       </span><span class="err">↓</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">バックエンドがトークンを検証</span>
+<span class="w">   </span><span class="err">→「</span><span class="n">このユーザーは本物か</span><span class="err">？」「</span><span class="n">許可されているか</span><span class="err">？」</span>
+<span class="w">       </span><span class="err">↓</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">Vertex</span><span class="w"> </span><span class="n">AI</span><span class="err">（</span><span class="n">Gemini</span><span class="err">）</span><span class="n">にメッセージを送る</span>
+<span class="w">       </span><span class="err">↓</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">AIが返答を生成</span>
+<span class="w">       </span><span class="err">↓</span>
+<span class="mf">6.</span><span class="w"> </span><span class="n">ストリーミングで少しずつ返答を返す</span>
+<span class="w">       </span><span class="err">↓</span>
+<span class="mf">7.</span><span class="w"> </span><span class="n">フロントエンドが画面に表示</span>
+</code></pre></div>
+
+<hr />
+<h2 id="マルチテナント複数顧客対応">マルチテナント（複数顧客対応）<a class="header-link" href="#マルチテナント複数顧客対応" title="Permanent link">&para;</a></h2>
+<h3 id="顧客ごとにデータを分離">顧客ごとにデータを分離<a class="header-link" href="#顧客ごとにデータを分離" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code>Firestore
+├── customers/
+│   ├── acme-corp/          ← A社のデータ
+│   │   ├── name: &quot;株式会社ACME&quot;
+│   │   └── checkpoints/    ← A社の会話履歴
+│   │
+│   ├── beta-inc/           ← B社のデータ
+│   │   ├── name: &quot;ベータ株式会社&quot;
+│   │   └── checkpoints/    ← B社の会話履歴
+│   │
+│   └── gamma-llc/          ← C社のデータ
+│       ├── name: &quot;ガンマ合同会社&quot;
+│       └── checkpoints/    ← C社の会話履歴
+</code></pre></div>
+
+<h3 id="どうやって分離している">どうやって分離している？<a class="header-link" href="#どうやって分離している" title="Permanent link">&para;</a></h3>
+<ol>
+<li>ユーザーがログインする</li>
+<li>Firebase Authの「Custom Claims」に <code>customer_id</code> が入っている</li>
+<li>バックエンドがこの <code>customer_id</code> を見て、対応するデータにアクセス</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="c1"># こんなイメージ</span>
+<span class="n">customer_id</span> <span class="o">=</span> <span class="s2">&quot;acme-corp&quot;</span>
+<span class="n">data_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;customers/</span><span class="si">{</span><span class="n">customer_id</span><span class="si">}</span><span class="s2">/checkpoints&quot;</span>  <span class="c1"># → customers/acme-corp/checkpoints</span>
+</code></pre></div>
+
+<hr />
+<h2 id="重要なファイルバックエンド">重要なファイル（バックエンド）<a class="header-link" href="#重要なファイルバックエンド" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><code>backend/src/
+├── main.py              ← すべての入口（★最初に読む）
+├── common/
+│   ├── auth.py          ← 認証処理（★2番目に読む）
+│   ├── rate_limiter.py  ← 使いすぎ防止
+│   └── ...
+└── agents/
+    ├── sample_agent/    ← AIエージェント本体（★3番目に読む）
+    └── firestore_checkpointer.py  ← 会話履歴保存
+</code></pre></div>
+
+<hr />
+<h2 id="重要なファイルフロントエンド">重要なファイル（フロントエンド）<a class="header-link" href="#重要なファイルフロントエンド" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><code>frontend/src/
+├── App.tsx              ← 画面の入口
+├── hooks/
+│   ├── useAuth.ts       ← ログイン処理
+│   └── useChat.ts       ← チャット送受信
+└── services/
+    └── api.ts           ← バックエンドとの通信
+</code></pre></div>
+
+<hr />
+<h2 id="次に読むべきファイル">次に読むべきファイル<a class="header-link" href="#次に読むべきファイル" title="Permanent link">&para;</a></h2>
+<ol>
+<li><code>learning/02_バックエンド解説.py</code> - Pythonコードの詳細解説</li>
+<li>実際のコード <code>backend/src/main.py</code> を読んでみる</li>
+</ol>
+      </article>
+      <footer class="footer">
+        GCP AI Agent Platform 学習ガイド | Built with Python & Markdown
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.querySelector('.menu-toggle');
+      if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

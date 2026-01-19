@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>07 動かしてみよう - GCP AI Agent 設計資料</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="header-logo">
+      <span>📚</span>
+      <span>GCP AI Agent 設計資料</span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">ホーム</a>
+      <a href="02_全体像.html">全体像</a>
+      <a href="https://github.com" target="_blank">GitHub</a>
+    </nav>
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">📖 はじめに</div>
+        <ul class="sidebar-nav">
+          <li><a href="01_はじめに読んでください.html" >はじめに読んでください</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🏗️ 仕組みを理解</div>
+        <ul class="sidebar-nav">
+          <li><a href="02_全体像.html" >全体像</a></li>
+          <li><a href="03_バックエンド解説.html" >バックエンド解説</a></li>
+          <li><a href="04_フロントエンド解説.html" >フロントエンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🛠️ セットアップ</div>
+        <ul class="sidebar-nav">
+          <li><a href="05_セットアップの流れ.html" >セットアップの流れ</a></li>
+          <li><a href="06_コマンド解説.html" >コマンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🚀 動かす</div>
+        <ul class="sidebar-nav">
+          <li><a href="07_動かしてみよう.html" class="active">動かしてみよう</a></li>
+          <li><a href="08_AIカスタマイズ.html" >AIカスタマイズ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔄 参考: フロー解説</div>
+        <ul class="sidebar-nav">
+          <li><a href="FLOW_01_チャット送信の流れ.html" >チャット送信の流れ</a></li>
+          <li><a href="FLOW_02_ログインの流れ.html" >ログインの流れ</a></li>
+          <li><a href="FLOW_04_セッション管理の流れ.html" >セッション管理の流れ</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <article class="content">
+        <h1 id="動かしてみよう">動かしてみよう<a class="header-link" href="#動かしてみよう" title="Permanent link">&para;</a></h1>
+<div class="chapter-hero">
+<span class="emoji">🚀</span>
+<h1>動かしてみよう</h1>
+<p class="subtitle">「百聞は一見にしかず、百見は一動にしかず」<br>「実際に動かしてみると理解が深まる！」</p>
+</div>
+
+<hr />
+<h2 id="この章で学ぶこと">この章で学ぶこと<a class="header-link" href="#この章で学ぶこと" title="Permanent link">&para;</a></h2>
+<div class="goal-box">
+<h3>📚 学習目標</h3>
+<ol>
+<li>モックモードで動作確認（GCP不要）</li>
+<li>本番モードでAI動作確認</li>
+<li>トラブルシューティング</li>
+<li>デバッグのコツ</li>
+</ol>
+<p><strong>⏱️ 想定学習時間: 15分</strong></p>
+</div>
+
+<hr />
+<h2 id="2つの起動方法">2つの起動方法<a class="header-link" href="#2つの起動方法" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>用途</th>
+<th>GCP必要</th>
+<th>認証必要</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>モックモード</strong></td>
+<td>フロントエンド開発、UI確認</td>
+<td>不要</td>
+<td>不要</td>
+</tr>
+<tr>
+<td><strong>本番モード</strong></td>
+<td>AI動作確認、本番テスト</td>
+<td>必要</td>
+<td>必要</td>
+</tr>
+</tbody>
+</table>
+<div class="tip-box">
+<h3>💡 おすすめの順番</h3>
+<ol>
+<li><strong>まずモックモードで動作確認</strong><br>
+→ GCP設定なしですぐ動く<br>
+→ UIやフロントエンドの動作を確認</li>
+<li><strong>次に本番モードでAI確認</strong><br>
+→ 実際のGemini AIと会話<br>
+→ 本番と同じ動作を確認</li>
+</ol>
+</div>
+
+<hr />
+<h2 id="モックモードgcp不要すぐ動く">モックモード（GCP不要・すぐ動く）<a class="header-link" href="#モックモードgcp不要すぐ動く" title="Permanent link">&para;</a></h2>
+<p>GCP/Firebase接続なしでフロントエンドの動作確認ができます。</p>
+<h3 id="準備するもの">準備するもの<a class="header-link" href="#準備するもの" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Python 3.11以上</li>
+<li>Node.js 18以上</li>
+<li><strong>GCPは不要！</strong></li>
+</ul>
+<h3 id="手順">手順<a class="header-link" href="#手順" title="Permanent link">&para;</a></h3>
+<p><strong>ターミナル1: モックサーバー起動</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>backend/dev
+pip<span class="w"> </span>install<span class="w"> </span>flask<span class="w"> </span>flask-cors<span class="w">  </span><span class="c1"># 初回のみ</span>
+python<span class="w"> </span>mock_server.py
+</code></pre></div>
+
+<p><strong>ターミナル2: フロントエンド起動</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>frontend
+npm<span class="w"> </span>install<span class="w">  </span><span class="c1"># 初回のみ</span>
+
+<span class="c1"># .env を編集</span>
+<span class="c1"># VITE_API_BASE_URL=http://localhost:8080</span>
+<span class="c1"># VITE_DEBUG_MODE=true</span>
+
+npm<span class="w"> </span>run<span class="w"> </span>dev
+</code></pre></div>
+
+<p><strong>ブラウザで確認</strong></p>
+<p>http://localhost:5173/ を開く → 認証なしでチャット画面が表示される</p>
+<h3 id="モックサーバーの特徴">モックサーバーの特徴<a class="header-link" href="#モックサーバーの特徴" title="Permanent link">&para;</a></h3>
+<div class="info-box">
+<h3>🎭 モックサーバーとは？</h3>
+<p>本物のバックエンドの「ふり」をするサーバー</p>
+<ul>
+<li>✅ AIの代わりに固定レスポンスを返す</li>
+<li>✅ 課金なし（Vertex AI を使わない）</li>
+<li>✅ 認証スキップ</li>
+<li>✅ フロントエンド開発に集中できる</li>
+</ul>
+<p>詳細は backend/dev/README.md を参照</p>
+</div>
+
+<hr />
+<h2 id="本番モードai動作確認">本番モード（AI動作確認）<a class="header-link" href="#本番モードai動作確認" title="Permanent link">&para;</a></h2>
+<h3 id="準備するもの_1">準備するもの<a class="header-link" href="#準備するもの_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Python 3.11以上</li>
+<li>Node.js 18以上</li>
+<li>GCPプロジェクト（セットアップ済み）</li>
+<li>service-account.json（ダウンロード済み）</li>
+</ul>
+<hr />
+<h2 id="本番モードの手順">本番モードの手順<a class="header-link" href="#本番モードの手順" title="Permanent link">&para;</a></h2>
+<h3 id="1-バックエンドを起動">1. バックエンドを起動<a class="header-link" href="#1-バックエンドを起動" title="Permanent link">&para;</a></h3>
+<p>ターミナル1:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># backendフォルダに移動</span>
+<span class="nb">cd</span><span class="w"> </span>backend
+
+<span class="c1"># 依存パッケージをインストール（初回のみ）</span>
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+
+<span class="c1"># サーバーを起動</span>
+functions-framework<span class="w"> </span>--target<span class="o">=</span>main<span class="w"> </span>--port<span class="o">=</span><span class="m">8080</span>
+</code></pre></div>
+
+<p>成功すると:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">*</span> Serving Flask app &#39;main&#39;
+<span class="k">*</span> Running on http://127.0.0.1:8080
+</code></pre></div>
+
+<h3 id="2-フロントエンドを起動">2. フロントエンドを起動<a class="header-link" href="#2-フロントエンドを起動" title="Permanent link">&para;</a></h3>
+<p>ターミナル2（別のターミナルを開く）:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># frontendフォルダに移動</span>
+<span class="nb">cd</span><span class="w"> </span>frontend
+
+<span class="c1"># 依存パッケージをインストール（初回のみ）</span>
+npm<span class="w"> </span>install
+
+<span class="c1"># 開発サーバーを起動</span>
+npm<span class="w"> </span>run<span class="w"> </span>dev
+</code></pre></div>
+
+<p>成功すると:</p>
+<div class="codehilite"><pre><span></span><code>VITE v5.x.x  ready in xxx ms
+
+➜  Local:   http://localhost:5173/
+</code></pre></div>
+
+<h3 id="3-ブラウザでアクセス">3. ブラウザでアクセス<a class="header-link" href="#3-ブラウザでアクセス" title="Permanent link">&para;</a></h3>
+<p>http://localhost:5173/ を開く</p>
+<hr />
+<h2 id="試してみること">試してみること<a class="header-link" href="#試してみること" title="Permanent link">&para;</a></h2>
+<h3 id="1-ログインする">1. ログインする<a class="header-link" href="#1-ログインする" title="Permanent link">&para;</a></h3>
+<ol>
+<li>「Googleでログイン」をクリック</li>
+<li>Googleアカウントを選択</li>
+<li>ログイン成功 → チャット画面が表示される</li>
+</ol>
+<h3 id="2-チャットする">2. チャットする<a class="header-link" href="#2-チャットする" title="Permanent link">&para;</a></h3>
+<ol>
+<li>「こんにちは」と入力</li>
+<li>送信ボタンをクリック</li>
+<li>AIが返答する</li>
+</ol>
+<div class="info-box">
+<h3>💬 チャットの動きを観察しよう</h3>
+<ul>
+<li>文字が1文字ずつ表示される（ストリーミング）</li>
+<li>入力中はボタンが無効になる</li>
+<li>エラーがあればメッセージが表示される</li>
+</ul>
+<p>これらは全てフロントエンドのコードで制御されています！</p>
+</div>
+
+<h3 id="3-firestoreを確認">3. Firestoreを確認<a class="header-link" href="#3-firestoreを確認" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Firebase Console を開く</li>
+<li>Firestore Database をクリック</li>
+<li><code>customers/{customer_id}/checkpoints</code> を確認</li>
+<li>会話履歴が保存されている！</li>
+</ol>
+<hr />
+<h2 id="トラブルシューティング">トラブルシューティング<a class="header-link" href="#トラブルシューティング" title="Permanent link">&para;</a></h2>
+<div class="warning-box">
+<h3>🔧 よくあるエラーと対処法</h3>
+<p><strong>【CORS エラー】</strong><br>
+backend/.env を確認:<br>
+<code>ALLOWED_ORIGINS=http://localhost:5173</code><br>
+（末尾にスラッシュをつけない）</p>
+<p><strong>【認証エラー】</strong></p>
+<ol>
+<li>Firebase Console → Authentication</li>
+<li>Sign-in method で Google が有効か確認</li>
+<li>config/access_control にドメイン/メールを追加</li>
+</ol>
+<p><strong>【Vertex AI エラー】</strong></p>
+<ol>
+<li>GCP Console → APIs & Services</li>
+<li>Vertex AI API が有効か確認</li>
+<li>サービスアカウントに「Vertex AI ユーザー」ロールがあるか確認</li>
+</ol>
+<p><strong>【顧客に紐付けされていません】</strong><br>
+<code>python scripts/manage_customer.py add-email test-corp you@gmail.com</code></p>
+</div>
+
+<hr />
+<h2 id="デバッグのコツ">デバッグのコツ<a class="header-link" href="#デバッグのコツ" title="Permanent link">&para;</a></h2>
+<h3 id="バックエンドのログを見る">バックエンドのログを見る<a class="header-link" href="#バックエンドのログを見る" title="Permanent link">&para;</a></h3>
+<p>ターミナル1に表示される:</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">127.0.0.1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="err">[</span><span class="mf">16</span><span class="o">/</span><span class="n">Jan</span><span class="o">/</span><span class="mf">2024</span><span class="w"> </span><span class="mf">10</span><span class="p">:</span><span class="mf">00</span><span class="p">:</span><span class="mf">00</span><span class="err">]</span><span class="w"> </span><span class="s">&quot;POST /chat HTTP/1.1&quot;</span><span class="w"> </span><span class="mf">200</span><span class="w"> </span><span class="o">-</span>
+</code></pre></div>
+
+<h3 id="ブラウザの開発者ツール">ブラウザの開発者ツール<a class="header-link" href="#ブラウザの開発者ツール" title="Permanent link">&para;</a></h3>
+<div class="info-box">
+<h3>🔍 開発者ツールの使い方</h3>
+<ol>
+<li><strong>F12 を押す</strong>（または右クリック → 検証）</li>
+<li><strong>Network タブ</strong><br>
+→ API呼び出しを確認<br>
+→ リクエスト/レスポンスの中身を見る</li>
+<li><strong>Console タブ</strong><br>
+→ エラーメッセージを確認<br>
+→ console.log の出力を見る</li>
+<li><strong>Application タブ</strong><br>
+→ localStorage の中身を確認<br>
+→ セッション情報を見る</li>
+</ol>
+</div>
+
+<h3 id="firestoreのデータを見る">Firestoreのデータを見る<a class="header-link" href="#firestoreのデータを見る" title="Permanent link">&para;</a></h3>
+<p>Firebase Console → Firestore Database<br />
+- リアルタイムでデータが更新される<br />
+- どんなデータが保存されているか確認</p>
+<hr />
+<h2 id="コードを変更してみよう">コードを変更してみよう<a class="header-link" href="#コードを変更してみよう" title="Permanent link">&para;</a></h2>
+<h3 id="実験1-aiの返答を変える">実験1: AIの返答を変える<a class="header-link" href="#実験1-aiの返答を変える" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># backend/src/agents/_template/agent.py</span>
+
+<span class="n">SYSTEM_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;あなたは関西弁で話すAIアシスタントやで。</span>
+<span class="s2">ユーザーの質問にフレンドリーに答えてや。&quot;&quot;&quot;</span>
+</code></pre></div>
+
+<p>→ バックエンドを再起動 → チャットしてみる</p>
+<h3 id="実験2-画面の色を変える">実験2: 画面の色を変える<a class="header-link" href="#実験2-画面の色を変える" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c">/* frontend/src/styles.css */</span>
+
+<span class="p">.</span><span class="nc">chat-container</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">background-color</span><span class="p">:</span><span class="w"> </span><span class="mh">#f0f8ff</span><span class="p">;</span><span class="w">  </span><span class="c">/* 薄い青に変更 */</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>→ 自動で画面が更新される（ホットリロード）</p>
+<hr />
+<h2 id="まとめ">まとめ<a class="header-link" href="#まとめ" title="Permanent link">&para;</a></h2>
+<div class="summary-box">
+<h3>🎓 この章で学んだこと</h3>
+<ul>
+<li>✅ モックモードでGCPなしでも動作確認できる</li>
+<li>✅ 本番モードで実際のAIと会話できる</li>
+<li>✅ 開発者ツールでデバッグできる</li>
+<li>✅ コードを変更して動作を確認する方法</li>
+</ul>
+<p><strong>次は AIのカスタマイズに挑戦してみよう！</strong></p>
+</div>
+
+<hr />
+<h2 id="次に読むべきドキュメント">次に読むべきドキュメント<a class="header-link" href="#次に読むべきドキュメント" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>順番</th>
+<th>ドキュメント</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><a href="./08_AIカスタマイズ.md">08_AIカスタマイズ.md</a></td>
+<td>AIの応答をカスタマイズ</td>
+</tr>
+<tr>
+<td>2</td>
+<td><a href="./FLOW_01_チャット送信の流れ.md">FLOW_01_チャット送信の流れ.md</a></td>
+<td>詳細なデータフロー</td>
+</tr>
+</tbody>
+</table>
+      </article>
+      <footer class="footer">
+        GCP AI Agent 設計資料 | Built with Python & Markdown
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.querySelector('.menu-toggle');
+      if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

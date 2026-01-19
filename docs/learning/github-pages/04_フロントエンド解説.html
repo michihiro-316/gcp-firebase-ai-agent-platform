@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>04 フロントエンド解説 - GCP AI Agent 設計資料</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="header-logo">
+      <span>📚</span>
+      <span>GCP AI Agent 設計資料</span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">ホーム</a>
+      <a href="02_全体像.html">全体像</a>
+      <a href="https://github.com" target="_blank">GitHub</a>
+    </nav>
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">📖 はじめに</div>
+        <ul class="sidebar-nav">
+          <li><a href="01_はじめに読んでください.html" >はじめに読んでください</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🏗️ 仕組みを理解</div>
+        <ul class="sidebar-nav">
+          <li><a href="02_全体像.html" >全体像</a></li>
+          <li><a href="03_バックエンド解説.html" >バックエンド解説</a></li>
+          <li><a href="04_フロントエンド解説.html" class="active">フロントエンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🛠️ セットアップ</div>
+        <ul class="sidebar-nav">
+          <li><a href="05_セットアップの流れ.html" >セットアップの流れ</a></li>
+          <li><a href="06_コマンド解説.html" >コマンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🚀 動かす</div>
+        <ul class="sidebar-nav">
+          <li><a href="07_動かしてみよう.html" >動かしてみよう</a></li>
+          <li><a href="08_AIカスタマイズ.html" >AIカスタマイズ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔄 参考: フロー解説</div>
+        <ul class="sidebar-nav">
+          <li><a href="FLOW_01_チャット送信の流れ.html" >チャット送信の流れ</a></li>
+          <li><a href="FLOW_02_ログインの流れ.html" >ログインの流れ</a></li>
+          <li><a href="FLOW_04_セッション管理の流れ.html" >セッション管理の流れ</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <article class="content">
+        <h1 id="フロントエンド解説">フロントエンド解説<a class="header-link" href="#フロントエンド解説" title="Permanent link">&para;</a></h1>
+<div class="chapter-hero">
+<span class="emoji">🎨</span>
+<h1>フロントエンド解説</h1>
+<p class="subtitle">「え？Reactってレゴブロックみたいなもの？」<br>「そう！画面のパーツを組み合わせて作るんだ！」</p>
+</div>
+
+<hr />
+<h2 id="この章で学ぶこと">この章で学ぶこと<a class="header-link" href="#この章で学ぶこと" title="Permanent link">&para;</a></h2>
+<div class="goal-box">
+<h3>📚 学習目標</h3>
+<ol>
+<li>Reactの基本概念（コンポーネント、JSX）</li>
+<li>useState と useEffect の仕組み</li>
+<li>カスタムフックの作り方と使い方</li>
+<li>認証処理の流れ（useAuth.ts）</li>
+<li>チャット処理の流れ（useChat.ts）</li>
+<li>セッション管理の仕組み（useSessions.ts）</li>
+<li>API通信とストリーミング（api.ts）</li>
+<li>TypeScriptの型システム</li>
+</ol>
+<p><strong>⏱️ 想定学習時間: 45分</strong></p>
+</div>
+
+<hr />
+<h2 id="使っている技術">使っている技術<a class="header-link" href="#使っている技術" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>技術</th>
+<th>役割</th>
+<th>なぜ使う？</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>React</strong></td>
+<td>UIを作るライブラリ</td>
+<td>コンポーネントで画面を組み立てられる</td>
+</tr>
+<tr>
+<td><strong>TypeScript</strong></td>
+<td>型のあるJavaScript</td>
+<td>間違いを事前に防げる</td>
+</tr>
+<tr>
+<td><strong>Vite</strong></td>
+<td>開発サーバー・ビルドツール</td>
+<td>超高速！変更が即座に反映</td>
+</tr>
+<tr>
+<td><strong>Firebase SDK</strong></td>
+<td>Firebase連携</td>
+<td>認証やデータベースを簡単に使える</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="ファイル構成">ファイル構成<a class="header-link" href="#ファイル構成" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><code>frontend/src/
+├── App.tsx              ← 🎯 メインコンポーネント（ここから始まる）
+├── main.tsx             ← エントリーポイント（Reactの起動）
+├── hooks/               ← 🎣 カスタムフック（ロジックを再利用）
+│   ├── useAuth.ts       ← ログイン処理
+│   ├── useChat.ts       ← チャット処理
+│   └── useSessions.ts   ← セッション管理（複数会話の保存）
+├── services/            ← 外部サービス連携
+│   ├── firebase.ts      ← Firebase初期化
+│   └── api.ts           ← APIクライアント
+├── components/          ← UIパーツ
+│   ├── ChatScreen.tsx   ← チャット画面
+│   └── LoginScreen.tsx  ← ログイン画面
+└── renderers/           ← 【上級者向け】チャット表示カスタマイズ
+</code></pre></div>
+
+<div class="tip-box">
+<h3>💡 学習のポイント</h3>
+<p>まず理解すべきファイル（優先順位順）:</p>
+<ol>
+<li><strong>App.tsx</strong> ← 全体の流れを把握</li>
+<li><strong>useAuth.ts</strong> ← 認証の仕組み</li>
+<li><strong>useChat.ts</strong> ← チャットの仕組み</li>
+<li><strong>useSessions.ts</strong> ← セッション管理</li>
+<li><strong>api.ts</strong> ← API通信の仕組み</li>
+</ol>
+<p>renderers/ は上級者向け。最初はスキップしてOK！</p>
+</div>
+
+<hr />
+<h2 id="1-reactの基本概念">1. Reactの基本概念<a class="header-link" href="#1-reactの基本概念" title="Permanent link">&para;</a></h2>
+<h3 id="コンポーネントとは">コンポーネントとは？<a class="header-link" href="#コンポーネントとは" title="Permanent link">&para;</a></h3>
+<div class="architecture-box">
+<h3>🧱 コンポーネント = 画面のパーツ（レゴブロック）</h3>
+<pre>
+┌───────────────────────────────────────────────────────────────────┐
+│  App（親コンポーネント）                                            │
+│  ┌──────────────────────────────────────────────────────────────┐ │
+│  │  LoginScreen          または         ChatScreen              │ │
+│  │  ┌─────────────┐                    ┌─────────────────────┐ │ │
+│  │  │ LoginButton │                    │ SessionList        │ │ │
+│  │  └─────────────┘                    │ MessageList        │ │ │
+│  │                                      │ InputField         │ │ │
+│  │                                      └─────────────────────┘ │ │
+│  └──────────────────────────────────────────────────────────────┘ │
+└───────────────────────────────────────────────────────────────────┘
+</pre>
+<p>コンポーネントを組み合わせて画面全体を作る！</p>
+</div>
+
+<h3 id="jsxjavascript--html">JSX（JavaScript + HTML）<a class="header-link" href="#jsxjavascript--html" title="Permanent link">&para;</a></h3>
+<p>ReactではJSXという記法を使います。<br />
+JavaScript の中に HTML っぽく書ける！</p>
+<div class="codehilite"><pre><span></span><code><span class="c1">// ボタンコンポーネントの例</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">MyButton</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// JavaScript の中に HTML っぽく書ける！</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">&lt;</span><span class="nt">button</span><span class="p">&gt;</span><span class="nx">クリック</span><span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;;</span>
+<span class="p">}</span>
+
+<span class="c1">// 使う側</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">App</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="w">      </span><span class="p">&lt;</span><span class="nt">h1</span><span class="p">&gt;</span><span class="nx">こんにちは</span><span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+<span class="w">      </span><span class="p">&lt;</span><span class="nt">MyButton</span><span class="w"> </span><span class="p">/&gt;</span><span class="w">  </span><span class="p">{</span><span class="cm">/* ← 自作コンポーネントを使う */</span><span class="p">}</span>
+<span class="w">    </span><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="w">  </span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<div class="info-box">
+<h3>📝 JSXの特徴</h3>
+<ul>
+<li>✅ HTML っぽく書ける（でも実は JavaScript）</li>
+<li>✅ {} の中に JavaScript を書ける</li>
+<li>✅ 自作コンポーネントは &lt;MyComponent /&gt; のように使う</li>
+<li>✅ class は className と書く（JSの予約語だから）</li>
+</ul>
+<p><strong>例:</strong></p>
+<pre>const name = "太郎";
+return &lt;h1&gt;こんにちは、{name}さん！&lt;/h1&gt;;
+// → "こんにちは、太郎さん！" と表示される</pre>
+</div>
+
+<hr />
+<h2 id="2-usestate---状態管理の基本">2. useState - 状態管理の基本<a class="header-link" href="#2-usestate---状態管理の基本" title="Permanent link">&para;</a></h2>
+<h3 id="usestate-とは">useState とは？<a class="header-link" href="#usestate-とは" title="Permanent link">&para;</a></h3>
+<p>コンポーネント内で「状態（データ）」を持つための仕組み。<br />
+状態が変わると、画面が自動で再描画される！</p>
+<div class="codehilite"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useState</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;react&#39;</span><span class="p">;</span>
+
+<span class="kd">function</span><span class="w"> </span><span class="nx">Counter</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// ┌─────────────────────────────────────────────────────────────────┐</span>
+<span class="w">  </span><span class="c1">// │ useState(初期値) の戻り値:                                       │</span>
+<span class="w">  </span><span class="c1">// │   [0] 現在の値（count）                                          │</span>
+<span class="w">  </span><span class="c1">// │   [1] 値を更新する関数（setCount）                                │</span>
+<span class="w">  </span><span class="c1">// └─────────────────────────────────────────────────────────────────┘</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">count</span><span class="p">,</span><span class="w"> </span><span class="nx">setCount</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="mf">0</span><span class="p">);</span><span class="w">  </span><span class="c1">// 初期値は 0</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="w">      </span><span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span><span class="nx">カウント</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="nx">count</span><span class="p">}&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+<span class="w">      </span><span class="p">&lt;</span><span class="nt">button</span><span class="w"> </span><span class="na">onClick</span><span class="o">=</span><span class="p">{()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setCount</span><span class="p">(</span><span class="nx">count</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1</span><span class="p">)}&gt;</span>
+<span class="w">        </span><span class="o">+</span><span class="mf">1</span>
+<span class="w">      </span><span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
+<span class="w">    </span><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="w">  </span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<div class="flow-box">
+<h3>🔄 useState の動作</h3>
+<ol>
+<li><strong>最初のレンダリング</strong><br>count = 0<br>画面: 「カウント: 0」</li>
+<li><strong>ボタンをクリック</strong><br>setCount(0 + 1) が呼ばれる</li>
+<li><strong>React が再レンダリング</strong><br>count = 1<br>画面: 「カウント: 1」 ← 自動で更新！</li>
+</ol>
+<p>⚠️ 直接 count = 1 と書いても画面は更新されない！<br>必ず setCount() を使う！</p>
+</div>
+
+<h3 id="配列の分割代入">配列の分割代入<a class="header-link" href="#配列の分割代入" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// これ何？と思った人へ</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">count</span><span class="p">,</span><span class="w"> </span><span class="nx">setCount</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="mf">0</span><span class="p">);</span>
+
+<span class="c1">// ↑ は以下と同じ意味</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="mf">0</span><span class="p">);</span><span class="w">      </span><span class="c1">// [0, 関数] が返ってくる</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">result</span><span class="p">[</span><span class="mf">0</span><span class="p">];</span><span class="w">         </span><span class="c1">// 現在の値</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">setCount</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">result</span><span class="p">[</span><span class="mf">1</span><span class="p">];</span><span class="w">      </span><span class="c1">// 更新関数</span>
+
+<span class="c1">// 「配列の分割代入」という JavaScript の機能</span>
+<span class="c1">// 配列の要素を変数に展開できる</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">first</span><span class="p">,</span><span class="w"> </span><span class="nx">second</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">2</span><span class="p">];</span><span class="w">  </span><span class="c1">// first = 1, second = 2</span>
+</code></pre></div>
+
+<hr />
+<h2 id="3-useeffect---副作用の処理">3. useEffect - 副作用の処理<a class="header-link" href="#3-useeffect---副作用の処理" title="Permanent link">&para;</a></h2>
+<h3 id="useeffect-とは">useEffect とは？<a class="header-link" href="#useeffect-とは" title="Permanent link">&para;</a></h3>
+<p>「副作用（Side Effect）」を実行するための仕組み。<br />
+副作用 = 画面描画以外の処理（API呼び出し、イベント登録など）</p>
+<div class="codehilite"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useState</span><span class="p">,</span><span class="w"> </span><span class="nx">useEffect</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;react&#39;</span><span class="p">;</span>
+
+<span class="kd">function</span><span class="w"> </span><span class="nx">UserProfile</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">setUser</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// ┌─────────────────────────────────────────────────────────────────┐</span>
+<span class="w">  </span><span class="c1">// │ useEffect(処理, 依存配列)                                        │</span>
+<span class="w">  </span><span class="c1">// │   処理: 実行したい関数                                            │</span>
+<span class="w">  </span><span class="c1">// │   依存配列: この値が変わったら再実行                               │</span>
+<span class="w">  </span><span class="c1">// └─────────────────────────────────────────────────────────────────┘</span>
+<span class="w">  </span><span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// コンポーネントが表示されたときに実行</span>
+<span class="w">    </span><span class="nx">fetchUser</span><span class="p">().</span><span class="nx">then</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setUser</span><span class="p">(</span><span class="nx">data</span><span class="p">));</span>
+<span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="p">[]);</span><span class="w">  </span><span class="c1">// [] = 最初の1回だけ実行</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;{</span><span class="nx">user</span><span class="o">?</span><span class="p">.</span><span class="nx">name</span><span class="p">}&lt;/</span><span class="nt">div</span><span class="p">&gt;;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="依存配列のパターン">依存配列のパターン<a class="header-link" href="#依存配列のパターン" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// パターン1: 最初の1回だけ実行</span>
+<span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;マウント時に1回だけ&quot;</span><span class="p">);</span>
+<span class="p">},</span><span class="w"> </span><span class="p">[]);</span>
+
+<span class="c1">// パターン2: 特定の値が変わったら実行</span>
+<span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;userId が変わったら実行&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="nx">fetchUserData</span><span class="p">(</span><span class="nx">userId</span><span class="p">);</span>
+<span class="p">},</span><span class="w"> </span><span class="p">[</span><span class="nx">userId</span><span class="p">]);</span><span class="w">  </span><span class="c1">// userId が変わるたびに実行</span>
+
+<span class="c1">// パターン3: 毎回実行（非推奨）</span>
+<span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;毎レンダリングで実行&quot;</span><span class="p">);</span>
+<span class="p">});</span><span class="w">  </span><span class="c1">// 依存配列なし = 毎回実行</span>
+
+<span class="c1">// パターン4: クリーンアップ関数付き</span>
+<span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">subscription</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">subscribeToData</span><span class="p">();</span>
+
+<span class="w">  </span><span class="c1">// クリーンアップ: コンポーネントが消えるときに実行</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">subscription</span><span class="p">.</span><span class="nx">unsubscribe</span><span class="p">();</span>
+<span class="w">  </span><span class="p">};</span>
+<span class="p">},</span><span class="w"> </span><span class="p">[]);</span>
+</code></pre></div>
+
+<div class="info-box">
+<h3>🎯 useEffect のライフサイクル</h3>
+<p>コンポーネントの一生:</p>
+<pre>
+[マウント] ─────→ [更新] ─────→ [更新] ─────→ [アンマウント]
+    ↓                ↓            ↓                ↓
+useEffect        依存配列の     依存配列の      クリーンアップ
+実行             値が変わった   値が変わった      関数実行
+                 ら再実行       ら再実行
+</pre>
+<ul>
+<li><strong>マウント</strong> = 画面に表示されたとき</li>
+<li><strong>アンマウント</strong> = 画面から消えたとき</li>
+</ul>
+</div>
+
+<hr />
+<h2 id="4-カスタムフック---ロジックの再利用">4. カスタムフック - ロジックの再利用<a class="header-link" href="#4-カスタムフック---ロジックの再利用" title="Permanent link">&para;</a></h2>
+<h3 id="カスタムフックとは">カスタムフックとは？<a class="header-link" href="#カスタムフックとは" title="Permanent link">&para;</a></h3>
+<p><code>use</code> で始まる関数。useState や useEffect を組み合わせて、<br />
+ロジックを再利用可能なパッケージにする。</p>
+<div class="codehilite"><pre><span></span><code><span class="c1">// カスタムフックを作る</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">useCounter</span><span class="p">(</span><span class="nx">initialValue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">count</span><span class="p">,</span><span class="w"> </span><span class="nx">setCount</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="nx">initialValue</span><span class="p">);</span>
+
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">increment</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setCount</span><span class="p">(</span><span class="nx">count</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">decrement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setCount</span><span class="p">(</span><span class="nx">count</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">reset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setCount</span><span class="p">(</span><span class="nx">initialValue</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">count</span><span class="p">,</span><span class="w"> </span><span class="nx">increment</span><span class="p">,</span><span class="w"> </span><span class="nx">decrement</span><span class="p">,</span><span class="w"> </span><span class="nx">reset</span><span class="w"> </span><span class="p">};</span>
+<span class="p">}</span>
+
+<span class="c1">// 使う側A</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">ComponentA</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">count</span><span class="p">,</span><span class="w"> </span><span class="nx">increment</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useCounter</span><span class="p">(</span><span class="mf">0</span><span class="p">);</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">&lt;</span><span class="nt">button</span><span class="w"> </span><span class="na">onClick</span><span class="o">=</span><span class="p">{</span><span class="nx">increment</span><span class="p">}&gt;{</span><span class="nx">count</span><span class="p">}&lt;/</span><span class="nt">button</span><span class="p">&gt;;</span>
+<span class="p">}</span>
+
+<span class="c1">// 使う側B</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">ComponentB</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">count</span><span class="p">,</span><span class="w"> </span><span class="nx">increment</span><span class="p">,</span><span class="w"> </span><span class="nx">reset</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useCounter</span><span class="p">(</span><span class="mf">100</span><span class="p">);</span>
+<span class="w">  </span><span class="c1">// ComponentA とは別の状態を持つ！</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="w">      </span><span class="p">&lt;</span><span class="nt">span</span><span class="p">&gt;{</span><span class="nx">count</span><span class="p">}&lt;/</span><span class="nt">span</span><span class="p">&gt;</span>
+<span class="w">      </span><span class="p">&lt;</span><span class="nt">button</span><span class="w"> </span><span class="na">onClick</span><span class="o">=</span><span class="p">{</span><span class="nx">increment</span><span class="p">}&gt;</span><span class="o">+</span><span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
+<span class="w">      </span><span class="p">&lt;</span><span class="nt">button</span><span class="w"> </span><span class="na">onClick</span><span class="o">=</span><span class="p">{</span><span class="nx">reset</span><span class="p">}&gt;</span><span class="nx">リセット</span><span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
+<span class="w">    </span><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="w">  </span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<div class="tip-box">
+<h3>✨ カスタムフックのメリット</h3>
+<ol>
+<li><strong>ロジックの再利用</strong><br>同じ処理を複数のコンポーネントで使い回せる</li>
+<li><strong>コンポーネントがスッキリ</strong><br>複雑なロジックをフックに分離 → コンポーネントは表示に専念</li>
+<li><strong>テストしやすい</strong><br>UIなしでロジックだけテストできる</li>
+</ol>
+<p>⚠️ ルール:</p>
+<ul>
+<li>名前は必ず use で始める（例: useAuth, useChat）</li>
+<li>フックはトップレベルでのみ呼び出す（if文の中はダメ）</li>
+</ul>
+</div>
+
+<hr />
+<h2 id="5-apptsx---アプリのメインコンポーネント">5. App.tsx - アプリのメインコンポーネント<a class="header-link" href="#5-apptsx---アプリのメインコンポーネント" title="Permanent link">&para;</a></h2>
+<p>このアプリの「親玉」。全体の流れを管理します。</p>
+<h3 id="完全なコードコメント付き">完全なコード（コメント付き）<a class="header-link" href="#完全なコードコメント付き" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="cm">/**</span>
+<span class="cm"> * App.tsx - フロントエンドのメインコンポーネント</span>
+<span class="cm"> *</span>
+<span class="cm"> * 役割:</span>
+<span class="cm"> *   - 未ログイン → LoginScreen を表示</span>
+<span class="cm"> *   - ログイン済 → ChatScreen を表示</span>
+<span class="cm"> */</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">ChatScreen</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./components/ChatScreen&#39;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">LoginScreen</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./components/LoginScreen&#39;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useAuth</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./hooks/useAuth&#39;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useChat</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./hooks/useChat&#39;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useSessions</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./hooks/useSessions&#39;</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * デバッグモード: 開発環境でのみ有効</span>
+<span class="cm"> * - true: 認証をスキップしてチャット画面を表示（画面確認用）</span>
+<span class="cm"> * - false: 通常の認証フローを使用</span>
+<span class="cm"> */</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">DEBUG_SHOW_CHAT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">import</span><span class="p">.</span><span class="nx">meta</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">DEV</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="k">import</span><span class="p">.</span><span class="nx">meta</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">VITE_DEBUG_MODE</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;true&#39;</span>
+
+<span class="kd">function</span><span class="w"> </span><span class="nx">App</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// カスタムフックを使って状態を取得</span>
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+
+<span class="w">  </span><span class="c1">// 認証状態（ユーザー情報、ログイン関数など）</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">loading</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="o">:</span><span class="w"> </span><span class="kt">authError</span><span class="p">,</span><span class="w"> </span><span class="nx">loginWithGoogle</span><span class="p">,</span><span class="w"> </span><span class="nx">logout</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useAuth</span><span class="p">()</span>
+
+<span class="w">  </span><span class="c1">// セッション管理（複数の会話を管理）</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sessions</span><span class="p">,</span><span class="w">              </span><span class="c1">// セッション一覧</span>
+<span class="w">    </span><span class="nx">activeSession</span><span class="p">,</span><span class="w">         </span><span class="c1">// 現在選択中のセッション</span>
+<span class="w">    </span><span class="nx">activeSessionId</span><span class="p">,</span><span class="w">       </span><span class="c1">// 現在のセッションID</span>
+<span class="w">    </span><span class="nx">createSession</span><span class="p">,</span><span class="w">         </span><span class="c1">// 新規セッション作成</span>
+<span class="w">    </span><span class="nx">switchSession</span><span class="p">,</span><span class="w">         </span><span class="c1">// セッション切り替え</span>
+<span class="w">    </span><span class="nx">closeSession</span><span class="p">,</span><span class="w">          </span><span class="c1">// セッション削除</span>
+<span class="w">    </span><span class="nx">updateSessionMessages</span><span class="p">,</span><span class="w"> </span><span class="c1">// メッセージ更新</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useSessions</span><span class="p">()</span>
+
+<span class="w">  </span><span class="c1">// チャット状態（メッセージ、送信関数など）</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">messages</span><span class="p">,</span><span class="w"> </span><span class="nx">isLoading</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="o">:</span><span class="w"> </span><span class="kt">chatError</span><span class="p">,</span><span class="w"> </span><span class="nx">sendMessage</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useChat</span><span class="p">({</span>
+<span class="w">    </span><span class="nx">activeSession</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">onMessagesUpdate</span><span class="o">:</span><span class="w"> </span><span class="kt">updateSessionMessages</span><span class="p">,</span>
+<span class="w">  </span><span class="p">})</span>
+
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// 条件分岐で表示する画面を決定</span>
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+
+<span class="w">  </span><span class="c1">// ローディング中（認証状態の確認中）</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">loading</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="nx">DEBUG_SHOW_CHAT</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">      </span><span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;loading-screen&quot;</span><span class="p">&gt;</span>
+<span class="w">        </span><span class="p">&lt;</span><span class="nt">div</span><span class="w"> </span><span class="na">className</span><span class="o">=</span><span class="s">&quot;spinner&quot;</span><span class="w"> </span><span class="p">/&gt;</span>
+<span class="w">        </span><span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span><span class="nx">読み込み中</span><span class="p">...&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+<span class="w">      </span><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="c1">// 未ログイン → ログイン画面を表示</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">user</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="nx">DEBUG_SHOW_CHAT</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">&lt;</span><span class="nt">LoginScreen</span><span class="w"> </span><span class="na">onLogin</span><span class="o">=</span><span class="p">{</span><span class="nx">loginWithGoogle</span><span class="p">}</span><span class="w"> </span><span class="na">error</span><span class="o">=</span><span class="p">{</span><span class="nx">authError</span><span class="p">}</span><span class="w"> </span><span class="p">/&gt;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="c1">// ログイン済み → チャット画面を表示</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">displayUser</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">user</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">email</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;demo@example.com&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">displayName</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Demo User&#39;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="p">&lt;</span><span class="nt">ChatScreen</span>
+<span class="w">      </span><span class="na">user</span><span class="o">=</span><span class="p">{</span><span class="nx">displayUser</span><span class="p">}</span>
+<span class="w">      </span><span class="na">messages</span><span class="o">=</span><span class="p">{</span><span class="nx">messages</span><span class="p">}</span>
+<span class="w">      </span><span class="na">isLoading</span><span class="o">=</span><span class="p">{</span><span class="nx">isLoading</span><span class="p">}</span>
+<span class="w">      </span><span class="na">error</span><span class="o">=</span><span class="p">{</span><span class="nx">chatError</span><span class="p">}</span>
+<span class="w">      </span><span class="na">onSendMessage</span><span class="o">=</span><span class="p">{</span><span class="nx">sendMessage</span><span class="p">}</span>
+<span class="w">      </span><span class="na">onLogout</span><span class="o">=</span><span class="p">{</span><span class="nx">logout</span><span class="p">}</span>
+<span class="w">      </span><span class="na">sessions</span><span class="o">=</span><span class="p">{</span><span class="nx">sessions</span><span class="p">}</span>
+<span class="w">      </span><span class="na">activeSessionId</span><span class="o">=</span><span class="p">{</span><span class="nx">activeSessionId</span><span class="p">}</span>
+<span class="w">      </span><span class="na">onSelectSession</span><span class="o">=</span><span class="p">{</span><span class="nx">switchSession</span><span class="p">}</span>
+<span class="w">      </span><span class="na">onNewSession</span><span class="o">=</span><span class="p">{</span><span class="nx">createSession</span><span class="p">}</span>
+<span class="w">      </span><span class="na">onCloseSession</span><span class="o">=</span><span class="p">{</span><span class="nx">closeSession</span><span class="p">}</span>
+<span class="w">    </span><span class="p">/&gt;</span>
+<span class="w">  </span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="k">export</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="nx">App</span>
+</code></pre></div>
+
+<div class="flow-box">
+<h3>🔍 App.tsx の処理フロー</h3>
+<pre>
+┌────────────┐
+│  App 起動   │
+└─────┬──────┘
+      │
+      ▼
+┌────────────┐     ┌─────────────────────────────────────────────────┐
+│ loading?   │────▶│ ローディング画面表示（スピナー）                  │
+│   true     │     └─────────────────────────────────────────────────┘
+└─────┬──────┘
+      │ false
+      ▼
+┌────────────┐     ┌─────────────────────────────────────────────────┐
+│  user?     │────▶│ LoginScreen（ログイン画面）                       │
+│   null     │     └─────────────────────────────────────────────────┘
+└─────┬──────┘
+      │ user あり
+      ▼
+┌────────────────────────────────────────────────────────────────────┐
+│ ChatScreen（チャット画面）                                           │
+│  - セッション一覧                                                    │
+│  - メッセージ表示                                                    │
+│  - 入力フォーム                                                      │
+└────────────────────────────────────────────────────────────────────┘
+</pre>
+</div>
+
+<hr />
+<h2 id="6-useauthts---認証フックの完全解説">6. useAuth.ts - 認証フックの完全解説<a class="header-link" href="#6-useauthts---認証フックの完全解説" title="Permanent link">&para;</a></h2>
+<h3 id="完全なコード">完全なコード<a class="header-link" href="#完全なコード" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="cm">/**</span>
+<span class="cm"> * 認証フック</span>
+<span class="cm"> *</span>
+<span class="cm"> * Firebase Authenticationの状態を管理します。</span>
+<span class="cm"> */</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useState</span><span class="p">,</span><span class="w"> </span><span class="nx">useEffect</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;react&#39;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">User</span><span class="p">,</span><span class="w"> </span><span class="nx">signInWithPopup</span><span class="p">,</span><span class="w"> </span><span class="nx">signOut</span><span class="p">,</span><span class="w"> </span><span class="nx">onAuthStateChanged</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;firebase/auth&#39;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">auth</span><span class="p">,</span><span class="w"> </span><span class="nx">googleProvider</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;../services/firebase&#39;</span>
+
+<span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">useAuth</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// 状態の定義</span>
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">setUser</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">&lt;</span><span class="nt">User</span><span class="w"> </span><span class="err">|</span><span class="w"> </span><span class="na">null</span><span class="p">&gt;(</span><span class="kc">null</span><span class="p">)</span><span class="w">      </span><span class="c1">// ログイン中のユーザー</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">loading</span><span class="p">,</span><span class="w"> </span><span class="nx">setLoading</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span><span class="w">              </span><span class="c1">// 読み込み中フラグ</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">error</span><span class="p">,</span><span class="w"> </span><span class="nx">setError</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">&lt;</span><span class="nt">string</span><span class="w"> </span><span class="err">|</span><span class="w"> </span><span class="na">null</span><span class="p">&gt;(</span><span class="kc">null</span><span class="p">)</span><span class="w">   </span><span class="c1">// エラーメッセージ</span>
+
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// 認証状態の監視（重要！）</span>
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// onAuthStateChanged: Firebaseの認証状態が変わったら呼ばれる</span>
+<span class="w">    </span><span class="c1">// - ログインしたとき</span>
+<span class="w">    </span><span class="c1">// - ログアウトしたとき</span>
+<span class="w">    </span><span class="c1">// - ページリロード時（既存のログイン状態を復元）</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">unsubscribe</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">onAuthStateChanged</span><span class="p">(</span><span class="nx">auth</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">user</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">setUser</span><span class="p">(</span><span class="nx">user</span><span class="p">)</span><span class="w">       </span><span class="c1">// ユーザー情報をセット（null = 未ログイン）</span>
+<span class="w">      </span><span class="nx">setLoading</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span><span class="w">   </span><span class="c1">// 読み込み完了</span>
+<span class="w">    </span><span class="p">})</span>
+
+<span class="w">    </span><span class="c1">// クリーンアップ: 監視を解除</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">unsubscribe</span>
+<span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="p">[])</span>
+
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// Googleでログイン</span>
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">loginWithGoogle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">setError</span><span class="p">(</span><span class="kc">null</span><span class="p">)</span><span class="w">  </span><span class="c1">// エラーをクリア</span>
+<span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="c1">// signInWithPopup: ポップアップでGoogleログイン画面を表示</span>
+<span class="w">      </span><span class="k">await</span><span class="w"> </span><span class="nx">signInWithPopup</span><span class="p">(</span><span class="nx">auth</span><span class="p">,</span><span class="w"> </span><span class="nx">googleProvider</span><span class="p">)</span>
+<span class="w">      </span><span class="c1">// ログイン成功 → onAuthStateChanged が自動で呼ばれる</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">setError</span><span class="p">(</span><span class="s1">&#39;ログインに失敗しました&#39;</span><span class="p">)</span>
+<span class="w">      </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// ログアウト</span>
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">logout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">await</span><span class="w"> </span><span class="nx">signOut</span><span class="p">(</span><span class="nx">auth</span><span class="p">)</span>
+<span class="w">      </span><span class="c1">// ログアウト成功 → onAuthStateChanged が自動で呼ばれる</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">setError</span><span class="p">(</span><span class="s1">&#39;ログアウトに失敗しました&#39;</span><span class="p">)</span>
+<span class="w">      </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// 戻り値</span>
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">user</span><span class="p">,</span><span class="w">                     </span><span class="c1">// Userオブジェクト or null</span>
+<span class="w">    </span><span class="nx">loading</span><span class="p">,</span><span class="w">                  </span><span class="c1">// 認証確認中か</span>
+<span class="w">    </span><span class="nx">error</span><span class="p">,</span><span class="w">                    </span><span class="c1">// エラーメッセージ</span>
+<span class="w">    </span><span class="nx">loginWithGoogle</span><span class="p">,</span><span class="w">          </span><span class="c1">// ログイン関数</span>
+<span class="w">    </span><span class="nx">logout</span><span class="p">,</span><span class="w">                   </span><span class="c1">// ログアウト関数</span>
+<span class="w">    </span><span class="nx">isLoggedIn</span><span class="o">:</span><span class="w"> </span><span class="o">!!</span><span class="nx">user</span><span class="p">,</span><span class="w">       </span><span class="c1">// ログイン済みか（boolean）</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="onauthstatechanged-の仕組み">onAuthStateChanged の仕組み<a class="header-link" href="#onauthstatechanged-の仕組み" title="Permanent link">&para;</a></h3>
+<div class="flow-box">
+<h3>🔐 onAuthStateChanged の動作</h3>
+<p><strong>【パターン1: ログイン】</strong></p>
+<pre>
+[ユーザー] ──▶ [Googleログイン] ──▶ [Firebase]
+                                        │
+                                        ▼
+[useAuth] ◀── onAuthStateChanged(user) ─┘
+    │
+    ▼
+setUser(user) → 画面更新
+</pre>
+<p><strong>【パターン2: ページリロード】</strong></p>
+<pre>
+[ブラウザ] ──▶ [ページ読み込み]
+                   │
+                   ▼
+[Firebase] ── ローカルストレージから認証情報を復元
+    │
+    ▼
+[useAuth] ◀── onAuthStateChanged(user)
+    │
+    ▼
+自動的にログイン状態が復元！
+</pre>
+<p><strong>【ポイント】</strong><br>
+Firebase が認証状態を localStorage に保存してくれる<br>
+→ ページを閉じても、再訪問時に自動ログイン！</p>
+</div>
+
+<hr />
+<h2 id="7-usechatts---チャットフックの完全解説">7. useChat.ts - チャットフックの完全解説<a class="header-link" href="#7-usechatts---チャットフックの完全解説" title="Permanent link">&para;</a></h2>
+<h3 id="完全なコード_1">完全なコード<a class="header-link" href="#完全なコード_1" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="cm">/**</span>
+<span class="cm"> * チャットフック</span>
+<span class="cm"> *</span>
+<span class="cm"> * AIエージェントとの会話を管理します。</span>
+<span class="cm"> * セッション管理フックと連携して動作します。</span>
+<span class="cm"> */</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useState</span><span class="p">,</span><span class="w"> </span><span class="nx">useCallback</span><span class="p">,</span><span class="w"> </span><span class="nx">useEffect</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;react&#39;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">sendChatMessage</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;../services/api&#39;</span>
+<span class="k">import</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">ChatSession</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./useSessions&#39;</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * ユニークなIDを生成</span>
+<span class="cm"> * crypto.randomUUID()を使用して衝突のないIDを生成</span>
+<span class="cm"> */</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">generateUniqueId</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">crypto</span><span class="p">.</span><span class="nx">randomUUID</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="c1">// メッセージの型</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="nx">Message</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w">                    </span><span class="c1">// ユニークなID</span>
+<span class="w">  </span><span class="nx">role</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;user&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;assistant&#39;</span><span class="w">    </span><span class="c1">// 誰のメッセージか</span>
+<span class="w">  </span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w">               </span><span class="c1">// メッセージ内容</span>
+<span class="p">}</span>
+
+<span class="kd">interface</span><span class="w"> </span><span class="nx">UseChatOptions</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">activeSession</span><span class="o">:</span><span class="w"> </span><span class="kt">ChatSession</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span>
+<span class="w">  </span><span class="nx">onMessagesUpdate</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">sessionId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">messages</span><span class="o">:</span><span class="w"> </span><span class="kt">Message</span><span class="p">[],</span><span class="w"> </span><span class="nx">threadId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span>
+<span class="p">}</span>
+
+<span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">useChat</span><span class="p">(</span><span class="nx">options?</span><span class="o">:</span><span class="w"> </span><span class="kt">UseChatOptions</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">activeSession</span><span class="p">,</span><span class="w"> </span><span class="nx">onMessagesUpdate</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="p">{}</span>
+
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// 状態の定義</span>
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">messages</span><span class="p">,</span><span class="w"> </span><span class="nx">setMessages</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">&lt;</span><span class="nt">Message</span><span class="err">[]</span><span class="p">&gt;(</span><span class="nx">activeSession</span><span class="o">?</span><span class="p">.</span><span class="nx">messages</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="p">[])</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">threadId</span><span class="p">,</span><span class="w"> </span><span class="nx">setThreadId</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">&lt;</span><span class="nt">string</span><span class="w"> </span><span class="err">|</span><span class="w"> </span><span class="na">null</span><span class="p">&gt;(</span><span class="nx">activeSession</span><span class="o">?</span><span class="p">.</span><span class="nx">threadId</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">isLoading</span><span class="p">,</span><span class="w"> </span><span class="nx">setIsLoading</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">error</span><span class="p">,</span><span class="w"> </span><span class="nx">setError</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">&lt;</span><span class="nt">string</span><span class="w"> </span><span class="err">|</span><span class="w"> </span><span class="na">null</span><span class="p">&gt;(</span><span class="kc">null</span><span class="p">)</span>
+
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// アクティブセッションが変更されたらメッセージを復元</span>
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">activeSession</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">setMessages</span><span class="p">(</span><span class="nx">activeSession</span><span class="p">.</span><span class="nx">messages</span><span class="p">)</span>
+<span class="w">      </span><span class="nx">setThreadId</span><span class="p">(</span><span class="nx">activeSession</span><span class="p">.</span><span class="nx">threadId</span><span class="p">)</span>
+<span class="w">      </span><span class="nx">setError</span><span class="p">(</span><span class="kc">null</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="p">[</span><span class="nx">activeSession</span><span class="o">?</span><span class="p">.</span><span class="nx">id</span><span class="p">])</span><span class="w">  </span><span class="c1">// セッションIDが変わったら実行</span>
+
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// メッセージを送信</span>
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">sendMessage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useCallback</span><span class="p">(</span><span class="k">async</span><span class="w"> </span><span class="p">(</span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// 空メッセージや送信中は無視</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">content</span><span class="p">.</span><span class="nx">trim</span><span class="p">()</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nx">isLoading</span><span class="p">)</span><span class="w"> </span><span class="k">return</span>
+
+<span class="w">    </span><span class="nx">setError</span><span class="p">(</span><span class="kc">null</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">setIsLoading</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1">// ─────────────────────────────────────────────────────────────</span>
+<span class="w">    </span><span class="c1">// Step 1: ユーザーメッセージを追加</span>
+<span class="w">    </span><span class="c1">// ─────────────────────────────────────────────────────────────</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">userMessage</span><span class="o">:</span><span class="w"> </span><span class="kt">Message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">generateUniqueId</span><span class="p">(),</span>
+<span class="w">      </span><span class="nx">role</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;user&#39;</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">content</span><span class="p">,</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">updatedMessagesWithUser</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[...</span><span class="nx">messages</span><span class="p">,</span><span class="w"> </span><span class="nx">userMessage</span><span class="p">]</span>
+<span class="w">    </span><span class="nx">setMessages</span><span class="p">(</span><span class="nx">updatedMessagesWithUser</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1">// ─────────────────────────────────────────────────────────────</span>
+<span class="w">    </span><span class="c1">// Step 2: AIの応答用プレースホルダーを追加</span>
+<span class="w">    </span><span class="c1">// ─────────────────────────────────────────────────────────────</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">assistantMessageId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">generateUniqueId</span><span class="p">()</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">assistantMessage</span><span class="o">:</span><span class="w"> </span><span class="kt">Message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">assistantMessageId</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">role</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;assistant&#39;</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="w">  </span><span class="c1">// 最初は空</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">updatedMessagesWithAssistant</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[...</span><span class="nx">updatedMessagesWithUser</span><span class="p">,</span><span class="w"> </span><span class="nx">assistantMessage</span><span class="p">]</span>
+<span class="w">    </span><span class="nx">setMessages</span><span class="p">(</span><span class="nx">updatedMessagesWithAssistant</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1">// ─────────────────────────────────────────────────────────────</span>
+<span class="w">    </span><span class="c1">// Step 3: ストリーミングでメッセージを受信</span>
+<span class="w">    </span><span class="c1">// ─────────────────────────────────────────────────────────────</span>
+<span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="kd">let</span><span class="w"> </span><span class="nx">currentContent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;&#39;</span>
+
+<span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">newThreadId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">sendChatMessage</span><span class="p">(</span>
+<span class="w">        </span><span class="nx">content</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">threadId</span><span class="p">,</span>
+<span class="w">        </span><span class="p">(</span><span class="nx">chunk</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="c1">// チャンク（断片）を受信するたびに呼ばれる</span>
+<span class="w">          </span><span class="nx">currentContent</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="nx">chunk</span>
+
+<span class="w">          </span><span class="c1">// メッセージを更新（リアルタイム表示！）</span>
+<span class="w">          </span><span class="nx">setMessages</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span>
+<span class="w">            </span><span class="nx">prev</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">msg</span><span class="w"> </span><span class="p">=&gt;</span>
+<span class="w">              </span><span class="nx">msg</span><span class="p">.</span><span class="nx">id</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="nx">assistantMessageId</span>
+<span class="w">                </span><span class="o">?</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="nx">msg</span><span class="p">,</span><span class="w"> </span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="kt">currentContent</span><span class="w"> </span><span class="p">}</span>
+<span class="w">                </span><span class="o">:</span><span class="w"> </span><span class="nx">msg</span>
+<span class="w">            </span><span class="p">)</span>
+<span class="w">          </span><span class="p">)</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">)</span>
+
+<span class="w">      </span><span class="nx">setThreadId</span><span class="p">(</span><span class="nx">newThreadId</span><span class="p">)</span>
+
+<span class="w">      </span><span class="c1">// セッションにメッセージを保存</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">activeSession</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">onMessagesUpdate</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">finalMessages</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">updatedMessagesWithUser</span><span class="p">.</span><span class="nx">concat</span><span class="p">({</span>
+<span class="w">          </span><span class="p">...</span><span class="nx">assistantMessage</span><span class="p">,</span>
+<span class="w">          </span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="kt">currentContent</span><span class="p">,</span>
+<span class="w">        </span><span class="p">})</span>
+<span class="w">        </span><span class="nx">onMessagesUpdate</span><span class="p">(</span><span class="nx">activeSession</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">finalMessages</span><span class="p">,</span><span class="w"> </span><span class="nx">newThreadId</span><span class="p">)</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="c1">// ─────────────────────────────────────────────────────────</span>
+<span class="w">      </span><span class="c1">// エラー処理</span>
+<span class="w">      </span><span class="c1">// ─────────────────────────────────────────────────────────</span>
+<span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">errorMessage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="ow">instanceof</span><span class="w"> </span><span class="ne">Error</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="nx">err</span><span class="p">.</span><span class="nx">message</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;エラーが発生しました&#39;</span>
+<span class="w">      </span><span class="nx">setError</span><span class="p">(</span><span class="nx">errorMessage</span><span class="p">)</span>
+
+<span class="w">      </span><span class="c1">// 失敗したメッセージを削除</span>
+<span class="w">      </span><span class="nx">setMessages</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">prev</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">msg</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">msg</span><span class="p">.</span><span class="nx">id</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="nx">assistantMessageId</span><span class="p">))</span>
+
+<span class="w">      </span><span class="c1">// セッションにはユーザーメッセージまで保存</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">activeSession</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">onMessagesUpdate</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">onMessagesUpdate</span><span class="p">(</span><span class="nx">activeSession</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">updatedMessagesWithUser</span><span class="p">,</span><span class="w"> </span><span class="nx">threadId</span><span class="p">)</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">finally</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">setIsLoading</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="p">[</span><span class="nx">threadId</span><span class="p">,</span><span class="w"> </span><span class="nx">isLoading</span><span class="p">,</span><span class="w"> </span><span class="nx">messages</span><span class="p">,</span><span class="w"> </span><span class="nx">activeSession</span><span class="p">,</span><span class="w"> </span><span class="nx">onMessagesUpdate</span><span class="p">])</span>
+
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// 会話をリセット</span>
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">resetChat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useCallback</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">setMessages</span><span class="p">([])</span>
+<span class="w">    </span><span class="nx">setThreadId</span><span class="p">(</span><span class="kc">null</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">setError</span><span class="p">(</span><span class="kc">null</span><span class="p">)</span>
+<span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="p">[])</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">messages</span><span class="p">,</span><span class="w">      </span><span class="c1">// メッセージ一覧</span>
+<span class="w">    </span><span class="nx">isLoading</span><span class="p">,</span><span class="w">     </span><span class="c1">// 送信中か</span>
+<span class="w">    </span><span class="nx">error</span><span class="p">,</span><span class="w">         </span><span class="c1">// エラーメッセージ</span>
+<span class="w">    </span><span class="nx">sendMessage</span><span class="p">,</span><span class="w">   </span><span class="c1">// 送信関数</span>
+<span class="w">    </span><span class="nx">resetChat</span><span class="p">,</span><span class="w">     </span><span class="c1">// リセット関数</span>
+<span class="w">    </span><span class="nx">threadId</span><span class="p">,</span><span class="w">      </span><span class="c1">// スレッドID</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="usecallback-とは">useCallback とは？<a class="header-link" href="#usecallback-とは" title="Permanent link">&para;</a></h3>
+<div class="info-box">
+<h3>🔄 useCallback の役割</h3>
+<p><strong>問題:</strong><br>
+React は再レンダリングのたびに関数を新しく作り直す<br>
+→ 子コンポーネントに渡すと、毎回「新しい関数」と判断される<br>
+→ 不要な再レンダリングが発生</p>
+<p><strong>解決:</strong><br>
+useCallback で関数をメモ化（キャッシュ）<br>
+→ 依存配列の値が変わらない限り、同じ関数を再利用</p>
+<pre>
+const sendMessage = useCallback(async (content) => {
+  // 処理
+}, [threadId, isLoading, ...]);  // この値が変わったら新しい関数を作る
+</pre>
+<p>💡 パフォーマンス最適化のため。なくても動くが、あると効率的。</p>
+</div>
+
+<h3 id="ストリーミング表示の仕組み">ストリーミング表示の仕組み<a class="header-link" href="#ストリーミング表示の仕組み" title="Permanent link">&para;</a></h3>
+<div class="flow-box">
+<h3>📡 ストリーミング表示</h3>
+<pre>
+[フロントエンド]                        [バックエンド]
+
+sendMessage("こんにちは") ──────────────▶
+
+content = ""              ◀───────────── "こ"
+content = "こ"            ◀───────────── "ん"
+content = "こん"          ◀───────────── "に"
+content = "こんに"        ◀───────────── "ち"
+content = "こんにち"      ◀───────────── "は"
+content = "こんにちは"    ◀───────────── "！"
+content = "こんにちは！"  ◀───────────── [DONE]
+</pre>
+<p><strong>画面:</strong><br>
+「こ」→「こん」→「こんに」→「こんにち」→「こんにちは」→「こんにちは！」</p>
+<p>💡 onChunk コールバックで setMessages を呼ぶ<br>
+→ 毎回画面が更新される<br>
+→ ユーザーはリアルタイムで文字が増えていくのを見れる！</p>
+</div>
+
+<hr />
+<h2 id="8-usesessionsts---セッション管理の完全解説">8. useSessions.ts - セッション管理の完全解説<a class="header-link" href="#8-usesessionsts---セッション管理の完全解説" title="Permanent link">&para;</a></h2>
+<p>複数の会話を管理する仕組みです。</p>
+<h3 id="主な機能">主な機能<a class="header-link" href="#主な機能" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>機能</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>セッション作成</td>
+<td>新しい会話を開始</td>
+</tr>
+<tr>
+<td>セッション切り替え</td>
+<td>過去の会話に戻る</td>
+</tr>
+<tr>
+<td>セッション削除</td>
+<td>不要な会話を削除</td>
+</tr>
+<tr>
+<td>自動保存</td>
+<td>ローカルストレージに保存</td>
+</tr>
+<tr>
+<td>タイトル自動生成</td>
+<td>最初のメッセージからタイトルを作成</td>
+</tr>
+</tbody>
+</table>
+<h3 id="完全なコード_2">完全なコード<a class="header-link" href="#完全なコード_2" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="cm">/**</span>
+<span class="cm"> * セッション管理フック</span>
+<span class="cm"> *</span>
+<span class="cm"> * 複数のチャットセッションを管理し、ローカルストレージに永続化します。</span>
+<span class="cm"> *</span>
+<span class="cm"> * 【制限事項】</span>
+<span class="cm"> * - 最大10セッションまで保存（容量制限のため）</span>
+<span class="cm"> * - ブラウザのローカルストレージに保存（デバイス間同期なし）</span>
+<span class="cm"> */</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useState</span><span class="p">,</span><span class="w"> </span><span class="nx">useCallback</span><span class="p">,</span><span class="w"> </span><span class="nx">useEffect</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;react&#39;</span>
+<span class="k">import</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Message</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./useChat&#39;</span>
+
+<span class="cm">/** ローカルストレージのキー */</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">STORAGE_KEY</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;chat_sessions&#39;</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * 最大セッション数</span>
+<span class="cm"> * - ローカルストレージの容量制限（5-10MB）を考慮</span>
+<span class="cm"> * - 1セッション約8KB（20メッセージ想定）× 10 = 約80KB</span>
+<span class="cm"> */</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">MAX_SESSIONS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">10</span>
+
+<span class="cm">/** デフォルトのセッションタイトル */</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">DEFAULT_SESSION_TITLE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;新しい会話&#39;</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * チャットセッションの型定義</span>
+<span class="cm"> */</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="nx">ChatSession</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w">            </span><span class="c1">// 一意のセッションID</span>
+<span class="w">  </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w">         </span><span class="c1">// セッションのタイトル</span>
+<span class="w">  </span><span class="nx">messages</span><span class="o">:</span><span class="w"> </span><span class="kt">Message</span><span class="p">[]</span><span class="w">   </span><span class="c1">// メッセージ履歴</span>
+<span class="w">  </span><span class="nx">threadId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="w">  </span><span class="c1">// バックエンドとの会話スレッドID</span>
+<span class="w">  </span><span class="nx">createdAt</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="w">     </span><span class="c1">// 作成日時（Unix timestamp）</span>
+<span class="w">  </span><span class="nx">updatedAt</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="w">     </span><span class="c1">// 最終更新日時</span>
+<span class="p">}</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * セッションIDを生成</span>
+<span class="cm"> * 形式: session_{timestamp}_{ランダム文字列}</span>
+<span class="cm"> */</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">generateSessionId</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="sb">`session_</span><span class="si">${</span><span class="nb">Date</span><span class="p">.</span><span class="nx">now</span><span class="p">()</span><span class="si">}</span><span class="sb">_</span><span class="si">${</span><span class="nb">Math</span><span class="p">.</span><span class="nx">random</span><span class="p">().</span><span class="nx">toString</span><span class="p">(</span><span class="mf">36</span><span class="p">).</span><span class="nx">substr</span><span class="p">(</span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="mf">9</span><span class="p">)</span><span class="si">}</span><span class="sb">`</span>
+<span class="p">}</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * 新しい空のセッションを作成</span>
+<span class="cm"> */</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">createNewSession</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nx">ChatSession</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">generateSessionId</span><span class="p">(),</span>
+<span class="w">    </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="kt">DEFAULT_SESSION_TITLE</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">messages</span><span class="o">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">    </span><span class="nx">threadId</span><span class="o">:</span><span class="w"> </span><span class="kt">null</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">createdAt</span><span class="o">:</span><span class="w"> </span><span class="kt">Date.now</span><span class="p">(),</span>
+<span class="w">    </span><span class="nx">updatedAt</span><span class="o">:</span><span class="w"> </span><span class="kt">Date.now</span><span class="p">(),</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * ローカルストレージからセッション一覧を読み込み</span>
+<span class="cm"> */</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">loadSessionsFromStorage</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nx">ChatSession</span><span class="p">[]</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">stored</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">localStorage</span><span class="p">.</span><span class="nx">getItem</span><span class="p">(</span><span class="nx">STORAGE_KEY</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">stored</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="nb">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">stored</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// エラー時は空配列を返す（データ破損時の安全対策）</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">[]</span>
+<span class="p">}</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * セッション一覧をローカルストレージに保存</span>
+<span class="cm"> */</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">saveSessionsToStorage</span><span class="p">(</span><span class="nx">sessions</span><span class="o">:</span><span class="w"> </span><span class="kt">ChatSession</span><span class="p">[])</span><span class="o">:</span><span class="w"> </span><span class="ow">void</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">localStorage</span><span class="p">.</span><span class="nx">setItem</span><span class="p">(</span><span class="nx">STORAGE_KEY</span><span class="p">,</span><span class="w"> </span><span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">sessions</span><span class="p">))</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// 容量超過などのエラーは握りつぶす</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * メッセージ内容からタイトルを生成</span>
+<span class="cm"> * - 最大20文字まで</span>
+<span class="cm"> * - 改行はスペースに変換</span>
+<span class="cm"> */</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">generateTitleFromMessage</span><span class="p">(</span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">maxLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">20</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">trimmed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">content</span><span class="p">.</span><span class="nx">trim</span><span class="p">().</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\n/g</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">trimmed</span><span class="p">.</span><span class="nx">length</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="nx">maxLength</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">trimmed</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">trimmed</span><span class="p">.</span><span class="nx">substring</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="nx">maxLength</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s1">&#39;...&#39;</span>
+<span class="p">}</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * セッション管理フック</span>
+<span class="cm"> */</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">useSessions</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// セッション一覧</span>
+<span class="w">  </span><span class="c1">// useState の初期化関数を使用（初回のみ実行）</span>
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">sessions</span><span class="p">,</span><span class="w"> </span><span class="nx">setSessions</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">&lt;</span><span class="nt">ChatSession</span><span class="err">[]</span><span class="p">&gt;(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">loaded</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">loadSessionsFromStorage</span><span class="p">()</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">loaded</span><span class="p">.</span><span class="nx">length</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="mf">0</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="p">[</span><span class="nx">createNewSession</span><span class="p">()]</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">loaded</span>
+<span class="w">  </span><span class="p">})</span>
+
+<span class="w">  </span><span class="c1">// アクティブなセッションのID</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">activeSessionId</span><span class="p">,</span><span class="w"> </span><span class="nx">setActiveSessionId</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">&lt;</span><span class="nt">string</span><span class="p">&gt;(</span>
+<span class="w">    </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">sessions</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span><span class="o">?</span><span class="p">.</span><span class="nx">id</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;&#39;</span>
+<span class="w">  </span><span class="p">)</span>
+
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// セッション変更時に自動保存</span>
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">saveSessionsToStorage</span><span class="p">(</span><span class="nx">sessions</span><span class="p">)</span>
+<span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="p">[</span><span class="nx">sessions</span><span class="p">])</span>
+
+<span class="w">  </span><span class="c1">// 現在アクティブなセッション</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">activeSession</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">sessions</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">id</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="nx">activeSessionId</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nx">sessions</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span>
+
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// 新しいセッションを作成</span>
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">createSession</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useCallback</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">newSession</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">createNewSession</span><span class="p">()</span>
+<span class="w">    </span><span class="nx">setSessions</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">updated</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="nx">newSession</span><span class="p">,</span><span class="w"> </span><span class="p">...</span><span class="nx">prev</span><span class="p">]</span><span class="w">  </span><span class="c1">// 先頭に追加</span>
+<span class="w">      </span><span class="c1">// 最大数を超えたら古いものを削除</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">updated</span><span class="p">.</span><span class="nx">length</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="nx">MAX_SESSIONS</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">updated</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="nx">MAX_SESSIONS</span><span class="p">)</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="nx">updated</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="nx">setActiveSessionId</span><span class="p">(</span><span class="nx">newSession</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">newSession</span><span class="p">.</span><span class="nx">id</span>
+<span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="p">[])</span>
+
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// セッションを切り替え</span>
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">switchSession</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useCallback</span><span class="p">((</span><span class="nx">sessionId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">setActiveSessionId</span><span class="p">(</span><span class="nx">sessionId</span><span class="p">)</span>
+<span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="p">[])</span>
+
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// セッションを削除</span>
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">closeSession</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useCallback</span><span class="p">((</span><span class="nx">sessionId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">setSessions</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">remainingSessions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">prev</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">id</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="nx">sessionId</span><span class="p">)</span>
+
+<span class="w">      </span><span class="c1">// 全て削除された場合は新しいセッションを作成</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">remainingSessions</span><span class="p">.</span><span class="nx">length</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">newSession</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">createNewSession</span><span class="p">()</span>
+<span class="w">        </span><span class="nx">setActiveSessionId</span><span class="p">(</span><span class="nx">newSession</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="p">[</span><span class="nx">newSession</span><span class="p">]</span>
+<span class="w">      </span><span class="p">}</span>
+
+<span class="w">      </span><span class="c1">// 削除されたのがアクティブセッションだった場合</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">sessionId</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="nx">activeSessionId</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">deletedIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">prev</span><span class="p">.</span><span class="nx">findIndex</span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">id</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="nx">sessionId</span><span class="p">)</span>
+<span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">nextIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Math</span><span class="p">.</span><span class="nx">min</span><span class="p">(</span><span class="nx">deletedIndex</span><span class="p">,</span><span class="w"> </span><span class="nx">remainingSessions</span><span class="p">.</span><span class="nx">length</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mf">1</span><span class="p">)</span>
+<span class="w">        </span><span class="nx">setActiveSessionId</span><span class="p">(</span><span class="nx">remainingSessions</span><span class="p">[</span><span class="nx">nextIndex</span><span class="p">].</span><span class="nx">id</span><span class="p">)</span>
+<span class="w">      </span><span class="p">}</span>
+
+<span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="nx">remainingSessions</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="p">[</span><span class="nx">activeSessionId</span><span class="p">])</span>
+
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// セッションのメッセージを更新</span>
+<span class="w">  </span><span class="c1">// ───────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">updateSessionMessages</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useCallback</span><span class="p">((</span>
+<span class="w">    </span><span class="nx">sessionId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">messages</span><span class="o">:</span><span class="w"> </span><span class="kt">Message</span><span class="p">[],</span>
+<span class="w">    </span><span class="nx">threadId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span>
+<span class="w">  </span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">setSessions</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">prev</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">session</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">session</span><span class="p">.</span><span class="nx">id</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="nx">sessionId</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="nx">session</span>
+
+<span class="w">      </span><span class="c1">// タイトル自動生成（まだ「新しい会話」の場合のみ）</span>
+<span class="w">      </span><span class="kd">let</span><span class="w"> </span><span class="nx">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">session</span><span class="p">.</span><span class="nx">title</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">title</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="nx">DEFAULT_SESSION_TITLE</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">messages</span><span class="p">.</span><span class="nx">length</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">firstUserMessage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">messages</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="nx">m</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">m</span><span class="p">.</span><span class="nx">role</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;user&#39;</span><span class="p">)</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">firstUserMessage</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nx">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">generateTitleFromMessage</span><span class="p">(</span><span class="nx">firstUserMessage</span><span class="p">.</span><span class="nx">content</span><span class="p">)</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+
+<span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="p">...</span><span class="nx">session</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">messages</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">threadId</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">title</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">updatedAt</span><span class="o">:</span><span class="w"> </span><span class="kt">Date.now</span><span class="p">(),</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}))</span>
+<span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="p">[])</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sessions</span><span class="p">,</span><span class="w">              </span><span class="c1">// セッション一覧</span>
+<span class="w">    </span><span class="nx">activeSession</span><span class="p">,</span><span class="w">         </span><span class="c1">// 現在のセッション</span>
+<span class="w">    </span><span class="nx">activeSessionId</span><span class="p">,</span><span class="w">       </span><span class="c1">// 現在のセッションID</span>
+<span class="w">    </span><span class="nx">createSession</span><span class="p">,</span><span class="w">         </span><span class="c1">// 新規作成</span>
+<span class="w">    </span><span class="nx">switchSession</span><span class="p">,</span><span class="w">         </span><span class="c1">// 切り替え</span>
+<span class="w">    </span><span class="nx">closeSession</span><span class="p">,</span><span class="w">          </span><span class="c1">// 削除</span>
+<span class="w">    </span><span class="nx">updateSessionMessages</span><span class="p">,</span><span class="w"> </span><span class="c1">// メッセージ更新</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="ローカルストレージの仕組み">ローカルストレージの仕組み<a class="header-link" href="#ローカルストレージの仕組み" title="Permanent link">&para;</a></h3>
+<div class="info-box">
+<h3>💾 ローカルストレージ</h3>
+<p>ブラウザに内蔵された「簡易データベース」</p>
+<pre>
+┌─────────────────────────────────────────────────────────────────────┐
+│  localStorage                                                        │
+│  ┌────────────────┬──────────────────────────────────────────────┐  │
+│  │  キー           │  値                                          │  │
+│  ├────────────────┼──────────────────────────────────────────────┤  │
+│  │ chat_sessions   │ [{"id":"session_123","title":"天気について",│  │
+│  │                 │   "messages":[...]}, {...}]                 │  │
+│  └────────────────┴──────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
+</pre>
+<p><strong>【特徴】</strong></p>
+<ul>
+<li>✅ ブラウザを閉じてもデータが残る</li>
+<li>✅ 約 5-10MB まで保存可能</li>
+<li>❌ 他のデバイスとは同期されない</li>
+<li>❌ ブラウザのデータ削除で消える</li>
+</ul>
+<p><strong>【使い方】</strong></p>
+<pre>
+localStorage.setItem('key', 'value')  // 保存
+localStorage.getItem('key')           // 取得
+localStorage.removeItem('key')        // 削除
+</pre>
+<p>⚠️ 注意: 文字列しか保存できない<br>
+→ オブジェクトは JSON.stringify() で文字列に変換<br>
+→ 取得時は JSON.parse() でオブジェクトに戻す</p>
+</div>
+
+<hr />
+<h2 id="9-apits---api通信の完全解説">9. api.ts - API通信の完全解説<a class="header-link" href="#9-apits---api通信の完全解説" title="Permanent link">&para;</a></h2>
+<p>バックエンドとの通信を担当するモジュールです。</p>
+<h3 id="完全なコード_3">完全なコード<a class="header-link" href="#完全なコード_3" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="cm">/**</span>
+<span class="cm"> * API通信モジュール</span>
+<span class="cm"> *</span>
+<span class="cm"> * バックエンドAPIとの通信を行います。</span>
+<span class="cm"> */</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">auth</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./firebase&#39;</span>
+
+<span class="c1">// APIベースURL（環境変数から取得）</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">API_BASE_URL</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">import</span><span class="p">.</span><span class="nx">meta</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">VITE_API_BASE_URL</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;http://localhost:8080&#39;</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * 認証トークンを取得</span>
+<span class="cm"> *</span>
+<span class="cm"> * Firebase からIDトークンを取得する。</span>
+<span class="cm"> * このトークンがバックエンドへの「認証の証」になる。</span>
+<span class="cm"> */</span>
+<span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">getAuthToken</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="p">&lt;</span><span class="nt">string</span><span class="p">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">currentUser</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">user</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">throw</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="ne">Error</span><span class="p">(</span><span class="s1">&#39;ログインが必要です&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">user</span><span class="p">.</span><span class="nx">getIdToken</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * 認証ヘッダーを生成</span>
+<span class="cm"> *</span>
+<span class="cm"> * HTTP リクエストに付加するヘッダーを作成。</span>
+<span class="cm"> * Bearer トークン形式で認証情報を送る。</span>
+<span class="cm"> */</span>
+<span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">createAuthHeaders</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="p">&lt;</span><span class="nt">HeadersInit</span><span class="p">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">getAuthToken</span><span class="p">()</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="s1">&#39;Content-Type&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;application/json&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="s1">&#39;Authorization&#39;</span><span class="o">:</span><span class="w"> </span><span class="sb">`Bearer </span><span class="si">${</span><span class="nx">token</span><span class="si">}</span><span class="sb">`</span><span class="p">,</span><span class="w">  </span><span class="c1">// これが認証の証！</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * チャットメッセージを送信（ストリーミング）</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param message ユーザーのメッセージ</span>
+<span class="cm"> * @param threadId スレッドID（省略可）</span>
+<span class="cm"> * @param onChunk チャンク受信時のコールバック</span>
+<span class="cm"> * @returns スレッドID</span>
+<span class="cm"> */</span>
+<span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">sendChatMessage</span><span class="p">(</span>
+<span class="w">  </span><span class="nx">message</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">threadId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">onChunk</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">chunk</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span>
+<span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="p">&lt;</span><span class="nt">string</span><span class="p">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// ─────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// Step 1: 認証ヘッダーを作成</span>
+<span class="w">  </span><span class="c1">// ─────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">headers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">createAuthHeaders</span><span class="p">()</span>
+
+<span class="w">  </span><span class="c1">// ─────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// Step 2: APIにPOSTリクエスト</span>
+<span class="w">  </span><span class="c1">// ─────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="sb">`</span><span class="si">${</span><span class="nx">API_BASE_URL</span><span class="si">}</span><span class="sb">/chat`</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">method</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;POST&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">headers</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">body</span><span class="o">:</span><span class="w"> </span><span class="kt">JSON.stringify</span><span class="p">({</span>
+<span class="w">      </span><span class="nx">message</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">thread_id</span><span class="o">:</span><span class="w"> </span><span class="kt">threadId</span><span class="p">,</span>
+<span class="w">    </span><span class="p">}),</span>
+<span class="w">  </span><span class="p">})</span>
+
+<span class="w">  </span><span class="c1">// ─────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// Step 3: エラーチェック</span>
+<span class="w">  </span><span class="c1">// ─────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">response</span><span class="p">.</span><span class="nx">ok</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">()</span>
+<span class="w">    </span><span class="k">throw</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="ne">Error</span><span class="p">(</span><span class="nx">error</span><span class="p">.</span><span class="nx">error</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;エラーが発生しました&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="c1">// ─────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// Step 4: レスポンスヘッダーからスレッドIDを取得</span>
+<span class="w">  </span><span class="c1">// ─────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">newThreadId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">headers</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;X-Thread-Id&#39;</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nx">threadId</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;&#39;</span>
+
+<span class="w">  </span><span class="c1">// ─────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// Step 5: Server-Sent Events を処理</span>
+<span class="w">  </span><span class="c1">// ─────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">reader</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">body</span><span class="o">?</span><span class="p">.</span><span class="nx">getReader</span><span class="p">()</span>
+<span class="w">  </span><span class="c1">// stream: true で日本語の文字化けを防止</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">decoder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">TextDecoder</span><span class="p">()</span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">reader</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">throw</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="ne">Error</span><span class="p">(</span><span class="s1">&#39;レスポンスの読み取りに失敗しました&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="c1">// ─────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="c1">// Step 6: チャンクを読み続ける</span>
+<span class="w">  </span><span class="c1">// ─────────────────────────────────────────────────────────────</span>
+<span class="w">  </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="kc">true</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">done</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">reader</span><span class="p">.</span><span class="nx">read</span><span class="p">()</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">done</span><span class="p">)</span><span class="w"> </span><span class="k">break</span>
+
+<span class="w">    </span><span class="c1">// バイナリ → テキストに変換</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">text</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">decoder</span><span class="p">.</span><span class="nx">decode</span><span class="p">(</span><span class="nx">value</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">stream</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="w"> </span><span class="p">})</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">lines</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">text</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s1">&#39;\n&#39;</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1">// 各行を処理</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="nx">line</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">lines</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">line</span><span class="p">.</span><span class="nx">startsWith</span><span class="p">(</span><span class="s1">&#39;data: &#39;</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">line</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mf">6</span><span class="p">)</span><span class="w">  </span><span class="c1">// &quot;data: &quot; を除去</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;[DONE]&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="k">break</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">startsWith</span><span class="p">(</span><span class="s1">&#39;[ERROR]&#39;</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="k">throw</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="ne">Error</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mf">8</span><span class="p">))</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="nx">onChunk</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span><span class="w">  </span><span class="c1">// コールバック関数を呼ぶ</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">newThreadId</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="sseserver-sent-eventsの仕組み">SSE（Server-Sent Events）の仕組み<a class="header-link" href="#sseserver-sent-eventsの仕組み" title="Permanent link">&para;</a></h3>
+<div class="info-box">
+<h3>📡 Server-Sent Events (SSE)</h3>
+<p><strong>【普通のHTTP通信】</strong></p>
+<pre>
+[クライアント] ────リクエスト────▶ [サーバー]
+                                     │
+               （3秒待ち...）        │
+                                     ▼
+[クライアント] ◀───レスポンス（全部）── [サーバー]
+</pre>
+<p><strong>【SSE】</strong></p>
+<pre>
+[クライアント] ────リクエスト────▶ [サーバー]
+[クライアント] ◀───"data: こ"───── [サーバー]
+[クライアント] ◀───"data: ん"───── [サーバー]
+[クライアント] ◀───"data: に"───── [サーバー]
+[クライアント] ◀───"data: ち"───── [サーバー]
+[クライアント] ◀───"data: は"───── [サーバー]
+[クライアント] ◀───"data: [DONE]"─ [サーバー]
+</pre>
+<p>→ リアルタイムで画面に文字が表示される！</p>
+<p><strong>【SSEのデータ形式】</strong></p>
+<pre>
+data: 文字列\n
+data: 文字列\n
+data: [DONE]\n
+</pre>
+<p>各行が "data: " で始まる<br>
+最後は "[DONE]" で終了を知らせる</p>
+</div>
+
+<h3 id="textdecoder-の重要性">TextDecoder の重要性<a class="header-link" href="#textdecoder-の重要性" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// stream: true がないと日本語が文字化けする！</span>
+
+<span class="c1">// 悪い例</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">text</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">decoder</span><span class="p">.</span><span class="nx">decode</span><span class="p">(</span><span class="nx">value</span><span class="p">);</span><span class="w">  </span><span class="c1">// ❌ 日本語が化ける可能性</span>
+
+<span class="c1">// 良い例</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">text</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">decoder</span><span class="p">.</span><span class="nx">decode</span><span class="p">(</span><span class="nx">value</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">stream</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="w"> </span><span class="p">});</span><span class="w">  </span><span class="c1">// ✅ 正しく処理</span>
+
+<span class="c1">// なぜ？</span>
+<span class="c1">// UTF-8では日本語1文字 = 3バイト</span>
+<span class="c1">// チャンクの境界で分断されると...</span>
+<span class="c1">// 例: &quot;日&quot; = [E6, 97, A5]</span>
+<span class="c1">//     チャンク1: [E6, 97]  ← 不完全！</span>
+<span class="c1">//     チャンク2: [A5, ...]</span>
+<span class="c1">// stream: true で不完全なバイトをバッファリングしてくれる</span>
+</code></pre></div>
+
+<hr />
+<h2 id="10-firebasets---firebase初期化">10. firebase.ts - Firebase初期化<a class="header-link" href="#10-firebasets---firebase初期化" title="Permanent link">&para;</a></h2>
+<p>Firebase SDKの初期化を行うファイルです。</p>
+<h3 id="完全なコード_4">完全なコード<a class="header-link" href="#完全なコード_4" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="cm">/**</span>
+<span class="cm"> * Firebase初期化</span>
+<span class="cm"> *</span>
+<span class="cm"> * 【設定方法】</span>
+<span class="cm"> * .envファイルに以下の環境変数を設定してください:</span>
+<span class="cm"> * - VITE_FIREBASE_API_KEY</span>
+<span class="cm"> * - VITE_FIREBASE_AUTH_DOMAIN</span>
+<span class="cm"> * - VITE_FIREBASE_PROJECT_ID</span>
+<span class="cm"> */</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">initializeApp</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;firebase/app&#39;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">getAuth</span><span class="p">,</span><span class="w"> </span><span class="nx">GoogleAuthProvider</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;firebase/auth&#39;</span>
+
+<span class="c1">// Firebase設定（環境変数から取得）</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">firebaseConfig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">apiKey</span><span class="o">:</span><span class="w"> </span><span class="kt">import.meta.env.VITE_FIREBASE_API_KEY</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">authDomain</span><span class="o">:</span><span class="w"> </span><span class="kt">import.meta.env.VITE_FIREBASE_AUTH_DOMAIN</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">projectId</span><span class="o">:</span><span class="w"> </span><span class="kt">import.meta.env.VITE_FIREBASE_PROJECT_ID</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1">// Firebase初期化</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">app</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">initializeApp</span><span class="p">(</span><span class="nx">firebaseConfig</span><span class="p">)</span>
+
+<span class="c1">// 認証インスタンス</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">auth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">getAuth</span><span class="p">(</span><span class="nx">app</span><span class="p">)</span>
+
+<span class="c1">// Googleログインプロバイダ</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">googleProvider</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">GoogleAuthProvider</span><span class="p">()</span>
+</code></pre></div>
+
+<h3 id="環境変数について">環境変数について<a class="header-link" href="#環境変数について" title="Permanent link">&para;</a></h3>
+<div class="info-box">
+<h3>🔐 環境変数と Vite</h3>
+<p><strong>【.envファイル】</strong></p>
+<pre>
+frontend/.env
+┌─────────────────────────────────────────────────────────────────────┐
+│ VITE_FIREBASE_API_KEY=AIza...                                        │
+│ VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com              │
+│ VITE_FIREBASE_PROJECT_ID=your-project-id                            │
+│ VITE_API_BASE_URL=https://your-api.run.app                          │
+└─────────────────────────────────────────────────────────────────────┘
+</pre>
+<p><strong>【Viteでの環境変数のルール】</strong></p>
+<ul>
+<li>✅ VITE_ で始まる変数だけがフロントエンドで使える</li>
+<li>✅ import.meta.env.VITE_XXX でアクセス</li>
+<li>❌ VITE_ がない変数はフロントエンドからアクセスできない（セキュリティ）</li>
+</ul>
+<p><strong>【なぜ環境変数を使う？】</strong></p>
+<ol>
+<li>秘密情報をコードに直書きしない</li>
+<li>開発/本番で設定を切り替えやすい</li>
+<li>.gitignore で .env を除外 → Gitに秘密情報が入らない</li>
+</ol>
+<p>⚠️ 注意: フロントエンドの環境変数は結局ブラウザに送られる<br>
+→ 本当の秘密（APIキーなど）はバックエンドに置く</p>
+</div>
+
+<hr />
+<h2 id="11-typescriptの型システム">11. TypeScriptの型システム<a class="header-link" href="#11-typescriptの型システム" title="Permanent link">&para;</a></h2>
+<p>TypeScriptはJavaScriptに「型」を追加した言語です。<br />
+間違いを事前に防げる！</p>
+<h3 id="基本的な型">基本的な型<a class="header-link" href="#基本的な型" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// プリミティブ型</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;太郎&quot;</span><span class="p">;</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">age</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">25</span><span class="p">;</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">isActive</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">;</span>
+
+<span class="c1">// 配列</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">numbers</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="mf">3</span><span class="p">];</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">names</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;Alice&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Bob&quot;</span><span class="p">];</span>
+
+<span class="c1">// オブジェクト型</span>
+<span class="kr">type</span><span class="w"> </span><span class="nx">User</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">email</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">user</span><span class="o">:</span><span class="w"> </span><span class="kt">User</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;太郎&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">email</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;taro@example.com&quot;</span><span class="p">,</span>
+<span class="p">};</span>
+
+<span class="c1">// user.age = 25;  // ❌ エラー！User型にageはない</span>
+</code></pre></div>
+
+<h3 id="interface-と-type">interface と type<a class="header-link" href="#interface-と-type" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// interface: オブジェクトの形を定義</span>
+<span class="kd">interface</span><span class="w"> </span><span class="nx">Message</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">role</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;user&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;assistant&#39;</span><span class="p">;</span><span class="w">  </span><span class="c1">// リテラル型（この2つだけ許可）</span>
+<span class="w">  </span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// type: 任意の型を定義</span>
+<span class="kr">type</span><span class="w"> </span><span class="nx">MessageRole</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;user&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;assistant&#39;</span><span class="p">;</span>
+
+<span class="c1">// どちらを使う？</span>
+<span class="c1">// → 基本的にどちらでもOK</span>
+<span class="c1">// → オブジェクトは interface が一般的</span>
+<span class="c1">// → 複雑な型や Union は type が便利</span>
+</code></pre></div>
+
+<h3 id="union型とoptional">Union型とOptional<a class="header-link" href="#union型とoptional" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// Union型: 複数の型のどれか</span>
+<span class="kr">type</span><span class="w"> </span><span class="nx">Status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;loading&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;success&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;error&#39;</span><span class="p">;</span>
+
+<span class="kd">let</span><span class="w"> </span><span class="nx">status</span><span class="o">:</span><span class="w"> </span><span class="kt">Status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;loading&#39;</span><span class="p">;</span>
+<span class="nx">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;success&#39;</span><span class="p">;</span><span class="w">  </span><span class="c1">// ✅ OK</span>
+<span class="c1">// status = &#39;pending&#39;;  // ❌ エラー！</span>
+
+<span class="c1">// Optional（省略可能）</span>
+<span class="kd">interface</span><span class="w"> </span><span class="nx">User</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">email?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w">  </span><span class="c1">// ? で省略可能に</span>
+<span class="p">}</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">user1</span><span class="o">:</span><span class="w"> </span><span class="kt">User</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;太郎&quot;</span><span class="w"> </span><span class="p">};</span><span class="w">  </span><span class="c1">// ✅ emailなしでもOK</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">user2</span><span class="o">:</span><span class="w"> </span><span class="kt">User</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;2&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;花子&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">email</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;hanako@example.com&quot;</span><span class="w"> </span><span class="p">};</span><span class="w">  </span><span class="c1">// ✅</span>
+</code></pre></div>
+
+<h3 id="ジェネリクス">ジェネリクス<a class="header-link" href="#ジェネリクス" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// ジェネリクス: 型を引数のように渡せる</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">useState</span><span class="p">&lt;</span><span class="nt">T</span><span class="p">&gt;(</span><span class="nx">initialValue</span><span class="o">:</span><span class="w"> </span><span class="kt">T</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">T</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="kt">T</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">]</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// ...</span>
+<span class="p">}</span>
+
+<span class="c1">// 使うとき</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">count</span><span class="p">,</span><span class="w"> </span><span class="nx">setCount</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">&lt;</span><span class="nt">number</span><span class="p">&gt;(</span><span class="mf">0</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">name</span><span class="p">,</span><span class="w"> </span><span class="nx">setName</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">&lt;</span><span class="nt">string</span><span class="p">&gt;(</span><span class="s2">&quot;太郎&quot;</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">setUser</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">&lt;</span><span class="nt">User</span><span class="w"> </span><span class="err">|</span><span class="w"> </span><span class="na">null</span><span class="p">&gt;(</span><span class="kc">null</span><span class="p">);</span>
+
+<span class="c1">// &lt;T&gt; は「型引数」</span>
+<span class="c1">// 呼び出し側が具体的な型を指定できる</span>
+</code></pre></div>
+
+<div class="tip-box">
+<h3>💡 TypeScript のメリット</h3>
+<ol>
+<li><strong>補完が効く</strong><br>user. と打つと id, name, email が候補に出る！</li>
+<li><strong>間違いを事前に発見</strong><br>message.rolr と打つとエラー（role のtypo）</li>
+<li><strong>リファクタリングが安全</strong><br>関数名や型を変えると、影響箇所が全て分かる</li>
+<li><strong>ドキュメント代わり</strong><br>型定義を見れば、何が必要か分かる</li>
+</ol>
+<p>⚠️ 注意: 実行時には型情報は消える<br>
+→ 実行時エラーは防げない（あくまで開発時のチェック）</p>
+</div>
+
+<hr />
+<h2 id="12-全体の処理フロー">12. 全体の処理フロー<a class="header-link" href="#12-全体の処理フロー" title="Permanent link">&para;</a></h2>
+<p>すべてのコードがどう連携するか、全体像を把握しましょう。</p>
+<div class="flow-box">
+<h3>🔄 チャット送信の完全フロー</h3>
+<pre>
+[ユーザー] メッセージ入力
+    │
+    ▼
+[ChatScreen] onSendMessage(text) 呼び出し
+    │
+    ▼
+[useChat] sendMessage(content)
+    │
+    ├── setMessages([...messages, userMessage])  ← ユーザーメッセージ追加
+    │
+    ├── setMessages([..., assistantMessage])  ← 空のAIメッセージ追加
+    │
+    ▼
+[api.ts] sendChatMessage(content, threadId, onChunk)
+    │
+    ├── getAuthToken()  ← IDトークン取得
+    │
+    ├── fetch('/chat', { headers: { Authorization: 'Bearer ...' } })
+    │
+    ▼
+[バックエンド] ─────────────────────────────────────────────────
+    │  ・トークン検証
+    │  ・AI に問い合わせ
+    │  ・ストリーミングで返答
+────┴───────────────────────────────────────────────────────────
+    │
+    ▼
+[api.ts] reader.read() でチャンクを受信
+    │
+    ├── onChunk("こ") → setMessages 更新
+    ├── onChunk("ん") → setMessages 更新
+    ├── onChunk("に") → setMessages 更新
+    ├── ...
+    ├── onChunk("[DONE]") → 終了
+    │
+    ▼
+[useChat] → [useSessions] updateSessionMessages()
+    │
+    ▼
+[useSessions] → localStorage に保存
+</pre>
+</div>
+
+<hr />
+<h2 id="まとめ">まとめ<a class="header-link" href="#まとめ" title="Permanent link">&para;</a></h2>
+<div class="summary-box">
+<h3>🎓 この章で学んだこと</h3>
+<table>
+<tr><th>概念</th><th>ポイント</th></tr>
+<tr><td>コンポーネント</td><td>画面のパーツ。組み合わせてUIを作る</td></tr>
+<tr><td>useState</td><td>状態を持つ。変更すると再描画される</td></tr>
+<tr><td>useEffect</td><td>副作用を実行。マウント時やデータ変更時に処理</td></tr>
+<tr><td>カスタムフック</td><td>ロジックを再利用。useAuth, useChatなど</td></tr>
+<tr><td>TypeScript</td><td>型で安全に。間違いを事前に防ぐ</td></tr>
+<tr><td>SSE</td><td>リアルタイムでデータを受け取る</td></tr>
+</table>
+<ul>
+<li>✅ useAuth: Firebase認証の状態管理</li>
+<li>✅ useChat: メッセージ送受信とストリーミング処理</li>
+<li>✅ useSessions: 複数会話のローカル保存</li>
+<li>✅ api.ts: バックエンドとのHTTP通信</li>
+</ul>
+</div>
+
+<hr />
+<h2 id="次に読むべきドキュメント">次に読むべきドキュメント<a class="header-link" href="#次に読むべきドキュメント" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>順番</th>
+<th>ドキュメント</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><a href="./05_セットアップの流れ.md">05_セットアップの流れ.md</a></td>
+<td>環境構築の手順</td>
+</tr>
+<tr>
+<td>2</td>
+<td><a href="./FLOW_01_チャット送信の流れ.md">FLOW_01_チャット送信の流れ.md</a></td>
+<td>詳細なデータフロー</td>
+</tr>
+<tr>
+<td>3</td>
+<td><a href="./FLOW_02_ログインの流れ.md">FLOW_02_ログインの流れ.md</a></td>
+<td>認証フローの詳細</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="練習問題">練習問題<a class="header-link" href="#練習問題" title="Permanent link">&para;</a></h2>
+<h3 id="q1-usestate-について">Q1: useState について<a class="header-link" href="#q1-usestate-について" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">count</span><span class="p">,</span><span class="w"> </span><span class="nx">setCount</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="mf">0</span><span class="p">);</span>
+
+<span class="c1">// 以下のコードで count は何になる？</span>
+<span class="nx">setCount</span><span class="p">(</span><span class="nx">count</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="nx">setCount</span><span class="p">(</span><span class="nx">count</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="nx">setCount</span><span class="p">(</span><span class="nx">count</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+
+<span class="c1">// A. 3</span>
+<span class="c1">// B. 1</span>
+<span class="c1">// C. 0</span>
+</code></pre></div>
+
+<details>
+<summary>答えを見る</summary>
+
+**答え: B. 1**
+
+理由: setCount は非同期的に更新されるため、3回呼んでも全て `0 + 1 = 1` になる。
+
+連続して加算したい場合は:
+
+<div class="codehilite"><pre><span></span><code><span class="nx">setCount</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">prev</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="nx">setCount</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">prev</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="nx">setCount</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">prev</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+<span class="c1">// → 3 になる</span>
+</code></pre></div>
+
+
+
+</details>
+
+<h3 id="q2-useeffect-の依存配列">Q2: useEffect の依存配列<a class="header-link" href="#q2-useeffect-の依存配列" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;実行されました&quot;</span><span class="p">);</span>
+<span class="p">},</span><span class="w"> </span><span class="p">[</span><span class="nx">userId</span><span class="p">]);</span>
+</code></pre></div>
+
+<p>このコードはいつ実行される？</p>
+<details>
+<summary>答えを見る</summary>
+
+**答え:**
+1. コンポーネントが最初に表示されたとき（マウント時）
+2. `userId` の値が変わったとき
+
+`userId` が同じ値のままなら、再レンダリングしても実行されない。
+
+</details>
+
+<h3 id="q3-typescript-の型エラー">Q3: TypeScript の型エラー<a class="header-link" href="#q3-typescript-の型エラー" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="kd">interface</span><span class="w"> </span><span class="nx">User</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">user</span><span class="o">:</span><span class="w"> </span><span class="kt">User</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">1</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;太郎&quot;</span><span class="p">,</span>
+<span class="p">};</span>
+</code></pre></div>
+
+<p>このコードにはエラーがあります。何が問題？</p>
+<details>
+<summary>答えを見る</summary>
+
+**答え:** `id` の型が違う
+
+`id` は `string` 型として定義されているが、`1`（number）を渡している。
+
+正しくは:
+
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">user</span><span class="o">:</span><span class="w"> </span><span class="kt">User</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// 文字列にする</span>
+<span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;太郎&quot;</span><span class="p">,</span>
+<span class="p">};</span>
+</code></pre></div>
+
+
+
+</details>
+      </article>
+      <footer class="footer">
+        GCP AI Agent 設計資料 | Built with Python & Markdown
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.querySelector('.menu-toggle');
+      if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

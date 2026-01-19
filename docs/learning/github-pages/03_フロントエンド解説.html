@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>03 フロントエンド解説 - GCP AI Agent Platform 学習ガイド</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="header-logo">
+      <span>📚</span>
+      <span>GCP AI Agent 学習ガイド</span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">ホーム</a>
+      <a href="FLOW_03_セットアップの流れ.html">セットアップ</a>
+      <a href="https://github.com" target="_blank">GitHub</a>
+    </nav>
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">🚀 はじめに</div>
+        <ul class="sidebar-nav">
+          <li><a href="00_はじめに読んでください.html" >はじめに読んでください</a></li>
+          <li><a href="04_動かしてみよう.html" >動かしてみよう</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">📖 基礎知識</div>
+        <ul class="sidebar-nav">
+          <li><a href="01_全体像.html" >全体像</a></li>
+          <li><a href="02_バックエンド解説.html" >バックエンド解説</a></li>
+          <li><a href="03_フロントエンド解説.html" class="active">フロントエンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔄 フロー解説</div>
+        <ul class="sidebar-nav">
+          <li><a href="FLOW_01_チャット送信の流れ.html" >チャット送信の流れ</a></li>
+          <li><a href="FLOW_02_ログインの流れ.html" >ログインの流れ</a></li>
+          <li><a href="FLOW_03_セットアップの流れ.html" >セットアップの流れ</a></li>
+          <li><a href="FLOW_04_セッション管理の流れ.html" >セッション管理の流れ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔧 上級編</div>
+        <ul class="sidebar-nav">
+          <li><a href="05_顧客管理の仕組み.html" >顧客管理の仕組み</a></li>
+          <li><a href="08_AIカスタマイズ.html" >AIカスタマイズ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">📚 リファレンス</div>
+        <ul class="sidebar-nav">
+          <li><a href="06_コマンド解説.html" >コマンド解説</a></li>
+          <li><a href="07_ファイル形式と設定ファイル.html" >ファイル形式と設定</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <article class="content">
+        <h1 id="フロントエンド解説">フロントエンド解説<a class="header-link" href="#フロントエンド解説" title="Permanent link">&para;</a></h1>
+<p>フロントエンド（画面側）のコードを解説します。</p>
+<hr />
+<h2 id="使っている技術">使っている技術<a class="header-link" href="#使っている技術" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>技術</th>
+<th>役割</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>React</td>
+<td>UIを作るライブラリ</td>
+</tr>
+<tr>
+<td>TypeScript</td>
+<td>型のあるJavaScript</td>
+</tr>
+<tr>
+<td>Vite</td>
+<td>開発サーバー・ビルドツール</td>
+</tr>
+<tr>
+<td>Firebase SDK</td>
+<td>Firebase連携</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="ファイル構成">ファイル構成<a class="header-link" href="#ファイル構成" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><code><span class="nx">frontend</span><span class="o">/</span><span class="nx">src</span><span class="o">/</span>
+<span class="err">├──</span><span class="w"> </span><span class="nx">App</span><span class="p">.</span><span class="nx">tsx</span><span class="w">           </span><span class="err">←</span><span class="w"> </span><span class="nx">メインのコンポーネント</span>
+<span class="err">├──</span><span class="w"> </span><span class="nx">main</span><span class="p">.</span><span class="nx">tsx</span><span class="w">          </span><span class="err">←</span><span class="w"> </span><span class="nx">エントリーポイント</span>
+<span class="err">├──</span><span class="w"> </span><span class="nx">hooks</span><span class="o">/</span><span class="w">            </span><span class="err">←</span><span class="w"> </span><span class="nx">カスタムフック</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="nx">useAuth</span><span class="p">.</span><span class="nx">ts</span><span class="w">    </span><span class="err">←</span><span class="w"> </span><span class="nx">ログイン処理</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="nx">useChat</span><span class="p">.</span><span class="nx">ts</span><span class="w">    </span><span class="err">←</span><span class="w"> </span><span class="nx">チャット処理</span>
+<span class="err">│</span><span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="nx">useRenderer</span><span class="p">.</span><span class="nx">ts</span><span class="w"> </span><span class="err">←</span><span class="w"> </span><span class="nx">レンダラー設定読み込み</span>
+<span class="err">├──</span><span class="w"> </span><span class="nx">services</span><span class="o">/</span><span class="w">         </span><span class="err">←</span><span class="w"> </span><span class="nx">外部サービス連携</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="nx">firebase</span><span class="p">.</span><span class="nx">ts</span><span class="w">   </span><span class="err">←</span><span class="w"> </span><span class="nx">Firebase初期化</span>
+<span class="err">│</span><span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="kn">api</span><span class="p">.</span><span class="nx">ts</span><span class="w">        </span><span class="err">←</span><span class="w"> </span><span class="nx">APIクライアント</span>
+<span class="err">├──</span><span class="w"> </span><span class="nx">components</span><span class="o">/</span><span class="w">       </span><span class="err">←</span><span class="w"> </span><span class="nx">UIパーツ</span>
+<span class="err">└──</span><span class="w"> </span><span class="nx">renderers</span><span class="o">/</span><span class="w">        </span><span class="err">←</span><span class="w"> </span><span class="err">【</span><span class="nx">上級者向け</span><span class="err">】</span><span class="nx">チャット表示カスタマイズ</span>
+<span class="w">    </span><span class="err">├──</span><span class="w"> </span><span class="nx">types</span><span class="p">.</span><span class="nx">ts</span><span class="w">      </span><span class="err">←</span><span class="w"> </span><span class="nx">型定義</span>
+<span class="w">    </span><span class="err">├──</span><span class="w"> </span><span class="nx">index</span><span class="p">.</span><span class="nx">ts</span><span class="w">      </span><span class="err">←</span><span class="w"> </span><span class="nx">レンダラー選択</span>
+<span class="w">    </span><span class="err">├──</span><span class="w"> </span><span class="k">default</span><span class="o">/</span><span class="w">      </span><span class="err">←</span><span class="w"> </span><span class="nx">デフォルトのレンダラー</span>
+<span class="w">    </span><span class="err">└──</span><span class="w"> </span><span class="nx">_examples</span><span class="o">/</span><span class="w">    </span><span class="err">←</span><span class="w"> </span><span class="nx">サンプル実装</span>
+</code></pre></div>
+
+<blockquote>
+<p><strong>💡 初学者へ</strong>: <code>renderers/</code> フォルダは上級者向けです。<br />
+最初の学習では<strong>スキップしてOK</strong>です。<br />
+まずは <code>App.tsx</code> と <code>hooks/</code> を理解しましょう。</p>
+</blockquote>
+<hr />
+<h2 id="重要な概念">重要な概念<a class="header-link" href="#重要な概念" title="Permanent link">&para;</a></h2>
+<h3 id="1-コンポーネントとは">1. コンポーネントとは？<a class="header-link" href="#1-コンポーネントとは" title="Permanent link">&para;</a></h3>
+<p>画面のパーツ。レゴブロックのようなもの。</p>
+<div class="codehilite"><pre><span></span><code><span class="c1">// ボタンコンポーネント</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">MyButton</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">&lt;</span><span class="nt">button</span><span class="p">&gt;</span><span class="nx">クリック</span><span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;;</span>
+<span class="p">}</span>
+
+<span class="c1">// 使う側</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">App</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="w">      </span><span class="p">&lt;</span><span class="nt">MyButton</span><span class="w"> </span><span class="p">/&gt;</span><span class="w">  </span><span class="p">{</span><span class="cm">/* ← ここで使う */</span><span class="p">}</span>
+<span class="w">    </span><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="w">  </span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="2-usestate-とは">2. useState とは？<a class="header-link" href="#2-usestate-とは" title="Permanent link">&para;</a></h3>
+<p>コンポーネント内で「状態」を持つための仕組み。</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">function</span><span class="w"> </span><span class="nx">Counter</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// count という状態を作る（初期値 0）</span>
+<span class="w">  </span><span class="c1">// setCount で値を変更できる</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">count</span><span class="p">,</span><span class="w"> </span><span class="nx">setCount</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="mf">0</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="w">      </span><span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span><span class="nx">カウント</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="nx">count</span><span class="p">}&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+<span class="w">      </span><span class="p">&lt;</span><span class="nt">button</span><span class="w"> </span><span class="na">onClick</span><span class="o">=</span><span class="p">{()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setCount</span><span class="p">(</span><span class="nx">count</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1</span><span class="p">)}&gt;</span>
+<span class="w">        </span><span class="o">+</span><span class="mf">1</span>
+<span class="w">      </span><span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
+<span class="w">    </span><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="w">  </span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="3-useeffect-とは">3. useEffect とは？<a class="header-link" href="#3-useeffect-とは" title="Permanent link">&para;</a></h3>
+<p>「副作用」を実行するための仕組み。<br />
+コンポーネントが表示されたとき、更新されたときに処理を実行。</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">function</span><span class="w"> </span><span class="nx">UserProfile</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">setUser</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// コンポーネントが表示されたときにユーザー情報を取得</span>
+<span class="w">  </span><span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">fetchUser</span><span class="p">().</span><span class="nx">then</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setUser</span><span class="p">(</span><span class="nx">data</span><span class="p">));</span>
+<span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="p">[]);</span><span class="w">  </span><span class="c1">// [] は「最初の1回だけ実行」の意味</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;{</span><span class="nx">user</span><span class="o">?</span><span class="p">.</span><span class="nx">name</span><span class="p">}&lt;/</span><span class="nt">div</span><span class="p">&gt;;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="4-カスタムフックとは">4. カスタムフックとは？<a class="header-link" href="#4-カスタムフックとは" title="Permanent link">&para;</a></h3>
+<p><code>use</code> で始まる関数。ロジックを再利用するための仕組み。</p>
+<div class="codehilite"><pre><span></span><code><span class="c1">// useAuth.ts - ログイン処理をまとめたカスタムフック</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">useAuth</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">setUser</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">loading</span><span class="p">,</span><span class="w"> </span><span class="nx">setLoading</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
+
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">login</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// ログイン処理</span>
+<span class="w">  </span><span class="p">};</span>
+
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">logout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// ログアウト処理</span>
+<span class="w">  </span><span class="p">};</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">loading</span><span class="p">,</span><span class="w"> </span><span class="nx">login</span><span class="p">,</span><span class="w"> </span><span class="nx">logout</span><span class="w"> </span><span class="p">};</span>
+<span class="p">}</span>
+
+<span class="c1">// 使う側</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">App</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">login</span><span class="p">,</span><span class="w"> </span><span class="nx">logout</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useAuth</span><span class="p">();</span>
+<span class="w">  </span><span class="c1">// ...</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h2 id="ログイン処理の流れ">ログイン処理の流れ<a class="header-link" href="#ログイン処理の流れ" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><code><span class="c1">// useAuth.ts の概要</span>
+
+<span class="kd">function</span><span class="w"> </span><span class="nx">useAuth</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// 1. 状態を定義</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">setUser</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// 2. Firebase Authの状態変化を監視</span>
+<span class="w">  </span><span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// ログイン/ログアウトしたときに呼ばれる</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">unsubscribe</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">onAuthStateChanged</span><span class="p">(</span><span class="nx">auth</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">firebaseUser</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">setUser</span><span class="p">(</span><span class="nx">firebaseUser</span><span class="p">);</span>
+<span class="w">    </span><span class="p">});</span>
+
+<span class="w">    </span><span class="c1">// クリーンアップ</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">unsubscribe</span><span class="p">();</span>
+<span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="p">[]);</span>
+
+<span class="w">  </span><span class="c1">// 3. ログイン関数</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">login</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">provider</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">GoogleAuthProvider</span><span class="p">();</span>
+<span class="w">    </span><span class="k">await</span><span class="w"> </span><span class="nx">signInWithPopup</span><span class="p">(</span><span class="nx">auth</span><span class="p">,</span><span class="w"> </span><span class="nx">provider</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// → 成功すると onAuthStateChanged が呼ばれる</span>
+<span class="w">  </span><span class="p">};</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">login</span><span class="w"> </span><span class="p">};</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h2 id="チャット処理の流れ">チャット処理の流れ<a class="header-link" href="#チャット処理の流れ" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><code><span class="c1">// useChat.ts の概要</span>
+
+<span class="kd">function</span><span class="w"> </span><span class="nx">useChat</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">messages</span><span class="p">,</span><span class="w"> </span><span class="nx">setMessages</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">([]);</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">user</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useAuth</span><span class="p">();</span>
+
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">sendMessage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="p">(</span><span class="nx">text</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// 1. IDトークンを取得</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">user</span><span class="p">.</span><span class="nx">getIdToken</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// 2. APIを呼び出し（ストリーミング）</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;/chat&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">method</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;POST&#39;</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">headers</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="s1">&#39;Authorization&#39;</span><span class="o">:</span><span class="w"> </span><span class="sb">`Bearer </span><span class="si">${</span><span class="nx">token</span><span class="si">}</span><span class="sb">`</span><span class="p">,</span>
+<span class="w">        </span><span class="s1">&#39;Content-Type&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;application/json&#39;</span><span class="p">,</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nx">body</span><span class="o">:</span><span class="w"> </span><span class="kt">JSON.stringify</span><span class="p">({</span><span class="w"> </span><span class="nx">message</span><span class="o">:</span><span class="w"> </span><span class="kt">text</span><span class="w"> </span><span class="p">}),</span>
+<span class="w">    </span><span class="p">});</span>
+
+<span class="w">    </span><span class="c1">// 3. ストリーミングで受け取る</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">reader</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">getReader</span><span class="p">();</span>
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="kc">true</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">done</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">reader</span><span class="p">.</span><span class="nx">read</span><span class="p">();</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">done</span><span class="p">)</span><span class="w"> </span><span class="k">break</span><span class="p">;</span>
+
+<span class="w">      </span><span class="c1">// 受け取ったデータを表示</span>
+<span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">chunk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">TextDecoder</span><span class="p">().</span><span class="nx">decode</span><span class="p">(</span><span class="nx">value</span><span class="p">);</span>
+<span class="w">      </span><span class="c1">// ... 画面に表示</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">};</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">messages</span><span class="p">,</span><span class="w"> </span><span class="nx">sendMessage</span><span class="w"> </span><span class="p">};</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h2 id="server-sent-events-sse-とは">Server-Sent Events (SSE) とは？<a class="header-link" href="#server-sent-events-sse-とは" title="Permanent link">&para;</a></h2>
+<p>サーバーから「少しずつ」データを受け取る仕組み。</p>
+<div class="codehilite"><pre><span></span><code>【普通のAPI】
+リクエスト → サーバー処理（3秒）→ 全部まとめてレスポンス
+
+【SSE】
+リクエスト → 「こん」→「にち」→「は」→「！」→ 完了
+
+チャットの返答がリアルタイムで表示される！
+</code></pre></div>
+
+<hr />
+<h2 id="typescript-の型">TypeScript の型<a class="header-link" href="#typescript-の型" title="Permanent link">&para;</a></h2>
+<p>TypeScriptでは「型」を指定します。<br />
+間違いを事前に防げます。</p>
+<div class="codehilite"><pre><span></span><code><span class="c1">// 型を定義</span>
+<span class="kr">type</span><span class="w"> </span><span class="nx">Message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">text</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">sender</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;user&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;assistant&#39;</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">timestamp</span><span class="o">:</span><span class="w"> </span><span class="kt">Date</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="c1">// 使う</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">messages</span><span class="o">:</span><span class="w"> </span><span class="kt">Message</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[];</span>
+
+<span class="c1">// ↓ これはエラーになる（型が違う）</span>
+<span class="c1">// messages.push({ text: 123 });  // text は string のはず！</span>
+</code></pre></div>
+
+<hr />
+<h2 id="次に読むべき">次に読むべき<a class="header-link" href="#次に読むべき" title="Permanent link">&para;</a></h2>
+<ol>
+<li><code>frontend/src/App.tsx</code> - 実際のコード</li>
+<li><code>frontend/src/hooks/useAuth.ts</code> - ログイン処理</li>
+<li><code>learning/04_動かしてみよう.md</code> - 実際に動かす</li>
+</ol>
+      </article>
+      <footer class="footer">
+        GCP AI Agent Platform 学習ガイド | Built with Python & Markdown
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.querySelector('.menu-toggle');
+      if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

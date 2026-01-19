@@ -12,16 +12,16 @@
 
 ```bash
 # テンプレートをコピー
-cp backend/customer-configs/template.env backend/customer-configs/<顧客ID>.env
+cp src/backend/customer-configs/template.env src/backend/customer-configs/<顧客ID>.env
 
 # 例
-cp backend/customer-configs/template.env backend/customer-configs/acme-corp.env
+cp src/backend/customer-configs/template.env src/backend/customer-configs/acme-corp.env
 ```
 
 設定ファイルを編集して、使用するエージェントを指定します：
 
 ```env
-# backend/customer-configs/acme-corp.env
+# src/backend/customer-configs/acme-corp.env
 CUSTOMER_ID=acme-corp
 DEFAULT_AGENT=acme-corp       # この顧客専用エージェントを指定
 ```
@@ -32,7 +32,7 @@ AIの応答をカスタマイズする場合は、顧客専用エージェント
 
 ```bash
 # テンプレートをコピー
-cd backend/src/agents
+cd src/backend/src/agents
 cp -r _template acme-corp
 
 # agent.py の SYSTEM_PROMPT を編集
@@ -40,7 +40,7 @@ vim acme-corp/agent.py
 ```
 
 ```python
-# backend/src/agents/acme-corp/agent.py
+# src/backend/src/agents/acme-corp/agent.py
 class AcmeCorpAgent(BaseAgent):
     SYSTEM_PROMPT = """あなたはACME社の専門AIアシスタントです。
 ACME社の製品・サービスに関する質問に答えてください。"""
@@ -58,12 +58,12 @@ AGENTS = {
 
 **重要:**
 - カスタマイズしない場合は `DEFAULT_AGENT=template` のままでOK
-- 詳細は `learning/md/08_AIカスタマイズ.md` を参照
+- 詳細は `learning/md/08_AIカスタマイズ.md` を参照（docs/learning/md/）
 
 ### 2. 顧客をFirestoreに登録
 
 ```bash
-cd backend
+cd src/backend
 python scripts/manage_customer.py add <顧客ID> "<顧客名>"
 
 # 例
@@ -196,7 +196,7 @@ gs://{project}-frontend/
 
 ### 設定ファイルでのカスタマイズ
 
-`frontend/customer-configs/{customer_id}.json` の `chatRenderer` セクションを編集：
+`src/frontend/customer-configs/{customer_id}.json` の `chatRenderer` セクションを編集：
 
 ```json
 {
@@ -224,12 +224,12 @@ gs://{project}-frontend/
 **手順1.** サンプルをコピーして顧客フォルダを作成
 
 ```bash
-mkdir frontend/src/renderers/acme-corp
-cp frontend/src/renderers/_examples/TableRenderer.tsx \
-   frontend/src/renderers/acme-corp/MessageRenderer.tsx
+mkdir src/frontend/src/renderers/acme-corp
+cp src/frontend/src/renderers/_examples/TableRenderer.tsx \
+   src/frontend/src/renderers/acme-corp/MessageRenderer.tsx
 ```
 
-**手順2.** `frontend/src/renderers/index.ts` に登録
+**手順2.** `src/frontend/src/renderers/index.ts` に登録
 
 ```typescript
 // ファイル冒頭のインポートに追加
@@ -247,7 +247,7 @@ const customerRenderers: Record<string, typeof DefaultMessageRenderer> = {
 ./infrastructure/deploy-customer.sh acme-corp --frontend-only
 ```
 
-サンプルは `frontend/src/renderers/_examples/` を参照してください：
+サンプルは `src/frontend/src/renderers/_examples/` を参照してください：
 - `MarkdownRenderer.tsx` - Markdown対応（セキュリティ上の注意あり）
 - `TableRenderer.tsx` - テーブル形式データ対応
 
@@ -257,10 +257,10 @@ const customerRenderers: Record<string, typeof DefaultMessageRenderer> = {
 
 | カスタマイズ内容 | 言語 | ファイル |
 |-----------------|------|----------|
-| AIの応答内容・性格 | **Python** | `backend/src/agents/{customer_id}/agent.py` |
-| 使用エージェントの指定 | 設定ファイル | `backend/customer-configs/*.env` |
-| チャットの色・フォント | **JSON** | `frontend/customer-configs/*.json` |
-| チャット表示の高度なカスタマイズ | TypeScript | `frontend/src/renderers/{customer_id}/` |
+| AIの応答内容・性格 | **Python** | `src/backend/src/agents/{customer_id}/agent.py` |
+| 使用エージェントの指定 | 設定ファイル | `src/backend/customer-configs/*.env` |
+| チャットの色・フォント | **JSON** | `src/frontend/customer-configs/*.json` |
+| チャット表示の高度なカスタマイズ | TypeScript | `src/frontend/src/renderers/{customer_id}/` |
 
 **推奨**: Python開発者の方は、まずバックエンド（Python）のカスタマイズから始めてください。
 フロントエンドの高度なカスタマイズ（TypeScript）は必要に応じて後から対応できます。

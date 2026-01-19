@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>07 ファイル形式と設定ファイル - GCP AI Agent Platform 学習ガイド</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="header-logo">
+      <span>📚</span>
+      <span>GCP AI Agent 学習ガイド</span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">ホーム</a>
+      <a href="FLOW_03_セットアップの流れ.html">セットアップ</a>
+      <a href="https://github.com" target="_blank">GitHub</a>
+    </nav>
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">🚀 はじめに</div>
+        <ul class="sidebar-nav">
+          <li><a href="00_はじめに読んでください.html" >はじめに読んでください</a></li>
+          <li><a href="04_動かしてみよう.html" >動かしてみよう</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">📖 基礎知識</div>
+        <ul class="sidebar-nav">
+          <li><a href="01_全体像.html" >全体像</a></li>
+          <li><a href="02_バックエンド解説.html" >バックエンド解説</a></li>
+          <li><a href="03_フロントエンド解説.html" >フロントエンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔄 フロー解説</div>
+        <ul class="sidebar-nav">
+          <li><a href="FLOW_01_チャット送信の流れ.html" >チャット送信の流れ</a></li>
+          <li><a href="FLOW_02_ログインの流れ.html" >ログインの流れ</a></li>
+          <li><a href="FLOW_03_セットアップの流れ.html" >セットアップの流れ</a></li>
+          <li><a href="FLOW_04_セッション管理の流れ.html" >セッション管理の流れ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔧 上級編</div>
+        <ul class="sidebar-nav">
+          <li><a href="05_顧客管理の仕組み.html" >顧客管理の仕組み</a></li>
+          <li><a href="08_AIカスタマイズ.html" >AIカスタマイズ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">📚 リファレンス</div>
+        <ul class="sidebar-nav">
+          <li><a href="06_コマンド解説.html" >コマンド解説</a></li>
+          <li><a href="07_ファイル形式と設定ファイル.html" class="active">ファイル形式と設定</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <article class="content">
+        <h1 id="ファイル形式と設定ファイル解説">ファイル形式と設定ファイル解説<a class="header-link" href="#ファイル形式と設定ファイル解説" title="Permanent link">&para;</a></h1>
+<p>プロジェクト内には様々なファイル形式があります。<br />
+「これは何？」と思ったらこのページを見てください。</p>
+<hr />
+<h2 id="ファイル拡張子一覧">ファイル拡張子一覧<a class="header-link" href="#ファイル拡張子一覧" title="Permanent link">&para;</a></h2>
+<h3 id="プログラムファイル">プログラムファイル<a class="header-link" href="#プログラムファイル" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>拡張子</th>
+<th>言語/用途</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.py</code></td>
+<td>Python</td>
+<td>バックエンドのプログラム</td>
+</tr>
+<tr>
+<td><code>.ts</code></td>
+<td>TypeScript</td>
+<td>型付きJavaScript（ロジック部分）</td>
+</tr>
+<tr>
+<td><code>.tsx</code></td>
+<td>TypeScript + React</td>
+<td>画面のコンポーネント（UIを含む）</td>
+</tr>
+<tr>
+<td><code>.js</code></td>
+<td>JavaScript</td>
+<td>普通のJavaScript</td>
+</tr>
+<tr>
+<td><code>.jsx</code></td>
+<td>JavaScript + React</td>
+<td>Reactコンポーネント</td>
+</tr>
+</tbody>
+</table>
+<h3 id="設定ファイル">設定ファイル<a class="header-link" href="#設定ファイル" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>拡張子</th>
+<th>用途</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.json</code></td>
+<td>設定ファイル</td>
+<td>package.json, tsconfig.json など</td>
+</tr>
+<tr>
+<td><code>.yaml</code> / <code>.yml</code></td>
+<td>設定ファイル</td>
+<td>GitHub Actions など</td>
+</tr>
+<tr>
+<td><code>.env</code></td>
+<td>環境変数</td>
+<td>APIキーなど秘密の情報</td>
+</tr>
+<tr>
+<td><code>.md</code></td>
+<td>ドキュメント</td>
+<td>Markdown形式の説明文書</td>
+</tr>
+</tbody>
+</table>
+<h3 id="その他">その他<a class="header-link" href="#その他" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>拡張子</th>
+<th>用途</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.d.ts</code></td>
+<td>型定義</td>
+<td>TypeScriptの型情報のみ</td>
+</tr>
+<tr>
+<td><code>.gitignore</code></td>
+<td>Git設定</td>
+<td>Gitで無視するファイル一覧</td>
+</tr>
+<tr>
+<td><code>.ipynb</code></td>
+<td>Jupyter Notebook</td>
+<td>Google Colabで開けるノートブック</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="ts-と-tsx-の違い">.ts と .tsx の違い<a class="header-link" href="#ts-と-tsx-の違い" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><code>.<span class="k">ts</span>  <span class="s">=</span> <span class="s">TypeScriptのコード（ロジック）</span>
+.<span class="k">tsx</span> <span class="s">=</span> <span class="s">TypeScript</span> <span class="s">+</span> <span class="s">JSX（UIを含む）</span>
+</code></pre></div>
+
+<h3 id="ts-の例useauthts">.ts の例（useAuth.ts）<a class="header-link" href="#ts-の例useauthts" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// UIを含まない、ロジックだけのファイル</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">useAuth</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">setUser</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+<span class="w">  </span><span class="c1">// ...</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">login</span><span class="p">,</span><span class="w"> </span><span class="nx">logout</span><span class="w"> </span><span class="p">};</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="tsx-の例apptsx">.tsx の例（App.tsx）<a class="header-link" href="#tsx-の例apptsx" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// UIを含むファイル（HTMLっぽい部分がある）</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">App</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span><span class="w">                          </span><span class="p">{</span><span class="cm">/* ← これがJSX（HTMLっぽい構文） */</span><span class="p">}</span>
+<span class="w">      </span><span class="p">&lt;</span><span class="nt">h1</span><span class="p">&gt;</span><span class="nx">こんにちは</span><span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+<span class="w">      </span><span class="p">&lt;</span><span class="nt">button</span><span class="w"> </span><span class="na">onClick</span><span class="o">=</span><span class="p">{</span><span class="nx">handleClick</span><span class="p">}&gt;</span><span class="nx">クリック</span><span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
+<span class="w">    </span><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="w">  </span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p><strong>見分け方</strong>: ファイルの中に <code>&lt;div&gt;</code> や <code>&lt;button&gt;</code> のようなHTMLっぽいものがあれば <code>.tsx</code></p>
+<hr />
+<h2 id="主要な設定ファイル解説">主要な設定ファイル解説<a class="header-link" href="#主要な設定ファイル解説" title="Permanent link">&para;</a></h2>
+<h3 id="packagejsonフロントエンド">package.json（フロントエンド）<a class="header-link" href="#packagejsonフロントエンド" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;frontend&quot;</span><span class="p">,</span><span class="w">           </span><span class="c1">// プロジェクト名</span>
+<span class="w">  </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span><span class="p">,</span><span class="w">           </span><span class="c1">// バージョン</span>
+<span class="w">  </span><span class="nt">&quot;scripts&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">                  </span><span class="c1">// 実行できるコマンド</span>
+<span class="w">    </span><span class="nt">&quot;dev&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;vite&quot;</span><span class="p">,</span><span class="w">              </span><span class="c1">// npm run dev で実行される</span>
+<span class="w">    </span><span class="nt">&quot;build&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;vite build&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// npm run build で実行される</span>
+<span class="w">    </span><span class="nt">&quot;preview&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;vite preview&quot;</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;dependencies&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">             </span><span class="c1">// 本番で必要なパッケージ</span>
+<span class="w">    </span><span class="nt">&quot;react&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;^18.2.0&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;firebase&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;^10.7.0&quot;</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;devDependencies&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">          </span><span class="c1">// 開発時のみ必要なパッケージ</span>
+<span class="w">    </span><span class="nt">&quot;typescript&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;^5.0.0&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;vite&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;^5.0.0&quot;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p><strong>よく使う場面</strong>:<br />
+- <code>npm install</code> → dependencies と devDependencies をインストール<br />
+- <code>npm run dev</code> → scripts.dev を実行</p>
+<hr />
+<h3 id="tsconfigjsontypescript設定">tsconfig.json（TypeScript設定）<a class="header-link" href="#tsconfigjsontypescript設定" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;compilerOptions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;target&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ES2020&quot;</span><span class="p">,</span><span class="w">         </span><span class="c1">// 出力するJavaScriptのバージョン</span>
+<span class="w">    </span><span class="nt">&quot;module&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ESNext&quot;</span><span class="p">,</span><span class="w">         </span><span class="c1">// モジュール形式</span>
+<span class="w">    </span><span class="nt">&quot;strict&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">             </span><span class="c1">// 厳格な型チェック</span>
+<span class="w">    </span><span class="nt">&quot;jsx&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;react-jsx&quot;</span><span class="w">          </span><span class="c1">// JSXの変換方法</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;include&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;src&quot;</span><span class="p">]</span><span class="w">            </span><span class="c1">// コンパイル対象のフォルダ</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p><strong>初心者向け</strong>: 基本的に触る必要なし。エラーが出たら確認。</p>
+<hr />
+<h3 id="viteconfigtsvite設定">vite.config.ts（Vite設定）<a class="header-link" href="#viteconfigtsvite設定" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">defineConfig</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;vite&#39;</span>
+<span class="k">import</span><span class="w"> </span><span class="nx">react</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;@vitejs/plugin-react&#39;</span>
+
+<span class="k">export</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="nx">defineConfig</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">plugins</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="nx">react</span><span class="p">()],</span><span class="w">           </span><span class="c1">// Reactプラグインを使用</span>
+<span class="w">  </span><span class="nx">server</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">port</span><span class="o">:</span><span class="w"> </span><span class="kt">5173</span><span class="w">                  </span><span class="c1">// 開発サーバーのポート番号</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">})</span>
+</code></pre></div>
+
+<p><strong>初心者向け</strong>: 基本的に触る必要なし。</p>
+<hr />
+<h3 id="firebasejsonfirebase設定">firebase.json（Firebase設定）<a class="header-link" href="#firebasejsonfirebase設定" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;hosting&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;public&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;dist&quot;</span><span class="p">,</span><span class="w">           </span><span class="c1">// デプロイするフォルダ</span>
+<span class="w">    </span><span class="nt">&quot;ignore&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;firebase.json&quot;</span><span class="p">],</span>
+<span class="w">    </span><span class="nt">&quot;rewrites&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;**&quot;</span><span class="p">,</span><span class="w">         </span><span class="c1">// すべてのURLを</span>
+<span class="w">        </span><span class="nt">&quot;destination&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/index.html&quot;</span><span class="w">  </span><span class="c1">// index.htmlに転送（SPA用）</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p><strong>役割</strong>: Firebase Hostingにデプロイするときの設定</p>
+<hr />
+<h3 id="requirementstxtpython依存関係">requirements.txt（Python依存関係）<a class="header-link" href="#requirementstxtpython依存関係" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code>flask==3.0.0
+firebase-admin==6.2.0
+langchain==0.1.0
+langchain-google-vertexai==0.0.6
+langgraph==0.0.20
+functions-framework==3.5.0
+python-dotenv==1.0.0
+flask-cors==4.0.0
+</code></pre></div>
+
+<p><strong>見方</strong>: <code>パッケージ名==バージョン</code></p>
+<p><strong>使い方</strong>: <code>pip install -r requirements.txt</code> で全部インストール</p>
+<hr />
+<h3 id="env環境変数">.env（環境変数）<a class="header-link" href="#env環境変数" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># バックエンド用</span>
+<span class="nv">GOOGLE_CLOUD_PROJECT</span><span class="o">=</span>your-project-id
+<span class="nv">GOOGLE_APPLICATION_CREDENTIALS</span><span class="o">=</span>./service-account.json
+<span class="nv">ALLOWED_ORIGINS</span><span class="o">=</span>http://localhost:5173
+
+<span class="c1"># フロントエンド用</span>
+<span class="nv">VITE_FIREBASE_API_KEY</span><span class="o">=</span>AIzaSy...
+<span class="nv">VITE_FIREBASE_AUTH_DOMAIN</span><span class="o">=</span>xxx.firebaseapp.com
+<span class="nv">VITE_API_BASE_URL</span><span class="o">=</span>http://localhost:8080
+</code></pre></div>
+
+<p><strong>重要</strong>:<br />
+- <code>.env</code> は <code>.gitignore</code> に入れる（Gitにアップしない）<br />
+- APIキーなどの秘密情報を書く場所</p>
+<hr />
+<h3 id="gitignoregit無視設定">.gitignore（Git無視設定）<a class="header-link" href="#gitignoregit無視設定" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code># Node.js
+node_modules/
+dist/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+
+# 環境変数（秘密情報）
+.env
+*.env.local
+
+# 認証情報
+service-account.json
+</code></pre></div>
+
+<p><strong>役割</strong>: ここに書いたファイルはGitで管理されない</p>
+<hr />
+<h2 id="プロジェクト内の重要ファイル一覧">プロジェクト内の重要ファイル一覧<a class="header-link" href="#プロジェクト内の重要ファイル一覧" title="Permanent link">&para;</a></h2>
+<h3 id="フロントエンド">フロントエンド<a class="header-link" href="#フロントエンド" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="nx">frontend</span><span class="o">/</span>
+<span class="err">├──</span><span class="w"> </span><span class="kn">package</span><span class="p">.</span><span class="nx">json</span><span class="w">          </span><span class="err">←</span><span class="w"> </span><span class="nx">依存関係とスクリプト</span>
+<span class="err">├──</span><span class="w"> </span><span class="nx">tsconfig</span><span class="p">.</span><span class="nx">json</span><span class="w">         </span><span class="err">←</span><span class="w"> </span><span class="nx">TypeScript設定</span>
+<span class="err">├──</span><span class="w"> </span><span class="nx">vite</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">ts</span><span class="w">        </span><span class="err">←</span><span class="w"> </span><span class="nx">Vite設定</span>
+<span class="err">├──</span><span class="w"> </span><span class="nx">firebase</span><span class="p">.</span><span class="nx">json</span><span class="w">         </span><span class="err">←</span><span class="w"> </span><span class="nx">Firebase</span><span class="w"> </span><span class="nx">Hosting設定</span>
+<span class="err">├──</span><span class="w"> </span><span class="p">.</span><span class="nx">env</span><span class="w">                  </span><span class="err">←</span><span class="w"> </span><span class="nx">環境変数</span><span class="err">（</span><span class="nx">秘密</span><span class="err">）</span>
+<span class="err">└──</span><span class="w"> </span><span class="nx">src</span><span class="o">/</span>
+<span class="w">    </span><span class="err">├──</span><span class="w"> </span><span class="nx">main</span><span class="p">.</span><span class="nx">tsx</span><span class="w">          </span><span class="err">←</span><span class="w"> </span><span class="nx">エントリーポイント</span>
+<span class="w">    </span><span class="err">├──</span><span class="w"> </span><span class="nx">App</span><span class="p">.</span><span class="nx">tsx</span><span class="w">           </span><span class="err">←</span><span class="w"> </span><span class="nx">メインコンポーネント</span>
+<span class="w">    </span><span class="err">├──</span><span class="w"> </span><span class="nx">vite</span><span class="o">-</span><span class="nx">env</span><span class="p">.</span><span class="nx">d</span><span class="p">.</span><span class="nx">ts</span><span class="w">     </span><span class="err">←</span><span class="w"> </span><span class="nx">Viteの型定義</span>
+<span class="w">    </span><span class="err">├──</span><span class="w"> </span><span class="nx">components</span><span class="o">/</span><span class="w">       </span><span class="err">←</span><span class="w"> </span><span class="nx">UIコンポーネント</span>
+<span class="w">    </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="nx">ChatScreen</span><span class="p">.</span><span class="nx">tsx</span>
+<span class="w">    </span><span class="err">│</span><span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="nx">LoginScreen</span><span class="p">.</span><span class="nx">tsx</span>
+<span class="w">    </span><span class="err">├──</span><span class="w"> </span><span class="nx">hooks</span><span class="o">/</span><span class="w">            </span><span class="err">←</span><span class="w"> </span><span class="nx">カスタムフック</span>
+<span class="w">    </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="nx">useAuth</span><span class="p">.</span><span class="nx">ts</span>
+<span class="w">    </span><span class="err">│</span><span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="nx">useChat</span><span class="p">.</span><span class="nx">ts</span>
+<span class="w">    </span><span class="err">└──</span><span class="w"> </span><span class="nx">services</span><span class="o">/</span><span class="w">         </span><span class="err">←</span><span class="w"> </span><span class="nx">外部サービス連携</span>
+<span class="w">        </span><span class="err">├──</span><span class="w"> </span><span class="nx">firebase</span><span class="p">.</span><span class="nx">ts</span>
+<span class="w">        </span><span class="err">└──</span><span class="w"> </span><span class="kn">api</span><span class="p">.</span><span class="nx">ts</span>
+</code></pre></div>
+
+<h3 id="バックエンド">バックエンド<a class="header-link" href="#バックエンド" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code>backend/
+├── requirements.txt      ← Python依存関係
+├── .env                  ← 環境変数（秘密）
+├── service-account.json  ← GCP認証情報（秘密）
+├── scripts/
+│   └── manage_customer.py ← 顧客管理スクリプト
+└── src/
+    ├── main.py           ← エントリーポイント
+    ├── common/           ← 共通モジュール
+    │   ├── __init__.py   ← パッケージ化
+    │   ├── auth.py
+    │   ├── config.py
+    │   └── ...
+    └── agents/           ← AIエージェント
+        ├── __init__.py
+        ├── base_agent.py
+        └── sample_agent/
+            ├── __init__.py
+            ├── agent.py
+            └── state.py
+</code></pre></div>
+
+<hr />
+<h2 id="initpy-とは"><strong>init</strong>.py とは？<a class="header-link" href="#initpy-とは" title="Permanent link">&para;</a></h2>
+<p>Pythonのフォルダを「パッケージ」として認識させるためのファイル。</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># agents/__init__.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.sample_agent</span><span class="w"> </span><span class="kn">import</span> <span class="n">SampleAgent</span>
+</code></pre></div>
+
+<p>これがあると:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">SampleAgent</span>  <span class="c1"># このように書ける</span>
+</code></pre></div>
+
+<p><strong>初心者向け</strong>: 空の <code>__init__.py</code> でもOK。フォルダに置くだけで意味がある。</p>
+<hr />
+<h2 id="vite-envdts-とは">vite-env.d.ts とは？<a class="header-link" href="#vite-envdts-とは" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><code><span class="c1">/// &lt;reference types=&quot;vite/client&quot; /&gt;</span>
+</code></pre></div>
+
+<p><strong>役割</strong>: Viteが提供する機能の型定義を読み込む</p>
+<p>例えば <code>import.meta.env.VITE_API_URL</code> のような環境変数アクセスの型を認識させる。</p>
+<p><strong>初心者向け</strong>: 触る必要なし。Viteが自動生成。</p>
+<hr />
+<h2 id="まとめ">まとめ<a class="header-link" href="#まとめ" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>見かけたら</th>
+<th>何をする</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.py</code></td>
+<td>Pythonコードを読む</td>
+</tr>
+<tr>
+<td><code>.ts</code></td>
+<td>TypeScriptのロジックを読む</td>
+</tr>
+<tr>
+<td><code>.tsx</code></td>
+<td>ReactのUIコンポーネントを読む</td>
+</tr>
+<tr>
+<td><code>package.json</code></td>
+<td>依存関係を確認、<code>npm run xxx</code> の定義を確認</td>
+</tr>
+<tr>
+<td><code>requirements.txt</code></td>
+<td>Python依存関係を確認</td>
+</tr>
+<tr>
+<td><code>.env</code></td>
+<td>環境変数を設定（秘密情報）</td>
+</tr>
+<tr>
+<td><code>__init__.py</code></td>
+<td>「このフォルダはパッケージ」という印</td>
+</tr>
+<tr>
+<td><code>tsconfig.json</code></td>
+<td>TypeScript設定（基本触らない）</td>
+</tr>
+</tbody>
+</table>
+      </article>
+      <footer class="footer">
+        GCP AI Agent Platform 学習ガイド | Built with Python & Markdown
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.querySelector('.menu-toggle');
+      if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>
