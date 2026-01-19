@@ -120,19 +120,11 @@ export function useChat(options?: UseChatOptions) {
     }
   }, [threadId, isLoading, messages, activeSession, onMessagesUpdate])
 
-  // 会話をリセット
-  const resetChat = useCallback(() => {
-    setMessages([])
-    setThreadId(null)
-    setError(null)
-  }, [])
-
   return {
     messages,
     isLoading,
     error,
     sendMessage,
-    resetChat,
     threadId,
   }
 }

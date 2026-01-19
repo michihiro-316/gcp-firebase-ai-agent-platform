@@ -238,21 +238,6 @@ export function useSessions() {
     }))
   }, [])
 
-  /**
-   * セッションのタイトルを手動更新
-   * ※ 現在UIからは使用していないが、将来の拡張用に用意
-   */
-  const updateSessionTitle = useCallback((sessionId: string, title: string) => {
-    setSessions(prev => prev.map(session => {
-      if (session.id !== sessionId) return session
-      return {
-        ...session,
-        title,
-        updatedAt: Date.now(),
-      }
-    }))
-  }, [])
-
   return {
     /** セッション一覧（新しい順） */
     sessions,
@@ -268,7 +253,5 @@ export function useSessions() {
     closeSession,
     /** メッセージを更新（useChat連携用） */
     updateSessionMessages,
-    /** タイトルを更新 */
-    updateSessionTitle,
   }
 }

@@ -48,6 +48,5 @@ export function useAuth() {
     error,
     loginWithGoogle,
     logout,
-    isLoggedIn: !!user,
   }
 }

@@ -164,7 +164,12 @@ def verify_request():
 
 # ===== 転送先 URL の取得 =====
 
-# TTL付きキャッシュ: {customer_id: (url, timestamp)}
+# TTL付きキャッシュ
+# 形式: {customer_id: (url, cached_at)}
+# - customer_id: 顧客ID（文字列）
+# - url: Cloud Functions の URL（文字列）
+# - cached_at: キャッシュした時刻（UNIX時間、float）
+# 例: {"acme-corp": ("https://xxx.cloudfunctions.net/api", 1705600000.0)}
 _url_cache: dict[str, tuple[str, float]] = {}
 
 

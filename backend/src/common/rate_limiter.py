@@ -89,31 +89,3 @@ def check_rate_limit(user_id: str) -> bool:
             exc_info=True  # スタックトレースも記録
         )
         return True
-
-
-def get_remaining_requests(user_id: str) -> int:
-    """
-    残りリクエスト可能回数を取得
-
-    Args:
-        user_id: ユーザーのUID
-
-    Returns:
-        残りリクエスト可能回数
-    """
-    settings = get_access_control_settings()
-    limit = settings.get("rate_limit_per_minute", config.DEFAULT_RATE_LIMIT)
-
-    one_minute_ago = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(minutes=1)
-
-    doc = db.collection("rate_limits").document(user_id).get()
-
-    if not doc.exists:
-        return limit
-
-    data = doc.to_dict()
-    timestamps = data.get("timestamps", [])
-
-    recent_count = len(_filter_recent_timestamps(timestamps, one_minute_ago))
-
-    return max(0, limit - recent_count)

@@ -112,8 +112,8 @@ def get_agent(agent_name: str, customer_id: str):
     cache_key = (agent_name, customer_id)
     if cache_key not in _agent_cache:
         checkpointer = FirestoreCheckpointer(db, customer_id)
-        AgentClass = AGENTS[agent_name]
-        _agent_cache[cache_key] = AgentClass(
+        agent_class = AGENTS[agent_name]
+        _agent_cache[cache_key] = agent_class(
             checkpointer=checkpointer,
             project_id=config.PROJECT_ID,
             location=config.VERTEX_AI_LOCATION
@@ -295,8 +295,13 @@ def chat():
         return error_response(e.message, e.status_code)
 
     # ストリーミングレスポンス
+    # 【なぜこの構造が必要か】
+    # Flask は同期フレームワークだが、AI エージェントは非同期（async）で動作する。
+    # そのため、同期の generate() の中で非同期の async_generate() を呼び出す
+    # 「ブリッジ」パターンを使用している。
     def generate():
         async def async_generate():
+            """非同期ジェネレータ：AI からの応答を少しずつ yield"""
             try:
                 async for chunk in agent.run(message, thread_id):
                     yield f"data: {chunk}\n\n"
@@ -306,10 +311,16 @@ def chat():
                 logger.exception(f"ストリーミング中にエラーが発生: user_id={user_id}, thread_id={thread_id}")
                 yield "data: [ERROR] エラーが発生しました。しばらく待ってから再度お試しください。\n\n"
 
+        # 【asyncio イベントループの仕組み】
+        # Cloud Functions は各リクエストで独立したスレッドで実行されるため、
+        # リクエストごとに新しいイベントループを作成する必要がある。
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
             async_gen = async_generate()
+            # 【__anext__() について】
+            # async for を使えないため（同期ジェネレータ内のため）、
+            # 手動で次の値を取得。StopAsyncIteration で終了を検知。
             while True:
                 try:
                     chunk = loop.run_until_complete(async_gen.__anext__())
