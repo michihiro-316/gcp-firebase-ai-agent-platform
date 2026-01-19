@@ -45,10 +45,22 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # ===== 設定 =====
-# Gateway-Backend 間の認証用シークレット（必須）
+# 環境（development / production）
+ENV = os.environ.get("ENV", "development")
+
+# Gateway-Backend 間の認証用シークレット（本番環境では必須）
 GATEWAY_SECRET = os.environ.get("GATEWAY_SECRET", "")
 if not GATEWAY_SECRET:
-    logger.warning("GATEWAY_SECRET が未設定です。本番環境では必ず設定してください。")
+    if ENV == "production":
+        logger.error("GATEWAY_SECRET が本番環境で未設定です。セキュリティリスクがあります。")
+    else:
+        logger.warning("GATEWAY_SECRET が未設定です。開発環境のみ許可されます。")
+
+# 許可するオリジン（CORS）
+ALLOWED_ORIGINS = os.environ.get(
+    "ALLOWED_ORIGINS",
+    "http://localhost:5173,http://localhost:3000"
+).split(",")
 
 # キャッシュ TTL（秒）: 顧客設定の変更を反映するまでの時間
 CACHE_TTL_SECONDS = int(os.environ.get("CACHE_TTL_SECONDS", "300"))  # デフォルト5分
@@ -62,6 +74,19 @@ app = Flask(__name__)
 
 
 # ===== ヘルパー関数 =====
+
+def get_cors_origin() -> str:
+    """
+    リクエストのOriginを検証し、許可されたオリジンを返す
+
+    Returns:
+        許可されたオリジン、または最初の許可オリジン（デフォルト）
+    """
+    origin = request.headers.get("Origin", "")
+    if origin in ALLOWED_ORIGINS:
+        return origin
+    return ALLOWED_ORIGINS[0] if ALLOWED_ORIGINS else "*"
+
 
 def create_gateway_signature(user_id: str, customer_id: str) -> str:
     """
@@ -102,7 +127,7 @@ def error_response(message: str, status_code: int, detail: str = None):
     body = {"error": message}
     if detail:
         body["message"] = detail
-    return body, status_code, {"Access-Control-Allow-Origin": "*"}
+    return body, status_code, {"Access-Control-Allow-Origin": get_cors_origin()}
 
 
 # ===== 認証 =====
@@ -260,7 +285,7 @@ def proxy(path):
     # ブラウザが実際のリクエスト前に送る「確認リクエスト」
     if request.method == "OPTIONS":
         return "", 204, {
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": get_cors_origin(),
             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
             "Access-Control-Allow-Headers": "Authorization, Content-Type",
             "Access-Control-Max-Age": "3600",
@@ -340,7 +365,7 @@ def proxy(path):
 
         # レスポンスヘッダーを透過
         response_headers = {
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": get_cors_origin(),
             "Cache-Control": "no-cache",
         }
 

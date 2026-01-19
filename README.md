@@ -46,11 +46,15 @@ http://localhost:5173
 
 ### 3. AIをカスタマイズ
 
+開発時は以下のファイルを編集:
 ```
 backend/src/agents/_template/agent.py
 ```
 
 このファイルの `SYSTEM_PROMPT` を編集するとAIの性格が変わります。
+
+> **本番デプロイ時**: 顧客ごとに `customers/{customer_id}/` にコピーして使用。
+> 詳細は `CUSTOMER_GUIDE.md` を参照。
 
 ---
 
@@ -77,23 +81,31 @@ backend/src/agents/_template/agent.py
 │       └── 08_AIカスタマイズ.md          ← ★AI編集ガイド
 │
 ├── 🚪 gateway/              ← 【Gateway】（触らなくてOK）
-│   └── src/
-│       └── main.py          ← 認証・ルーティング（マルチテナント用）
+│   └── src/main.py          ← 認証・ルーティング（共通）
 │
-├── ⚙️ backend/              ← 【バックエンド】
-│   └── src/
-│       ├── main.py          ← APIエントリーポイント（触らなくてOK）
-│       ├── common/          ← 認証・設定など（触らなくてOK）
-│       └── agents/          ← 🧠 AIエージェント（ここを編集！）
-│           ├── _base/       ← 基盤（触らない）
-│           └── _template/   ← テンプレート（コピーして使う）
-│               └── agent.py ← ★AIの心臓部
+├── 👥 customers/            ← 【顧客別コード】
+│   ├── _template/           ← 新規顧客用テンプレート
+│   │   ├── frontend/        ← フロントエンド（React）
+│   │   └── backend/         ← バックエンド（Python）
+│   │       └── src/agents/  ← 🧠 AIエージェント（ここを編集！）
+│   │
+│   └── {customer_id}/       ← 顧客ごとにコピーして使用
+│       ├── frontend/
+│       └── backend/
 │
-└── 🖥️ frontend/             ← 【フロントエンド】（触らなくてOK）
+├── ⚙️ backend/              ← 【開発用】ローカル開発時に使用
+│   └── src/
+│       ├── main.py
+│       ├── common/          ← 共通モジュール
+│       └── agents/_template/
+│
+└── 🖥️ frontend/             ← 【開発用】ローカル開発時に使用
     └── src/
-        ├── App.tsx          ← メインコンポーネント
-        └── components/      ← UI部品
 ```
+
+**開発 vs 本番の違い:**
+- **開発時**: `backend/` と `frontend/` を使用（`./start.sh`）
+- **本番時**: `customers/{customer_id}/` にコピーしてデプロイ
 
 ---
 

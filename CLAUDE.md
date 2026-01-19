@@ -23,14 +23,33 @@
 
 ---
 
+## ディレクトリ構成
+
+```
+gcp-firebase-ai-agent-platform/
+├── gateway/                 # 共通 Gateway（1つ）
+├── customers/               # 顧客別コード
+│   ├── _template/           # 新規顧客用テンプレート
+│   │   ├── frontend/
+│   │   └── backend/
+│   └── {customer_id}/       # 顧客ごとにコピー
+├── backend/                 # 共通バックエンド（開発用）
+├── frontend/                # 共通フロントエンド（開発用）
+└── learning/                # 学習用ドキュメント
+```
+
+---
+
 ## 主要ファイル
 
 | ファイル | 役割 |
 |----------|------|
-| `backend/src/agents/_template/agent.py` | AI エージェントのテンプレート（編集対象） |
-| `backend/src/main.py` | Backend API エントリーポイント |
-| `gateway/src/main.py` | Gateway エントリーポイント |
-| `frontend/src/App.tsx` | フロントエンドメインコンポーネント |
+| `customers/_template/backend/src/agents/_template/agent.py` | AI エージェントのテンプレート |
+| `customers/{customer_id}/backend/src/main.py` | 顧客別 Backend API |
+| `customers/{customer_id}/frontend/src/App.tsx` | 顧客別フロントエンド |
+| `gateway/src/main.py` | Gateway エントリーポイント（共通） |
+| `backend/src/main.py` | 開発用 Backend API |
+| `frontend/src/App.tsx` | 開発用フロントエンド |
 
 ---
 

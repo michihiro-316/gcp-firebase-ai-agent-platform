@@ -1,0 +1,18 @@
+{
+  "customerId": "${CUSTOMER_ID}",
+  "apiBaseUrl": "${API_BASE_URL}",
+  "chatRenderer": {
+    "output": {
+      "enableTables": true,
+      "enableCharts": false,
+      "enableCodeHighlight": true,
+      "enableMarkdown": true,
+      "maxWidth": "800px"
+    },
+    "styling": {
+      "userMessageBg": "#e3f2fd",
+      "assistantMessageBg": "#f5f5f5",
+      "fontFamily": "system-ui, sans-serif"
+    }
+  }
+}
