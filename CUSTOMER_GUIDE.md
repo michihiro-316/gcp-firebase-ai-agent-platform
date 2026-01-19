@@ -90,7 +90,30 @@ export PROJECT_ID=your-gcp-project-id
 
 ### 4. ユーザーを顧客に紐付け
 
-ユーザーが先にGoogleログインしている必要があります。
+#### 方法A: メールドメインで自動振り分け（推奨）
+
+メールドメイン（メールアドレスの@以降）を登録すると、該当するメールドメインのユーザーを全員自動で振り分けできます。
+
+```bash
+# メールドメインを登録（例: @acme.co.jp のユーザーを全員自動振り分け）
+python scripts/manage_customer.py add-domain acme-corp acme.co.jp
+
+# 複数のメールドメインを登録する場合
+python scripts/manage_customer.py add-domain acme-corp group.acme.co.jp
+```
+
+#### 方法B: 個別メール登録（業務委託者など）
+
+会社のメールドメインを持たない外部の人を個別に登録します。
+
+```bash
+# 個別のメールアドレスを登録
+python scripts/manage_customer.py add-email acme-corp tanaka@gmail.com
+```
+
+#### 方法C: 手動紐付け（特殊ケース）
+
+自動振り分けを使わない場合のみ。ユーザーが先にGoogleログインしている必要があります。
 
 ```bash
 python scripts/manage_customer.py add-user <顧客ID> <メールアドレス>
@@ -98,6 +121,14 @@ python scripts/manage_customer.py add-user <顧客ID> <メールアドレス>
 # 例
 python scripts/manage_customer.py add-user acme-corp yamada@acme.co.jp
 ```
+
+**どの方法を使う？**
+
+| 場面 | 推奨コマンド | 理由 |
+|------|-------------|------|
+| 社内ユーザー（@company.co.jp） | `add-domain` | 社員全員を一括登録 |
+| 業務委託者（Gmail等） | `add-email` | 個別登録で柔軟対応 |
+| 特殊ケース | `add-user` | 手動で明示的に設定 |
 
 ### 5. 確認
 

@@ -10,7 +10,7 @@
   ステップ1: 顧客を作成
     python manage_customer.py add acme-corp "株式会社ACME"
 
-  ステップ2: ドメインを登録（社員全員が自動振り分け）
+  ステップ2: メールドメイン（@以降）を登録（社員全員が自動振り分け）
     python manage_customer.py add-domain acme-corp acme.co.jp
 
   ステップ3: 確認
@@ -28,10 +28,10 @@
     show-user <メール>                ユーザーの詳細を表示
 
   自動振り分け設定（推奨）:
-    add-domain <顧客ID> <ドメイン>    ドメインを追加（社員全員自動振り分け）
-    add-email <顧客ID> <メール>       メールを追加（業務委託者など個別）
-    remove-domain <顧客ID> <ドメイン> ドメインを削除
-    remove-email <顧客ID> <メール>    メールを削除
+    add-domain <顧客ID> <メールドメイン>    メールドメイン（@以降）を追加（社員全員自動振り分け）
+    add-email <顧客ID> <メール>             メールを追加（業務委託者など個別）
+    remove-domain <顧客ID> <メールドメイン> メールドメインを削除
+    remove-email <顧客ID> <メール>          メールを削除
 
   手動紐付け（自動振り分けを使わない場合のみ）:
     add-user <顧客ID> <メール>        ユーザーを手動で紐付け
@@ -41,7 +41,7 @@
   # 顧客を作成
   python manage_customer.py add acme-corp "株式会社ACME"
 
-  # 社員のドメインを登録（これで@acme.co.jpの社員400人も自動対応）
+  # 社員のメールドメインを登録（これで@acme.co.jpの社員400人も自動対応）
   python manage_customer.py add-domain acme-corp acme.co.jp
 
   # 業務委託者を個別追加（Gmailなど外部メール）
@@ -199,11 +199,11 @@ def cmd_show(db, customer_id):
     emails = data.get('allowed_emails', [])
 
     if domains:
-        print(f"  許可ドメイン:")
+        print(f"  許可メールドメイン:")
         for domain in domains:
             print(f"    @{domain}")
     else:
-        print(f"  許可ドメイン: （未設定）")
+        print(f"  許可メールドメイン: （未設定）")
 
     if emails:
         print(f"  許可メール（個別）:")
@@ -265,18 +265,24 @@ def cmd_show_user(db, email):
 
 def cmd_add_domain(db, customer_id, domain):
     """
-    顧客にドメインを追加（自動振り分け用）
+    顧客に【メールドメイン】を追加（自動振り分け用）
 
-    これにより @domain のメールアドレスを持つユーザーは
-    初回ログイン時に自動でこの顧客に振り分けられます。
+    メールドメイン（メールアドレスの@以降の部分）を登録することで、
+    該当するメールドメインを持つユーザーは初回ログイン時に
+    自動でこの顧客に振り分けられます。
+
+    Args:
+        domain: メールドメイン（例: acme.co.jp）
+                ※ @は不要です
     """
-    print(f"\n=== ドメインを追加 ===\n")
+    print(f"\n=== メールドメインを追加 ===\n")
 
-    # ドメイン形式のチェック
+    # メールドメイン形式のチェック
     domain = domain.lower().strip()
     if not domain or '.' not in domain or '@' in domain:
-        print(f"❌ エラー: 無効なドメイン形式です")
+        print(f"❌ エラー: 無効なメールドメイン形式です")
         print(f"   正しい例: example.com, acme.co.jp")
+        print(f"   ❌ 間違った例: @example.com, https://example.com")
         print()
         return
 
@@ -288,8 +294,8 @@ def cmd_add_domain(db, customer_id, domain):
     # 競合チェック
     conflict = check_conflict(db, 'allowed_domains', domain, customer_id)
     if conflict:
-        print(f"❌ エラー: ドメイン '{domain}' は既に顧客 '{conflict}' で使用されています")
-        print(f"   1つのドメインは1つの顧客にのみ設定できます")
+        print(f"❌ エラー: メールドメイン '{domain}' は既に顧客 '{conflict}' で使用されています")
+        print(f"   1つのメールドメインは1つの顧客にのみ設定できます")
         print()
         return
 
@@ -297,7 +303,7 @@ def cmd_add_domain(db, customer_id, domain):
     doc_ref.update({'allowed_domains': firestore.ArrayUnion([domain])})
 
     customer_name = data.get('name', customer_id)
-    print(f"✅ ドメイン '@{domain}' を '{customer_name}' に追加しました")
+    print(f"✅ メールドメイン '@{domain}' を '{customer_name}' に追加しました")
     print()
     print(f"→ @{domain} のユーザーはログイン時に自動で振り分けられます")
     print()
@@ -342,8 +348,8 @@ def cmd_add_email(db, customer_id, email):
 
 
 def cmd_remove_domain(db, customer_id, domain):
-    """顧客からドメインを削除"""
-    print(f"\n=== ドメインを削除 ===\n")
+    """顧客からメールドメインを削除"""
+    print(f"\n=== メールドメインを削除 ===\n")
 
     doc_ref, _ = require_customer(db, customer_id)
     if not doc_ref:
@@ -352,7 +358,7 @@ def cmd_remove_domain(db, customer_id, domain):
     domain = domain.lower().strip()
     doc_ref.update({'allowed_domains': firestore.ArrayRemove([domain])})
 
-    print(f"✅ ドメイン '@{domain}' を削除しました")
+    print(f"✅ メールドメイン '@{domain}' を削除しました")
     print()
     print("  ⚠️ 注意: 既に振り分け済みのユーザーには影響しません")
     print("     既存ユーザーの紐付けを変更するには別途対応が必要です")
@@ -463,13 +469,14 @@ def main():
             print(f"  使い方: python manage_customer.py show-user メール")
             print(f"  例:     python manage_customer.py show-user yamada@acme.co.jp")
         elif cmd == 'add-domain':
-            print(f"  使い方: python manage_customer.py add-domain 顧客ID ドメイン")
+            print(f"  使い方: python manage_customer.py add-domain 顧客ID メールドメイン")
             print(f"  例:     python manage_customer.py add-domain acme-corp acme.co.jp")
+            print(f"  ※ メールドメイン = メールアドレスの@以降（例: acme.co.jp）")
         elif cmd == 'add-email':
             print(f"  使い方: python manage_customer.py add-email 顧客ID メール")
             print(f"  例:     python manage_customer.py add-email acme-corp tanaka@gmail.com")
         elif cmd == 'remove-domain':
-            print(f"  使い方: python manage_customer.py remove-domain 顧客ID ドメイン")
+            print(f"  使い方: python manage_customer.py remove-domain 顧客ID メールドメイン")
         elif cmd == 'remove-email':
             print(f"  使い方: python manage_customer.py remove-email 顧客ID メール")
         elif cmd == 'add-user':
