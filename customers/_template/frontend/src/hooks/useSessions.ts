@@ -55,7 +55,7 @@ export interface ChatSession {
  * 形式: session_{timestamp}_{ランダム文字列}
  */
 function generateSessionId(): string {
-  return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  return `session_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
 }
 
 /**
