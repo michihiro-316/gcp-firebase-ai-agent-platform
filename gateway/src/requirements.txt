@@ -1,0 +1,20 @@
+# Gateway Cloud Functions 依存関係
+#
+# 既存の backend/requirements.txt と同じライブラリを使用
+# シンプルに保つため、最小限の依存関係のみ
+#
+# 【バージョン固定について】
+# 本番環境では予期しない動作を防ぐため、バージョンを固定しています。
+# バージョンを更新する場合は、必ずテスト環境で動作確認してください。
+
+# Flask フレームワーク（backend と同じバージョン）
+flask==3.1.0
+
+# Cloud Functions フレームワーク（backend と同じバージョン）
+functions-framework==3.5.0
+
+# Firebase Admin SDK（認証・Firestore）（backend と同じバージョン）
+firebase-admin==6.5.0
+
+# HTTP クライアント（プロキシ用）
+requests==2.32.3
