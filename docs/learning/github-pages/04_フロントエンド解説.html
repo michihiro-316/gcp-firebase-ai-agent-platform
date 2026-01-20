@@ -136,6 +136,122 @@
 </tbody>
 </table>
 <hr />
+<h2 id="-pythonエンジニア向け-アロー関数の基礎">🐍 Pythonエンジニア向け: アロー関数の基礎<a class="header-link" href="#-pythonエンジニア向け-アロー関数の基礎" title="Permanent link">&para;</a></h2>
+<p>Reactのコードには <code>() =&gt; { }</code> という書き方が頻繁に出てきます。<br />
+<strong>最初に理解しておくと、この先がラクになります！</strong></p>
+<div class="info-box">
+<h3>📝 アロー関数 = Pythonの lambda（無名関数）の進化版</h3>
+
+**基本構文:**
+
+<pre>
+() => { ... }
+↑    ↑   ↑
+①   ②   ③
+
+① () = 引数（なければ空のカッコ）
+② => = 「これが関数ですよ」の印（アロー）
+③ { } = 関数の中身
+</pre>
+
+**Pythonとの比較:**
+
+
+<div class="codehilite"><pre><span></span><code><span class="c1"># Python の関数定義</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">say_hello</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Hello&quot;</span><span class="p">)</span>
+
+<span class="c1"># Python の lambda（1行のみ）</span>
+<span class="n">say_hello</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Hello&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+
+
+
+<div class="codehilite"><pre><span></span><code><span class="c1">// JavaScript の関数定義（従来）</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">sayHello</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Hello&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// JavaScript のアロー関数（現代的）</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">sayHello</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Hello&quot;</span><span class="p">);</span>
+<span class="p">};</span>
+</code></pre></div>
+
+
+
+**引数がある場合:**
+
+
+<div class="codehilite"><pre><span></span><code><span class="c1"># Python</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
+
+<span class="n">add_lambda</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
+</code></pre></div>
+
+
+
+
+<div class="codehilite"><pre><span></span><code><span class="c1">// JavaScript（アロー関数）</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">add</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">a</span><span class="p">,</span><span class="w"> </span><span class="nx">b</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">a</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nx">b</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="c1">// 1行なら省略可能</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">add</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">a</span><span class="p">,</span><span class="w"> </span><span class="nx">b</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">a</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nx">b</span><span class="p">;</span>
+</code></pre></div>
+
+
+
+</div>
+
+<div class="tip-box">
+<h3>💡 よく見るパターン</h3>
+
+**パターン1: イベントハンドラ**
+
+<div class="codehilite"><pre><span></span><code><span class="p">&lt;</span><span class="nt">button</span><span class="w"> </span><span class="na">onClick</span><span class="o">=</span><span class="p">{()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;クリック！&quot;</span><span class="p">);</span><span class="w"> </span><span class="p">}}&gt;</span>
+<span class="w">  </span><span class="nx">ボタン</span>
+<span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
+</code></pre></div>
+
+
+
+**パターン2: 配列の処理**
+
+<div class="codehilite"><pre><span></span><code><span class="c1">// Python: [x * 2 for x in numbers]</span>
+<span class="c1">// JavaScript:</span>
+<span class="nx">numbers</span><span class="p">.</span><span class="nx">map</span><span class="p">((</span><span class="nx">x</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">2</span><span class="p">)</span>
+</code></pre></div>
+
+
+
+**パターン3: 関数を返す関数**
+
+<div class="codehilite"><pre><span></span><code><span class="c1">// アロー関数を return で返す</span>
+<span class="k">return</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// この中身は「今」実行されない</span>
+<span class="w">  </span><span class="c1">// 後で誰かが呼び出すと実行される</span>
+<span class="p">};</span>
+</code></pre></div>
+
+
+
+Pythonでいうと:
+
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">outer</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">inner</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;後で実行&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">inner</span>  <span class="c1"># inner() ではない！</span>
+</code></pre></div>
+
+
+
+</div>
+
+<hr />
 <h2 id="ファイルの拡張子を理解しよう">ファイルの拡張子を理解しよう<a class="header-link" href="#ファイルの拡張子を理解しよう" title="Permanent link">&para;</a></h2>
 <div class="info-box">
 <h3>📝 拡張子の意味</h3>
@@ -995,43 +1111,222 @@ async/await の方が「上から順に読める」ので読みやすい
 <span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;レンダリングのたびに実行&quot;</span><span class="p">);</span>
 <span class="p">});</span><span class="w">  </span><span class="c1">// 依存配列なし = 毎回</span>
 
-<span class="c1">// パターン4: クリーンアップ関数付き</span>
+<span class="c1">// パターン4: クリーンアップ関数付き（後で詳しく解説）</span>
 <span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">timer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">setInterval</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;tick&#39;</span><span class="p">),</span><span class="w"> </span><span class="mf">1000</span><span class="p">);</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">clearInterval</span><span class="p">(</span><span class="nx">timer</span><span class="p">);</span><span class="w"> </span><span class="p">};</span>
+<span class="p">},</span><span class="w"> </span><span class="p">[]);</span>
+</code></pre></div>
 
-<span class="w">  </span><span class="c1">// return で「後片付け」を定義</span>
+<hr />
+<h3 id="-ブレイクタイム-パターン4を徹底解説">☕ ブレイクタイム: パターン4を徹底解説<a class="header-link" href="#-ブレイクタイム-パターン4を徹底解説" title="Permanent link">&para;</a></h3>
+<p>パターン4が難しいと感じる人が多いので、ここで丁寧に解説します。</p>
+<p><strong>まず、コードの構造を分解してみましょう:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="nx">useEffect</span><span class="p">(</span><span class="w">           </span><span class="c1">// ← useEffect を呼び出す</span>
+<span class="w">  </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">            </span><span class="c1">// ← 第1引数: 関数（エフェクト本体）</span>
+<span class="w">    </span><span class="c1">// ここが「画面表示時」に実行される部分</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">   </span><span class="c1">// ← クリーンアップ関数を返す</span>
+<span class="w">      </span><span class="c1">// ここが「画面から消える時」に実行される部分</span>
+<span class="w">    </span><span class="p">};</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="p">[]</span><span class="w">                 </span><span class="c1">// ← 第2引数: 依存配列（空 = 初回のみ）</span>
+<span class="p">);</span>
+</code></pre></div>
+
+<p><strong>図で見ると:</strong></p>
+<pre>
+useEffect( ┌─────────────────────────────────┐ , [] );
+           │ () => {                         │
+           │                                 │
+           │   ① 画面表示時の処理            │
+           │   const timer = setInterval(...);│
+           │                                 │
+           │   return () => {                │ ← 関数を返す
+           │     ② 画面消去時の処理          │   （まだ実行しない！）
+           │     clearInterval(timer);       │
+           │   };                            │
+           │                                 │
+           │ }                               │
+           └─────────────────────────────────┘
+</pre>
+
+<hr />
+<p><strong>🐍 Pythonで同じことをすると？</strong></p>
+<p>JavaScriptの <code>return () =&gt; { ... }</code> が分かりにくい場合、Pythonで考えてみましょう。</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Python版（イメージ）</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">use_effect</span><span class="p">(</span><span class="n">エフェクト関数</span><span class="p">,</span> <span class="n">依存配列</span><span class="p">):</span>
+    <span class="c1"># Reactがこれを呼び出す</span>
+    <span class="n">クリーンアップ関数</span> <span class="o">=</span> <span class="n">エフェクト関数</span><span class="p">()</span>  <span class="c1"># ← エフェクト実行、戻り値を保存</span>
+
+    <span class="c1"># ... 後で、画面が消えるとき ...</span>
+    <span class="k">if</span> <span class="n">クリーンアップ関数</span><span class="p">:</span>
+        <span class="n">クリーンアップ関数</span><span class="p">()</span>  <span class="c1"># ← ここで初めて実行！</span>
+
+
+<span class="c1"># 使う側</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">my_effect</span><span class="p">():</span>
+    <span class="c1"># ① 画面表示時に実行される</span>
+    <span class="n">timer</span> <span class="o">=</span> <span class="n">start_interval</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;tick&#39;</span><span class="p">),</span> <span class="mi">1000</span><span class="p">)</span>
+
+    <span class="c1"># ② 関数を「定義して返す」だけ（実行しない！）</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cleanup</span><span class="p">():</span>
+        <span class="n">stop_interval</span><span class="p">(</span><span class="n">timer</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">cleanup</span>  <span class="c1"># ← cleanup() ではない！カッコなし！</span>
+
+
+<span class="n">use_effect</span><span class="p">(</span><span class="n">my_effect</span><span class="p">,</span> <span class="p">[])</span>
+</code></pre></div>
+
+<p><strong>重要: <code>return cleanup</code> vs <code>return cleanup()</code></strong></p>
+<table>
+<thead>
+<tr>
+<th>書き方</th>
+<th>意味</th>
+<th>結果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>return cleanup</code></td>
+<td>関数を返す</td>
+<td>Reactが後で呼び出せる ✅</td>
+</tr>
+<tr>
+<td><code>return cleanup()</code></td>
+<td>関数を実行して、その結果を返す</td>
+<td>今すぐ実行されてしまう ❌</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><strong>実際のタイマーの例（より実用的に）:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// ① 画面表示時: タイマー開始</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">timer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">setInterval</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">fetchNewMessages</span><span class="p">();</span><span class="w">  </span><span class="c1">// 1秒ごとに新着確認</span>
+<span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="mf">1000</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// ② 画面消去時: タイマー停止</span>
 <span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nx">clearInterval</span><span class="p">(</span><span class="nx">timer</span><span class="p">);</span><span class="w">  </span><span class="c1">// タイマーを停止</span>
+<span class="w">    </span><span class="nx">clearInterval</span><span class="p">(</span><span class="nx">timer</span><span class="p">);</span>
 <span class="w">  </span><span class="p">};</span>
 <span class="p">},</span><span class="w"> </span><span class="p">[]);</span>
 </code></pre></div>
 
-<div class="tip-box">
-<h3>💡 パターン4の解説: setInterval と clearInterval</h3>
+<p><strong>時系列で見ると:</strong></p>
 <pre>
-setInterval(処理, ミリ秒)
-    ↑           ↑
- 繰り返す処理  間隔（1000 = 1秒）
-
-setInterval(() => console.log('tick'), 1000)
-→ 1秒ごとに「tick」と表示し続ける（止めるまで永遠に）
-
-時間: 0秒 → 1秒 → 2秒 → 3秒 → ...
-出力:      tick   tick   tick   ...
+ユーザーがチャット画面を開く
+    ↓
+① setInterval 開始
+    ↓
+1秒後: fetchNewMessages() 実行
+2秒後: fetchNewMessages() 実行
+3秒後: fetchNewMessages() 実行
+... （ずっと続く）
+    ↓
+ユーザーが設定画面に移動
+    ↓
+② Reactが return の関数を実行
+    ↓
+clearInterval(timer) でタイマー停止
+    ↓
+もう fetchNewMessages() は呼ばれない ✅
 </pre>
+
+<div class="codehilite"><pre><span></span><code><span class="nt">&lt;div</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;tip-box&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;h3&gt;</span>💡<span class="w"> </span>パターン4の解説:<span class="w"> </span>setInterval<span class="w"> </span>と<span class="w"> </span>clearInterval<span class="nt">&lt;/h3&gt;</span>
+
+**setInterval<span class="w"> </span>とは？**
+
+「一定間隔で処理を繰り返す」ための関数です。
+
+<span class="nt">&lt;pre&gt;</span>
+setInterval(処理,<span class="w"> </span>ミリ秒)
+<span class="w">    </span>↑<span class="w">           </span>↑
+<span class="w"> </span>繰り返す処理<span class="w">  </span>間隔（1000<span class="w"> </span>=<span class="w"> </span>1秒）
+<span class="nt">&lt;/pre&gt;</span>
+
+**具体例:**
+```javascript
+//<span class="w"> </span>1秒ごとに「tick」と表示（止めるまで永遠に続く）
+setInterval(()<span class="w"> </span>=&gt;<span class="w"> </span>console.log(&#39;tick&#39;),<span class="w"> </span>1000);
+
+//<span class="w"> </span>時間の流れ:
+//<span class="w"> </span>0秒<span class="w"> </span>→<span class="w"> </span>1秒<span class="w"> </span>→<span class="w"> </span>2秒<span class="w"> </span>→<span class="w"> </span>3秒<span class="w"> </span>→<span class="w"> </span>4秒<span class="w"> </span>→<span class="w"> </span>...
+//<span class="w">        </span>tick<span class="w">   </span>tick<span class="w">   </span>tick<span class="w">   </span>tick<span class="w">   </span>...（ずっと続く）
+</code></pre></div>
+
+<p><strong>実用的な例:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="c1">// 1秒ごとに新着メッセージを取得</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">timer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">setInterval</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">fetchNewMessages</span><span class="p">();</span><span class="w">  </span><span class="c1">// サーバーに問い合わせ</span>
+<span class="p">},</span><span class="w"> </span><span class="mf">1000</span><span class="p">);</span>
+</code></pre></div>
+
+<hr />
+<p><strong>🔑 return で「関数を返す」とは？（超重要！）</strong></p>
+<p>アロー関数 <code>() =&gt; { }</code> については上の「Pythonエンジニア向け」で説明しました。<br />
+ここでは <code>return</code> の使い方に集中します。</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">timer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">setInterval</span><span class="p">(...);</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">              </span><span class="c1">// ← 関数を「作って返す」だけ</span>
+<span class="w">    </span><span class="nx">clearInterval</span><span class="p">(</span><span class="nx">timer</span><span class="p">);</span><span class="w">     </span><span class="c1">//    この時点では実行されない！</span>
+<span class="w">  </span><span class="p">};</span>
+<span class="p">},</span><span class="w"> </span><span class="p">[]);</span>
+</code></pre></div>
+
+<p>ポイント: <code>return () =&gt; { ... }</code> は関数を<strong>実行せずに返す</strong>だけ。<br />
+Reactがこの関数を受け取って、<strong>後で</strong>（画面から消えるとき）呼び出します。</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Pythonで同じことをすると:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">effect</span><span class="p">():</span>
+    <span class="n">timer</span> <span class="o">=</span> <span class="n">start_timer</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">cleanup</span><span class="p">():</span>          <span class="c1"># 関数を定義</span>
+        <span class="n">stop_timer</span><span class="p">(</span><span class="n">timer</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">cleanup</span>          <span class="c1"># 実行せずに返す（cleanup() ではない！）</span>
+
+<span class="c1"># 呼び出し側:</span>
+<span class="n">cleanup_func</span> <span class="o">=</span> <span class="n">effect</span><span class="p">()</span>     <span class="c1"># cleanup関数を受け取る</span>
+<span class="c1"># ... 後で ...</span>
+<span class="n">cleanup_func</span><span class="p">()</span>              <span class="c1"># ここで初めて実行される</span>
+</code></pre></div>
+
+<hr />
 <p><strong>なぜ後片付けが必要？</strong></p>
 <pre>
-① ページAを表示 → タイマー開始（tick tick tick...）
-② ページBに移動 → ページAは消えた
-③ でもタイマーは動き続ける！💥 メモリリーク
+【後片付けなしの場合】 ❌
+① チャット画面を表示 → タイマー開始（tick tick tick...）
+② 設定画面に移動 → チャット画面は消えた
+③ でもタイマーは動き続ける！💥 メモリリーク＆無駄な通信
 
-後片付けすると:
-① ページAを表示 → タイマー開始
-② ページBに移動 → return の関数が自動実行 → タイマー停止 ✅
+【後片付けありの場合】 ✅
+① チャット画面を表示 → タイマー開始
+② 設定画面に移動 → return の関数が自動実行 → タイマー停止
+③ 余計な処理なし！
 </pre>
-<p><code>clearInterval(timer)</code> = 「このタイマーを止めて」という命令</p>
-</div>
 
+<p><strong>実際の流れ:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">ユーザーがチャット画面を開く</span>
+<span class="w">   </span><span class="err">→</span><span class="w"> </span><span class="n">setInterval</span><span class="w"> </span><span class="n">開始</span>
+<span class="w">   </span><span class="err">→</span><span class="w"> </span><span class="mf">1</span><span class="n">秒後</span><span class="p">:</span><span class="w"> </span><span class="n">fetchNewMessages</span><span class="p">()</span><span class="w"> </span><span class="n">実行</span>
+<span class="w">   </span><span class="err">→</span><span class="w"> </span><span class="mf">2</span><span class="n">秒後</span><span class="p">:</span><span class="w"> </span><span class="n">fetchNewMessages</span><span class="p">()</span><span class="w"> </span><span class="n">実行</span>
+<span class="w">   </span><span class="err">→</span><span class="w"> </span><span class="mf">3</span><span class="n">秒後</span><span class="p">:</span><span class="w"> </span><span class="n">fetchNewMessages</span><span class="p">()</span><span class="w"> </span><span class="n">実行</span>
+<span class="w">   </span><span class="err">→</span><span class="w"> </span><span class="mf">...</span><span class="err">（</span><span class="n">ずっと続く</span><span class="err">）</span>
+
+<span class="mf">2.</span><span class="w"> </span><span class="n">ユーザーが設定画面に移動</span>
+<span class="w">   </span><span class="err">→</span><span class="w"> </span><span class="n">Reactが</span><span class="err">「</span><span class="n">画面消えるよ</span><span class="err">」</span><span class="n">と検知</span>
+<span class="w">   </span><span class="err">→</span><span class="w"> </span><span class="kr">return</span><span class="w"> </span><span class="n">で返した関数を実行</span>
+<span class="w">   </span><span class="err">→</span><span class="w"> </span><span class="n">clearInterval</span><span class="p">(</span><span class="n">timer</span><span class="p">)</span><span class="w"> </span><span class="n">でタイマー停止</span>
+<span class="w">   </span><span class="err">→</span><span class="w"> </span><span class="n">もう</span><span class="w"> </span><span class="n">fetchNewMessages</span><span class="p">()</span><span class="w"> </span><span class="n">は呼ばれない</span>
+</code></pre></div>
+
+<p><code>clearInterval(timer)</code> = 「このタイマーを止めて」という命令<br />
+</div></p>
 <div class="info-box">
 <h3>🎯 useEffect のライフサイクル</h3>
 <p>コンポーネントの一生:</p>
