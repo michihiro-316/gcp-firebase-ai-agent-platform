@@ -1006,6 +1006,32 @@ async/await の方が「上から順に読める」ので読みやすい
 <span class="p">},</span><span class="w"> </span><span class="p">[]);</span>
 </code></pre></div>
 
+<div class="tip-box">
+<h3>💡 パターン4の解説: setInterval と clearInterval</h3>
+<pre>
+setInterval(処理, ミリ秒)
+    ↑           ↑
+ 繰り返す処理  間隔（1000 = 1秒）
+
+setInterval(() => console.log('tick'), 1000)
+→ 1秒ごとに「tick」と表示し続ける（止めるまで永遠に）
+
+時間: 0秒 → 1秒 → 2秒 → 3秒 → ...
+出力:      tick   tick   tick   ...
+</pre>
+<p><strong>なぜ後片付けが必要？</strong></p>
+<pre>
+① ページAを表示 → タイマー開始（tick tick tick...）
+② ページBに移動 → ページAは消えた
+③ でもタイマーは動き続ける！💥 メモリリーク
+
+後片付けすると:
+① ページAを表示 → タイマー開始
+② ページBに移動 → return の関数が自動実行 → タイマー停止 ✅
+</pre>
+<p><code>clearInterval(timer)</code> = 「このタイマーを止めて」という命令</p>
+</div>
+
 <div class="info-box">
 <h3>🎯 useEffect のライフサイクル</h3>
 <p>コンポーネントの一生:</p>
