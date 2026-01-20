@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>11 チャット送信の流れ - GCP AI Agent 設計資料</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="header-logo">
+      <span>📚</span>
+      <span>GCP AI Agent 設計資料</span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">ホーム</a>
+      <a href="02_全体像.html">全体像</a>
+      <a href="https://github.com" target="_blank">GitHub</a>
+    </nav>
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">📖 はじめに</div>
+        <ul class="sidebar-nav">
+          <li><a href="01_はじめに読んでください.html" >はじめに読んでください</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🏗️ 仕組みを理解</div>
+        <ul class="sidebar-nav">
+          <li><a href="02_全体像.html" >全体像</a></li>
+          <li><a href="03_バックエンド解説.html" >バックエンド解説</a></li>
+          <li><a href="04_フロントエンド解説.html" >フロントエンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🛠️ セットアップ</div>
+        <ul class="sidebar-nav">
+          <li><a href="05_セットアップの流れ.html" >セットアップの流れ</a></li>
+          <li><a href="06_コマンド解説.html" >コマンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🚀 動かす</div>
+        <ul class="sidebar-nav">
+          <li><a href="07_動かしてみよう.html" >動かしてみよう</a></li>
+          <li><a href="08_AIカスタマイズ.html" >AIカスタマイズ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔧 上級編</div>
+        <ul class="sidebar-nav">
+          <li><a href="10_Gatewayアーキテクチャ.html" >Gatewayアーキテクチャ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔄 参考: フロー解説</div>
+        <ul class="sidebar-nav">
+          <li><a href="11_チャット送信の流れ.html" class="active">チャット送信の流れ</a></li>
+          <li><a href="12_ログインの流れ.html" >ログインの流れ</a></li>
+          <li><a href="13_セッション管理の流れ.html" >セッション管理の流れ</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <article class="content">
+        <h1 id="チャット送信の流れ---完全解説">チャット送信の流れ - 完全解説<a class="header-link" href="#チャット送信の流れ---完全解説" title="Permanent link">&para;</a></h1>
+<p><strong>このドキュメントの目的</strong>：<br />
+「チャットを送信したら何が起きるか」を、<strong>実際のコード</strong>と<strong>繋がり</strong>を見ながら理解する。</p>
+<p><strong>想定読者</strong>: GASを少し触ったことがある新卒エンジニア</p>
+<p><strong>読了時間</strong>: 約45分</p>
+<hr />
+<h2 id="まず知っておくべきこと">まず知っておくべきこと<a class="header-link" href="#まず知っておくべきこと" title="Permanent link">&para;</a></h2>
+<h3 id="ストリーミングとは">ストリーミングとは？<a class="header-link" href="#ストリーミングとは" title="Permanent link">&para;</a></h3>
+<div class="flow-box">
+<h3>📡 ストリーミングの仕組み</h3>
+<p><strong>【普通の通信】</strong></p>
+<pre>
+質問 ───────────────────────────────→ サーバー
+                                        ↓ 全部作ってから返す
+「こんにちは、今日は良い天気ですね！」 ←─────────────────
+</pre>
+<p><strong>【ストリーミング通信】</strong></p>
+<pre>
+質問 ───────────────────────────────→ サーバー
+「こん」     ←──── 少しずつ返す
+「にち」     ←────
+「は、」     ←────
+「今日」     ←────
+「は...」    ←────
+</pre>
+<p>→ ChatGPTのように文字が流れるように表示される！</p>
+</div>
+
+<h3 id="asyncawait-とはgas経験者向け">async/await とは？（GAS経験者向け）<a class="header-link" href="#asyncawait-とはgas経験者向け" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// GASの場合（同期処理）</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">myFunction</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">UrlFetchApp</span><span class="p">.</span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;https://...&#39;</span><span class="p">);</span><span class="w">  </span><span class="c1">// ここで待つ</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">getContentText</span><span class="p">();</span><span class="w">  </span><span class="c1">// 終わってから次へ</span>
+<span class="p">}</span>
+
+<span class="c1">// TypeScript/Pythonの場合（非同期処理）</span>
+<span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">myFunction</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;https://...&#39;</span><span class="p">);</span><span class="w">  </span><span class="c1">// awaitで「待つ」と明示</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p><strong>ポイント</strong>: <code>await</code> は「この処理が終わるまで待って」という意味。<br />
+GASでは自動で待っていたが、TypeScript/Pythonでは <code>await</code> を書く必要がある。</p>
+<hr />
+<h2 id="全体フロー図">全体フロー図<a class="header-link" href="#全体フロー図" title="Permanent link">&para;</a></h2>
+<div class="architecture-box">
+<h3>🔄 チャット送信の全体フロー</h3>
+<pre>
+【ブラウザ】                     【サーバー】                    【外部サービス】
+
+1. 入力ボックスに
+   「こんにちは」と入力
+        ↓
+2. 送信ボタンをクリック
+        ↓
+   ┌─────────────────┐
+   │  useChat.ts     │  ← 「チャットのロジック担当」
+   │  sendMessage()  │
+   └────────┬────────┘
+            ↓
+   ┌─────────────────┐
+   │  api.ts         │  ← 「サーバーとの通信担当」
+   │  sendChatMessage()
+   │  + IDトークン取得 │─────────────→ Firebase Auth
+   └────────┬────────┘               (トークン発行)
+            ↓
+   ┌─────────────────┐
+   │ Authorization:  │  ← 「私は〇〇です」という証明書
+   │ Bearer xxxx     │
+   └────────┬────────┘
+            ↓
+════════════════════════ インターネット ════════════════════════
+            ↓
+   ┌─────────────────┐
+   │  Gateway        │  ← 「認証・振り分け担当」（1つだけ）
+   │  main.py        │
+   │  ・トークン検証   │──────────────→ Firebase Admin SDK
+   │  ・customer_id取得│               (本人確認)
+   │  ・転送先URL取得  │──────────────→ Firestore (customers)
+   └────────┬────────┘
+            ↓ 内部ヘッダー付与
+              X-Gateway-Verified: true
+              X-User-Id: xxx
+              X-Customer-Id: xxx
+            ↓
+   ┌─────────────────┐
+   │  Backend        │  ← 「会社ごとのバックエンド」
+   │  main.py        │
+   │  /chat          │
+   └────────┬────────┘
+            ↓
+   ┌─────────────────┐
+   │  agent.py       │  ← 「AI担当」
+   │  AIに質問       │──────────────→ Vertex AI (Gemini)
+   └────────┬────────┘               (応答生成)
+            ↓
+   ┌─────────────────┐
+   │ checkpointer.py │  ← 「記録担当」
+   │  会話履歴保存    │──────────────→ Firestore
+   └────────┬────────┘               (データ保存)
+            ↓
+════════════════════════ インターネット ════════════════════════
+            ↓
+3. ストリーミングで
+   「こん」「にち」「は」
+   と少しずつ表示
+</pre>
+</div>
+
+<p><strong>それぞれのファイルの役割</strong>:<br />
+| ファイル | 役割 | 例えると |<br />
+|----------|------|----------|<br />
+| useChat.ts | チャット画面の状態管理 | メモ帳 |<br />
+| api.ts | サーバーとの通信 | 電話 |<br />
+| Gateway main.py | 認証・振り分け | ホテルのフロント（どの部屋に案内するか） |<br />
+| Backend main.py | リクエストの受付 | 各部屋の係員 |<br />
+| agent.py | AI処理 | 相談員 |<br />
+| checkpointer.py | 履歴保存 | 書記 |</p>
+<hr />
+<h2 id="ステップ1-ユーザーがメッセージを送信">ステップ1: ユーザーがメッセージを送信<a class="header-link" href="#ステップ1-ユーザーがメッセージを送信" title="Permanent link">&para;</a></h2>
+<h3 id="なぜこのファイルがあるのか">なぜこのファイルがあるのか？<a class="header-link" href="#なぜこのファイルがあるのか" title="Permanent link">&para;</a></h3>
+<p><strong>問題</strong>: チャット画面のボタンやテキストボックスに、送信ロジックを直接書くと...<br />
+- コードが長くなる<br />
+- 他の画面で再利用できない<br />
+- テストしにくい</p>
+<p><strong>解決</strong>: ロジックを「フック（Hook）」として分離する</p>
+<h3 id="場所-srcfrontendsrchooksusechatts">場所: <code>src/frontend/src/hooks/useChat.ts</code><a class="header-link" href="#場所-srcfrontendsrchooksusechatts" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// useChat.ts の sendMessage 関数（簡略版）</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">sendMessage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useCallback</span><span class="p">(</span><span class="k">async</span><span class="w"> </span><span class="p">(</span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// ====================================</span>
+<span class="w">  </span><span class="c1">// 【この関数の役割】</span>
+<span class="w">  </span><span class="c1">// 1. ユーザーのメッセージを画面に表示</span>
+<span class="w">  </span><span class="c1">// 2. サーバーにメッセージを送信</span>
+<span class="w">  </span><span class="c1">// 3. AIの返答を少しずつ受け取って表示</span>
+<span class="w">  </span><span class="c1">// ====================================</span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">content</span><span class="p">.</span><span class="nx">trim</span><span class="p">()</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nx">isLoading</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w">  </span><span class="c1">// 空文字や連打を防止</span>
+
+<span class="w">  </span><span class="nx">setIsLoading</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span><span class="w">  </span><span class="c1">// ← 「送信中...」状態にする</span>
+
+<span class="w">  </span><span class="c1">// ユーザーのメッセージを画面に追加</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">userMessage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;...&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">role</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;user&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">content</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="nx">setMessages</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">[...</span><span class="nx">prev</span><span class="p">,</span><span class="w"> </span><span class="nx">userMessage</span><span class="p">])</span>
+
+<span class="w">  </span><span class="c1">// AIの返答用の「空の箱」を用意</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">assistantMessage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;...&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">role</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;assistant&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="nx">setMessages</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">[...</span><span class="nx">prev</span><span class="p">,</span><span class="w"> </span><span class="nx">assistantMessage</span><span class="p">])</span>
+
+<span class="w">  </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// ★ ここで api.ts の関数を呼ぶ</span>
+<span class="w">    </span><span class="k">await</span><span class="w"> </span><span class="nx">sendChatMessage</span><span class="p">(</span>
+<span class="w">      </span><span class="nx">content</span><span class="p">,</span><span class="w">         </span><span class="c1">// 「こんにちは」</span>
+<span class="w">      </span><span class="nx">threadId</span><span class="p">,</span><span class="w">        </span><span class="c1">// 会話のID</span>
+<span class="w">      </span><span class="p">(</span><span class="nx">chunk</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">     </span><span class="c1">// AIの返答を少しずつ受け取る</span>
+<span class="w">        </span><span class="c1">// 「こん」「にち」「は」と来るたびに画面を更新</span>
+<span class="w">        </span><span class="c1">// → 文字が流れるように表示される</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">setError</span><span class="p">(</span><span class="nx">err</span><span class="p">.</span><span class="nx">message</span><span class="p">)</span><span class="w">  </span><span class="c1">// エラーがあれば表示</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">finally</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">setIsLoading</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span><span class="w">  </span><span class="c1">// 送信完了</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">},</span><span class="w"> </span><span class="p">[</span><span class="nx">threadId</span><span class="p">,</span><span class="w"> </span><span class="nx">isLoading</span><span class="p">])</span>
+</code></pre></div>
+
+<h3 id="gas経験者向け解説">GAS経験者向け解説<a class="header-link" href="#gas経験者向け解説" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// GASでの似たような処理</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">sendMessage</span><span class="p">(</span><span class="nx">content</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// GASではこう書くところを...</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">UrlFetchApp</span><span class="p">.</span><span class="nx">fetch</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span><span class="w"> </span><span class="nx">options</span><span class="p">);</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">getContentText</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="c1">// TypeScriptでは async/await を使う</span>
+<span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">sendMessage</span><span class="p">(</span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="nx">string</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span><span class="w"> </span><span class="nx">options</span><span class="p">);</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h2 id="ステップ2-apiを呼び出すトークン付き">ステップ2: APIを呼び出す（トークン付き）<a class="header-link" href="#ステップ2-apiを呼び出すトークン付き" title="Permanent link">&para;</a></h2>
+<h3 id="なぜこのファイルがあるのか_1">なぜこのファイルがあるのか？<a class="header-link" href="#なぜこのファイルがあるのか_1" title="Permanent link">&para;</a></h3>
+<p><strong>問題</strong>: サーバーにリクエストを送るとき、毎回「私は誰です」という証明が必要<br />
+<strong>解決</strong>: 認証トークンを自動で付ける処理を一箇所にまとめる</p>
+<h3 id="場所-srcfrontendsrcservicesapits">場所: <code>src/frontend/src/services/api.ts</code><a class="header-link" href="#場所-srcfrontendsrcservicesapits" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// api.ts（簡略版）</span>
+
+<span class="c1">// ★ チャットメッセージを送信する関数</span>
+<span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">sendChatMessage</span><span class="p">(</span>
+<span class="w">  </span><span class="nx">message</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w">                      </span><span class="c1">// 送りたいメッセージ</span>
+<span class="w">  </span><span class="nx">threadId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">              </span><span class="c1">// 会話のID</span>
+<span class="w">  </span><span class="nx">onChunk</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">chunk</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="w">      </span><span class="c1">// 返答を少しずつ受け取るコールバック</span>
+<span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="kt">string</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">  </span><span class="c1">// 1. 認証トークンを取得して、ヘッダーに付ける</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">currentUser</span><span class="o">?</span><span class="p">.</span><span class="nx">getIdToken</span><span class="p">()</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">headers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="s1">&#39;Authorization&#39;</span><span class="o">:</span><span class="w"> </span><span class="sb">`Bearer </span><span class="si">${</span><span class="nx">token</span><span class="si">}</span><span class="sb">`</span><span class="p">,</span><span class="w">  </span><span class="c1">// ← これが「私は〇〇です」の証明</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="c1">// 2. サーバーにリクエストを送信</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="sb">`</span><span class="si">${</span><span class="nx">API_URL</span><span class="si">}</span><span class="sb">/chat`</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">method</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;POST&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">headers</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">body</span><span class="o">:</span><span class="w"> </span><span class="kt">JSON.stringify</span><span class="p">({</span><span class="w"> </span><span class="nx">message</span><span class="p">,</span><span class="w"> </span><span class="nx">thread_id</span><span class="o">:</span><span class="w"> </span><span class="kt">threadId</span><span class="w"> </span><span class="p">}),</span>
+<span class="w">  </span><span class="p">})</span>
+
+<span class="w">  </span><span class="c1">// 3. ストリーミングで返答を受け取る</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">reader</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">body</span><span class="o">?</span><span class="p">.</span><span class="nx">getReader</span><span class="p">()</span>
+<span class="w">  </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="kc">true</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">done</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">reader</span><span class="p">.</span><span class="nx">read</span><span class="p">()</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">done</span><span class="p">)</span><span class="w"> </span><span class="k">break</span>
+
+<span class="w">    </span><span class="c1">// 「data: こん」→「こん」を取り出して呼び出し元に返す</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">text</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">TextDecoder</span><span class="p">().</span><span class="nx">decode</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span>
+<span class="w">    </span><span class="c1">// ... パース処理 ...</span>
+<span class="w">    </span><span class="nx">onChunk</span><span class="p">(</span><span class="nx">parsedData</span><span class="p">)</span><span class="w">  </span><span class="c1">// ← useChat.ts に渡される</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="idトークンとは">IDトークンとは？<a class="header-link" href="#idトークンとは" title="Permanent link">&para;</a></h3>
+<div class="info-box">
+<h3>🎫 IDトークン</h3>
+<p>「この人は本物の山田太郎さんです」という証明書</p>
+<p><strong>中身:</strong></p>
+<pre>
+{
+  "name": "山田太郎",      ← 名前
+  "email": "yamada@...",  ← メールアドレス
+  "uid": "abc123",        ← ユーザーID
+  "exp": 1705471200       ← 有効期限（1時間）
+}
+</pre>
+<ul>
+<li>Googleが「この人は本物です」と署名している</li>
+<li>改ざんすると署名が壊れるので、偽造できない</li>
+</ul>
+</div>
+
+<hr />
+<h2 id="ステップ3-gatewayで認証振り分け">ステップ3: Gatewayで認証・振り分け<a class="header-link" href="#ステップ3-gatewayで認証振り分け" title="Permanent link">&para;</a></h2>
+<h3 id="なぜgatewayがあるのか">なぜGatewayがあるのか？<a class="header-link" href="#なぜgatewayがあるのか" title="Permanent link">&para;</a></h3>
+<p><strong>役割</strong>: すべてのリクエストの「入口」<br />
+- 認証チェック（トークン検証）<br />
+- customer_id から転送先URL取得<br />
+- 会社ごとのバックエンドに転送</p>
+<h3 id="場所-srcgatewaysrcmainpy">場所: <code>src/gateway/src/main.py</code><a class="header-link" href="#場所-srcgatewaysrcmainpy" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Gateway main.py（簡略版）</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/chat&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">chat</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;チャットAPIをプロキシ&quot;&quot;&quot;</span>
+
+    <span class="c1"># 1. 認証チェック</span>
+    <span class="n">uid</span><span class="p">,</span> <span class="n">customer_id</span> <span class="o">=</span> <span class="n">verify_request</span><span class="p">()</span>
+
+    <span class="c1"># 2. 転送先URLを取得（Firestoreから）</span>
+    <span class="n">target_url</span> <span class="o">=</span> <span class="n">get_company_url</span><span class="p">(</span><span class="n">customer_id</span><span class="p">)</span>
+
+    <span class="c1"># 3. 内部ヘッダーを付けて転送</span>
+    <span class="k">return</span> <span class="n">proxy_request</span><span class="p">(</span>
+        <span class="n">target_url</span><span class="p">,</span>
+        <span class="n">headers</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;X-Gateway-Verified&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;X-User-Id&quot;</span><span class="p">:</span> <span class="n">uid</span><span class="p">,</span>
+            <span class="s2">&quot;X-Customer-Id&quot;</span><span class="p">:</span> <span class="n">customer_id</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+</code></pre></div>
+
+<h3 id="gateway-の役割を図解">Gateway の役割を図解<a class="header-link" href="#gateway-の役割を図解" title="Permanent link">&para;</a></h3>
+<div class="flow-box">
+<h3>🚦 Gateway の処理フロー</h3>
+<pre>
+リクエスト到着（Authorization: Bearer xxx）
+    ↓
+┌─────────────────────────────────────────┐
+│              Gateway                     │
+├─────────────────────────────────────────┤
+│                                         │
+│  ① verify_request()                    │
+│     → Firebase Admin SDK でトークン検証  │
+│     → customer_id を Custom Claims から取得│
+│                                         │
+│  ② get_company_url(customer_id)        │
+│     → Firestore から転送先URL取得        │
+│     → customers/{customer_id}/cloud_functions_url │
+│                                         │
+│  ③ proxy_request()                     │
+│     → 内部ヘッダーを付けて転送           │
+│                                         │
+└─────────────────────────────────────────┘
+    ↓
+ 会社ごとのバックエンドへ
+</pre>
+</div>
+
+<hr />
+<h2 id="ステップ4-会社別バックエンドでリクエストを処理">ステップ4: 会社別バックエンドでリクエストを処理<a class="header-link" href="#ステップ4-会社別バックエンドでリクエストを処理" title="Permanent link">&para;</a></h2>
+<h3 id="なぜ会社ごとにバックエンドがあるのか">なぜ会社ごとにバックエンドがあるのか？<a class="header-link" href="#なぜ会社ごとにバックエンドがあるのか" title="Permanent link">&para;</a></h3>
+<p><strong>メリット</strong>:<br />
+- A社だけの特殊カスタマイズが可能<br />
+- 他社への影響ゼロで安全に更新<br />
+- 障害が他社に波及しない</p>
+<h3 id="場所-srcbackendsrcmainpy">場所: <code>src/backend/src/main.py</code><a class="header-link" href="#場所-srcbackendsrcmainpy" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Backend main.py（簡略版）</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/chat&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">chat</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;チャットAPI（ストリーミング）&quot;&quot;&quot;</span>
+
+    <span class="c1"># 1. 認証チェック（Gateway経由かどうかで分岐）</span>
+    <span class="n">user_info</span> <span class="o">=</span> <span class="n">authenticate_request_with_gateway</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+    <span class="n">customer_id</span> <span class="o">=</span> <span class="n">user_info</span><span class="p">[</span><span class="s2">&quot;customer_id&quot;</span><span class="p">]</span>
+
+    <span class="c1"># 2. レート制限チェック</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">check_rate_limit</span><span class="p">(</span><span class="n">user_info</span><span class="p">[</span><span class="s2">&quot;uid&quot;</span><span class="p">]):</span>
+        <span class="k">return</span> <span class="n">error_response</span><span class="p">(</span><span class="s2">&quot;リクエスト制限を超えました&quot;</span><span class="p">,</span> <span class="mi">429</span><span class="p">)</span>
+
+    <span class="c1"># 3. メッセージを取得</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;message&quot;</span><span class="p">)</span>
+
+    <span class="c1"># 4. AIエージェントを呼び出し</span>
+    <span class="n">agent</span> <span class="o">=</span> <span class="n">get_agent</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="n">customer_id</span><span class="p">)</span>
+
+    <span class="c1"># 5. ストリーミングで返す</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">thread_id</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="sa">f</span><span class="s2">&quot;data: </span><span class="si">{</span><span class="n">chunk</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>  <span class="c1"># SSE形式</span>
+        <span class="k">yield</span> <span class="s2">&quot;data: [DONE]</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+
+    <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">generate</span><span class="p">(),</span> <span class="n">mimetype</span><span class="o">=</span><span class="s2">&quot;text/event-stream&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="backend-mainpy-の役割を図解">Backend main.py の役割を図解<a class="header-link" href="#backend-mainpy-の役割を図解" title="Permanent link">&para;</a></h3>
+<div class="flow-box">
+<h3>🚦 Backend main.py の処理フロー</h3>
+<pre>
+リクエスト到着（Gateway から内部ヘッダー付き）
+    ↓
+┌─────────────────────────────────────────┐
+│              Backend main.py             │
+├─────────────────────────────────────────┤
+│                                         │
+│  ① authenticate_request_with_gateway() │
+│     → X-Gateway-Verified を確認          │
+│     → true なら内部ヘッダーを信頼         │
+│                                         │
+│  ② check_rate_limit()                  │
+│     → 使いすぎていないかチェック          │
+│                                         │
+│  ③ get_agent()                         │
+│     → 適切なAIエージェントを取得          │
+│                                         │
+│  ④ agent.run()                         │
+│     → AIに質問して返答を生成             │
+│                                         │
+└─────────────────────────────────────────┘
+    ↓
+ ストリーミングで返す
+</pre>
+</div>
+
+<hr />
+<h2 id="ステップ5-認証処理gateway経由対応">ステップ5: 認証処理（Gateway経由対応）<a class="header-link" href="#ステップ5-認証処理gateway経由対応" title="Permanent link">&para;</a></h2>
+<h3 id="なぜこのファイルがあるのか_2">なぜこのファイルがあるのか？<a class="header-link" href="#なぜこのファイルがあるのか_2" title="Permanent link">&para;</a></h3>
+<p><strong>問題</strong>: 「認証」処理はいろんな場所で使いたい<br />
+- <code>/chat</code> エンドポイント<br />
+- <code>/agents</code> エンドポイント<br />
+- 将来の新しいエンドポイント</p>
+<p><strong>解決</strong>: 認証処理を別ファイルにまとめる + Gateway経由に対応</p>
+<h3 id="場所-srcbackendsrccommonauthpy">場所: <code>src/backend/src/common/auth.py</code><a class="header-link" href="#場所-srcbackendsrccommonauthpy" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># auth.py（簡略版）</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">authenticate_request_with_gateway</span><span class="p">(</span><span class="n">request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gateway 経由のリクエストを認証</span>
+
+<span class="sd">    【処理の流れ】</span>
+<span class="sd">    1. X-Gateway-Verified ヘッダーを確認</span>
+<span class="sd">    2. Gateway経由なら内部ヘッダーを信頼</span>
+<span class="sd">    3. Gateway経由でなければ従来の認証</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gateway_verified</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;X-Gateway-Verified&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">gateway_verified</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">:</span>
+        <span class="c1"># Gateway が認証済みなので、内部ヘッダーを信頼</span>
+        <span class="n">user_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;X-User-Id&quot;</span><span class="p">)</span>
+        <span class="n">customer_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;X-Customer-Id&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;uid&quot;</span><span class="p">:</span> <span class="n">user_id</span><span class="p">,</span>
+            <span class="s2">&quot;customer_id&quot;</span><span class="p">:</span> <span class="n">customer_id</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="c1"># Gateway 経由でない場合は従来の認証</span>
+    <span class="k">return</span> <span class="n">authenticate_request</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">authenticate_request</span><span class="p">(</span><span class="n">request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    リクエストを認証し、ユーザー情報を返す（従来の方式）</span>
+
+<span class="sd">    【処理の流れ】</span>
+<span class="sd">    1. ヘッダーからトークンを取り出す（形式を厳密に検証）</span>
+<span class="sd">    2. トークンが本物か検証（失効チェック含む）</span>
+<span class="sd">    3. このユーザーは許可されているか確認</span>
+<span class="sd">    4. どの会社（顧客）に所属しているか取得</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># 1. ヘッダーからトークンを取り出す（セキュリティ強化版）</span>
+    <span class="n">auth_header</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Authorization&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">auth_header</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;認証トークンがありません&quot;</span><span class="p">)</span>
+
+    <span class="n">parts</span> <span class="o">=</span> <span class="n">auth_header</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;Bearer&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;認証ヘッダーの形式が不正です&quot;</span><span class="p">)</span>
+
+    <span class="n">id_token</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># 2. Firebase Admin SDK でトークンを検証</span>
+    <span class="c1"># check_revoked=True: ログアウト済み/無効化されたトークンを拒否</span>
+    <span class="n">user_info</span> <span class="o">=</span> <span class="n">auth</span><span class="o">.</span><span class="n">verify_id_token</span><span class="p">(</span><span class="n">id_token</span><span class="p">,</span> <span class="n">check_revoked</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># 3. このユーザーは許可されているか</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_user_allowed</span><span class="p">(</span><span class="n">user_info</span><span class="p">[</span><span class="s2">&quot;email&quot;</span><span class="p">]):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;アクセスが許可されていません&quot;</span><span class="p">)</span>
+
+    <span class="c1"># 4. 顧客IDを取得（マルチテナント用）</span>
+    <span class="n">user_info</span><span class="p">[</span><span class="s2">&quot;customer_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_user_customer_id</span><span class="p">(</span><span class="n">user_info</span><span class="p">[</span><span class="s2">&quot;uid&quot;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">user_info</span>
+</code></pre></div>
+
+<h3 id="認証の流れ図">認証の流れ図<a class="header-link" href="#認証の流れ図" title="Permanent link">&para;</a></h3>
+<div class="flow-box">
+<h3>🔐 認証フロー（Gateway対応版）</h3>
+<pre>
+リクエスト到着
+        ↓
+┌───────────────────────────────┐
+│ X-Gateway-Verified == "true"? │
+└───────────┬───────────────────┘
+            ↓
+    ┌───────┴───────┐
+    ↓               ↓
+  true            false
+    ↓               ↓
+内部ヘッダー      従来の認証
+を信頼           (トークン検証)
+    ↓               ↓
+    └───────┬───────┘
+            ↓
+      次の処理へ
+</pre>
+</div>
+
+<hr />
+<h2 id="ステップ6-aiエージェントが応答を生成">ステップ6: AIエージェントが応答を生成<a class="header-link" href="#ステップ6-aiエージェントが応答を生成" title="Permanent link">&para;</a></h2>
+<h3 id="なぜこのファイルがあるのか_3">なぜこのファイルがあるのか？<a class="header-link" href="#なぜこのファイルがあるのか_3" title="Permanent link">&para;</a></h3>
+<p><strong>問題</strong>: 将来、違う種類のAIエージェントを追加したい<br />
+- カスタマーサポート用<br />
+- 社内FAQ用<br />
+- 翻訳用</p>
+<p><strong>解決</strong>: エージェントを「差し替え可能」な形で作る</p>
+<h3 id="場所-srcbackendsrcagents_templateagentpy">場所: <code>src/backend/src/agents/_template/agent.py</code><a class="header-link" href="#場所-srcbackendsrcagents_templateagentpy" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># agent.py（簡略版）</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TemplateAgent</span><span class="p">(</span><span class="n">BaseAgent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;テンプレートQ&amp;Aエージェント&quot;&quot;&quot;</span>
+
+    <span class="c1"># ★ AIの「性格」を定義</span>
+    <span class="n">SYSTEM_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;あなたは親切で丁寧なAIアシスタントです。</span>
+<span class="s2">ユーザーの質問に対して、わかりやすく簡潔に回答してください。&quot;&quot;&quot;</span>
+
+    <span class="c1"># ★ 使用するモデル（Gemini 1.5 Flash）</span>
+    <span class="n">MODEL_NAME</span> <span class="o">=</span> <span class="s2">&quot;gemini-1.5-flash&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_chat_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        チャット処理の本体</span>
+
+<span class="sd">        【流れ】</span>
+<span class="sd">        1. これまでの会話履歴を取得</span>
+<span class="sd">        2. 「あなたは親切な...」というシステムプロンプトを先頭に追加</span>
+<span class="sd">        3. Vertex AI (Gemini) に送信</span>
+<span class="sd">        4. 応答を返す</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">messages</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">]</span>
+
+        <span class="c1"># システムプロンプトを追加</span>
+        <span class="n">full_messages</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">SYSTEM_PROMPT</span><span class="p">},</span>
+            <span class="o">*</span><span class="n">messages</span>
+        <span class="p">]</span>
+
+        <span class="c1"># Vertex AI に問い合わせ</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">ainvoke</span><span class="p">(</span><span class="n">full_messages</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">response</span><span class="p">]}</span>
+</code></pre></div>
+
+<h3 id="エージェントの仕組み">エージェントの仕組み<a class="header-link" href="#エージェントの仕組み" title="Permanent link">&para;</a></h3>
+<div class="info-box">
+<h3>🤖 TemplateAgent の処理</h3>
+<p><strong>SYSTEM_PROMPT = "あなたは親切な..."</strong> ← AIの性格を決める</p>
+<p><strong>_chat_node() の処理:</strong></p>
+<pre>
+[システムプロンプト]
+[ユーザー: こんにちは]     ← これまでの会話
+[AI: こんにちは！]
+[ユーザー: 今日の天気は？]  ← 今回の質問
+        ↓
+    Gemini に送信
+        ↓
+[AI: 今日は晴れですね]     ← Geminiからの返答
+</pre>
+</div>
+
+<hr />
+<h2 id="ステップ7-会話履歴をfirestoreに保存">ステップ7: 会話履歴をFirestoreに保存<a class="header-link" href="#ステップ7-会話履歴をfirestoreに保存" title="Permanent link">&para;</a></h2>
+<h3 id="なぜこのファイルがあるのか_4">なぜこのファイルがあるのか？<a class="header-link" href="#なぜこのファイルがあるのか_4" title="Permanent link">&para;</a></h3>
+<p><strong>問題</strong>:<br />
+- サーバーを再起動すると、会話履歴が消える<br />
+- 違う会社の会話が混ざると情報漏洩</p>
+<p><strong>解決</strong>:<br />
+- Firestoreに保存して永続化<br />
+- 会社（顧客）ごとにデータを分離</p>
+<h3 id="場所-srcbackendsrcagents_basefirestore_checkpointerpy">場所: <code>src/backend/src/agents/_base/firestore_checkpointer.py</code><a class="header-link" href="#場所-srcbackendsrcagents_basefirestore_checkpointerpy" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># firestore_checkpointer.py（簡略版）</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">FirestoreCheckpointer</span><span class="p">(</span><span class="n">BaseCheckpointSaver</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;会話履歴をFirestoreに保存&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">customer_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">db</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">customer_id</span> <span class="o">=</span> <span class="n">customer_id</span>  <span class="c1"># ★ どの会社のデータか</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_checkpoint_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">thread_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        保存先のパスを生成</span>
+
+<span class="sd">        例: customers/acme-corp/checkpoints/user123_abc/...</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">collection</span><span class="p">(</span><span class="s2">&quot;customers&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">document</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">customer_id</span><span class="p">)</span>      <span class="c1"># ← 会社ごとに分離</span>
+            <span class="o">.</span><span class="n">collection</span><span class="p">(</span><span class="s2">&quot;checkpoints&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">document</span><span class="p">(</span><span class="n">thread_id</span><span class="p">)</span>
+        <span class="p">)</span>
+</code></pre></div>
+
+<h3 id="firestoreのデータ構造">Firestoreのデータ構造<a class="header-link" href="#firestoreのデータ構造" title="Permanent link">&para;</a></h3>
+<div class="architecture-box">
+<h3>🗄️ Firestore データ構造</h3>
+<pre>
+Firestore（データベース）
+│
+└── customers/                        ← 「顧客」コレクション
+    │
+    ├── acme-corp/                    ← 会社A のデータ
+    │   └── checkpoints/
+    │       ├── user1_abc123/         ← ユーザー1の会話
+    │       └── user2_def456/         ← ユーザー2の会話
+    │
+    └── beta-inc/                     ← 会社B のデータ
+        └── checkpoints/
+            └── ...                   ← 会社Bの会話（会社Aからは見えない）
+</pre>
+<p><strong>【ポイント】</strong><br>
+会社Aの人は会社Bのデータにアクセスできない → 情報漏洩を防止</p>
+</div>
+
+<hr />
+<h2 id="まとめファイルの繋がり">まとめ：ファイルの繋がり<a class="header-link" href="#まとめファイルの繋がり" title="Permanent link">&para;</a></h2>
+<div class="architecture-box">
+<h3>📁 フロントエンド・Gateway・バックエンドの連携</h3>
+<pre>
+【ブラウザ側（フロントエンド）】
+
+┌──────────────┐        ┌──────────────┐
+│ useChat.ts   │ ─────→ │   api.ts     │
+│              │        │              │
+│ ・画面の状態管理│        │ ・サーバー通信  │
+│ ・メッセージ一覧│        │ ・認証トークン付与│
+└──────────────┘        └──────────────┘
+                              │
+                              ↓ HTTP リクエスト
+════════════════════════ インターネット ════════════════════════
+                              │
+                              ↓
+
+【Gateway（1つだけ）】
+
+┌──────────────────────────────────────────┐
+│           Gateway main.py                 │
+│                                          │
+│  ・Firebase トークン検証                   │
+│  ・customer_id から転送先URL取得           │
+│  ・内部ヘッダー付与して転送                 │
+│    (X-Gateway-Verified, X-User-Id, etc.)  │
+└──────────────────┬───────────────────────┘
+                   │
+                   ↓ 転送
+
+【サーバー側（会社ごとのバックエンド）】
+
+┌──────────────┐        ┌──────────────┐
+│ Backend      │ ─────→ │   auth.py    │
+│ main.py      │        │              │
+│              │        │ ・Gateway連携  │
+│ ・リクエスト受付│        │ ・内部ヘッダー信頼│
+│ ・エージェント呼出│       │              │
+└──────┬───────┘        └──────────────┘
+       │
+       ├─────────────→ ┌──────────────┐
+       │               │  agent.py    │
+       │               │              │
+       │               │ ・AI処理      │
+       │               │ ・応答生成    │
+       │               └──────────────┘
+       │
+       └─────────────→ ┌──────────────┐
+                       │checkpointer.py│
+                       │              │
+                       │ ・履歴保存    │
+                       │ ・顧客分離    │
+                       └──────────────┘
+</pre>
+</div>
+
+<hr />
+<h2 id="よくあるエラーと対処法">よくあるエラーと対処法<a class="header-link" href="#よくあるエラーと対処法" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>エラーメッセージ</th>
+<th>原因</th>
+<th>対処法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ログインが必要です</code></td>
+<td>未ログイン状態でAPI呼び出し</td>
+<td>ログインする</td>
+</tr>
+<tr>
+<td><code>認証トークンがありません</code></td>
+<td>Authorization ヘッダーがない</td>
+<td>ログインし直す</td>
+</tr>
+<tr>
+<td><code>認証ヘッダーの形式が不正です</code></td>
+<td>Bearer形式でない</td>
+<td>ログインし直す</td>
+</tr>
+<tr>
+<td><code>セッションが無効です</code></td>
+<td>ログアウト後のトークン使用</td>
+<td>再ログインする</td>
+</tr>
+<tr>
+<td><code>セッションの有効期限が切れました</code></td>
+<td>トークンの有効期限切れ（1時間）</td>
+<td>ページをリロード</td>
+</tr>
+<tr>
+<td><code>認証トークンが無効です</code></td>
+<td>改ざんされたトークン</td>
+<td>再ログインする</td>
+</tr>
+<tr>
+<td><code>顧客に紐付けされていません</code></td>
+<td>ユーザーが会社に登録されていない</td>
+<td>管理者に連絡</td>
+</tr>
+<tr>
+<td><code>リクエスト制限を超えました</code></td>
+<td>短時間に送りすぎ</td>
+<td>1分待つ</td>
+</tr>
+<tr>
+<td><code>メッセージが長すぎます</code></td>
+<td>10,000文字を超えた</td>
+<td>メッセージを短くする</td>
+</tr>
+<tr>
+<td><code>thread_idの形式が不正です</code></td>
+<td>不正なthread_id</td>
+<td>thread_idを指定しない</td>
+</tr>
+<tr>
+<td><code>CORSエラー</code></td>
+<td>フロントエンドのURLが許可されていない</td>
+<td>ALLOWED_ORIGINS 確認</td>
+</tr>
+<tr>
+<td><code>エラーが発生しました</code></td>
+<td>サーバー内部エラー</td>
+<td>しばらく待って再試行</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="確認問題">確認問題<a class="header-link" href="#確認問題" title="Permanent link">&para;</a></h2>
+<h3 id="理解度チェック">理解度チェック<a class="header-link" href="#理解度チェック" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>送信ボタンを押してから、画面に文字が表示されるまでに、何個のファイルを通過する？</strong></li>
+</ol>
+<details>
+   <summary>答え</summary>
+   7個（useChat.ts → api.ts → Gateway main.py → Backend main.py → auth.py → agent.py → checkpointer.py）
+   </details>
+
+<ol start="2">
+<li><strong>「Bearer」とは何？</strong></li>
+</ol>
+<details>
+   <summary>答え</summary>
+   「トークンを持っている人」という意味。Authorization ヘッダーでトークンを送る標準的な形式。
+   </details>
+
+<ol start="3">
+<li><strong>Gatewayの役割は？</strong></li>
+</ol>
+<details>
+   <summary>答え</summary>
+   認証（トークン検証）と振り分け（customer_idから転送先URL取得）。AI処理は行わない。
+   </details>
+
+<ol start="4">
+<li><strong>会社Aのユーザーが会社Bのデータを見れないのは、どのような仕組みのおかげ？</strong></li>
+</ol>
+<details>
+   <summary>答え</summary>
+   複数の仕組みで保護：
+   - Gatewayが正しい会社のバックエンドにのみ転送
+   - checkpointer.pyがcustomer_idで保存先を分離
+   - Firestoreセキュリティルールで自社データのみアクセス可能
+   </details>
+
+<h3 id="実践チャレンジ">実践チャレンジ<a class="header-link" href="#実践チャレンジ" title="Permanent link">&para;</a></h3>
+<p>ブラウザの開発者ツール（F12）を開いて、実際にチャットを送信し、<br />
+Network タブで以下を確認してみよう：</p>
+<ol>
+<li><code>/chat</code> へのリクエストに <code>Authorization: Bearer ...</code> が付いているか</li>
+<li>レスポンスが <code>data: こん</code> のような形式で返ってきているか</li>
+</ol>
+<hr />
+<h2 id="次に読むべきドキュメント">次に読むべきドキュメント<a class="header-link" href="#次に読むべきドキュメント" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>12_ログインの流れ.md</code> - ログイン処理の詳細</li>
+<li><code>05_セットアップの流れ.md</code> - 環境構築の手順</li>
+</ul>
+      </article>
+      <footer class="footer">
+        GCP AI Agent 設計資料 | Built with Python & Markdown
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.querySelector('.menu-toggle');
+      if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

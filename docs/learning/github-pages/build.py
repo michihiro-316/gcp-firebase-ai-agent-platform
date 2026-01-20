@@ -56,18 +56,23 @@ def get_page_config():
             "desc": "AIの応答をカスタマイズ",
             "category": "advanced"
         },
-        # FLOWファイル（参考資料）
-        "FLOW_01_チャット送信の流れ": {
+        "10_Gatewayアーキテクチャ": {
+            "icon": "🚪",
+            "desc": "認証・振り分けの仕組み",
+            "category": "advanced"
+        },
+        # FLOWファイル（参考資料）- 実際のファイル名に合わせる
+        "11_チャット送信の流れ": {
             "icon": "💬",
             "desc": "メッセージ送信の仕組み",
             "category": "flow"
         },
-        "FLOW_02_ログインの流れ": {
+        "12_ログインの流れ": {
             "icon": "🔐",
             "desc": "認証フローの解説",
             "category": "flow"
         },
-        "FLOW_04_セッション管理の流れ": {
+        "13_セッション管理の流れ": {
             "icon": "📝",
             "desc": "セッション管理の仕組み",
             "category": "flow"
@@ -139,11 +144,18 @@ def get_base_template():
       </div>
 
       <div class="sidebar-section">
+        <div class="sidebar-title">🔧 上級編</div>
+        <ul class="sidebar-nav">
+          <li><a href="10_Gatewayアーキテクチャ.html" {active_10}>Gatewayアーキテクチャ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
         <div class="sidebar-title">🔄 参考: フロー解説</div>
         <ul class="sidebar-nav">
-          <li><a href="FLOW_01_チャット送信の流れ.html" {active_flow01}>チャット送信の流れ</a></li>
-          <li><a href="FLOW_02_ログインの流れ.html" {active_flow02}>ログインの流れ</a></li>
-          <li><a href="FLOW_04_セッション管理の流れ.html" {active_flow04}>セッション管理の流れ</a></li>
+          <li><a href="11_チャット送信の流れ.html" {active_11}>チャット送信の流れ</a></li>
+          <li><a href="12_ログインの流れ.html" {active_12}>ログインの流れ</a></li>
+          <li><a href="13_セッション管理の流れ.html" {active_13}>セッション管理の流れ</a></li>
         </ul>
       </div>
     </aside>
@@ -215,38 +227,43 @@ def get_index_template():
       </div>
 
       <div class="sidebar-section">
-        <div class="sidebar-title">🏗️ Phase1: 仕組みを理解</div>
+        <div class="sidebar-title">🏗️ 仕組みを理解</div>
         <ul class="sidebar-nav">
           <li><a href="02_全体像.html">全体像</a></li>
           <li><a href="03_バックエンド解説.html">バックエンド解説</a></li>
           <li><a href="04_フロントエンド解説.html">フロントエンド解説</a></li>
-          <li><a href="05_顧客管理の仕組み.html">顧客管理の仕組み</a></li>
         </ul>
       </div>
 
       <div class="sidebar-section">
-        <div class="sidebar-title">💻 Phase2: 操作を知る</div>
+        <div class="sidebar-title">🛠️ セットアップ</div>
         <ul class="sidebar-nav">
+          <li><a href="05_セットアップの流れ.html">セットアップの流れ</a></li>
           <li><a href="06_コマンド解説.html">コマンド解説</a></li>
-          <li><a href="07_ファイル形式と設定ファイル.html">ファイル形式と設定</a></li>
         </ul>
       </div>
 
       <div class="sidebar-section">
-        <div class="sidebar-title">🚀 Phase3: 動かす</div>
+        <div class="sidebar-title">🚀 動かす</div>
         <ul class="sidebar-nav">
+          <li><a href="07_動かしてみよう.html">動かしてみよう</a></li>
           <li><a href="08_AIカスタマイズ.html">AIカスタマイズ</a></li>
-          <li><a href="09_セットアップの流れ.html">セットアップの流れ</a></li>
-          <li><a href="10_動かしてみよう.html">動かしてみよう</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔧 上級編</div>
+        <ul class="sidebar-nav">
+          <li><a href="10_Gatewayアーキテクチャ.html">Gatewayアーキテクチャ</a></li>
         </ul>
       </div>
 
       <div class="sidebar-section">
         <div class="sidebar-title">🔄 参考: フロー解説</div>
         <ul class="sidebar-nav">
-          <li><a href="FLOW_01_チャット送信の流れ.html">チャット送信の流れ</a></li>
-          <li><a href="FLOW_02_ログインの流れ.html">ログインの流れ</a></li>
-          <li><a href="FLOW_04_セッション管理の流れ.html">セッション管理の流れ</a></li>
+          <li><a href="11_チャット送信の流れ.html">チャット送信の流れ</a></li>
+          <li><a href="12_ログインの流れ.html">ログインの流れ</a></li>
+          <li><a href="13_セッション管理の流れ.html">セッション管理の流れ</a></li>
         </ul>
       </div>
     </aside>
@@ -395,9 +412,10 @@ def build_documentation():
             'active_06': get_active_class(filename, '06_'),
             'active_07': get_active_class(filename, '07_'),
             'active_08': get_active_class(filename, '08_'),
-            'active_flow01': get_active_class(filename, 'FLOW_01'),
-            'active_flow02': get_active_class(filename, 'FLOW_02'),
-            'active_flow04': get_active_class(filename, 'FLOW_04'),
+            'active_10': get_active_class(filename, '10_'),
+            'active_11': get_active_class(filename, '11_'),
+            'active_12': get_active_class(filename, '12_'),
+            'active_13': get_active_class(filename, '13_'),
         }
 
         # HTMLテンプレートに適用

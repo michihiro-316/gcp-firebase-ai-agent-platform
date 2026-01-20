@@ -60,11 +60,18 @@
       </div>
 
       <div class="sidebar-section">
+        <div class="sidebar-title">🔧 上級編</div>
+        <ul class="sidebar-nav">
+          <li><a href="10_Gatewayアーキテクチャ.html" >Gatewayアーキテクチャ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
         <div class="sidebar-title">🔄 参考: フロー解説</div>
         <ul class="sidebar-nav">
-          <li><a href="FLOW_01_チャット送信の流れ.html" >チャット送信の流れ</a></li>
-          <li><a href="FLOW_02_ログインの流れ.html" >ログインの流れ</a></li>
-          <li><a href="FLOW_04_セッション管理の流れ.html" >セッション管理の流れ</a></li>
+          <li><a href="11_チャット送信の流れ.html" >チャット送信の流れ</a></li>
+          <li><a href="12_ログインの流れ.html" >ログインの流れ</a></li>
+          <li><a href="13_セッション管理の流れ.html" >セッション管理の流れ</a></li>
         </ul>
       </div>
     </aside>
@@ -140,13 +147,13 @@
 </ul>
 <h3 id="手順">手順<a class="header-link" href="#手順" title="Permanent link">&para;</a></h3>
 <p><strong>ターミナル1: モックサーバー起動</strong></p>
-<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>backend/dev
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>src/backend/dev
 pip<span class="w"> </span>install<span class="w"> </span>flask<span class="w"> </span>flask-cors<span class="w">  </span><span class="c1"># 初回のみ</span>
 python<span class="w"> </span>mock_server.py
 </code></pre></div>
 
 <p><strong>ターミナル2: フロントエンド起動</strong></p>
-<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>frontend
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>src/frontend
 npm<span class="w"> </span>install<span class="w">  </span><span class="c1"># 初回のみ</span>
 
 <span class="c1"># .env を編集</span>
@@ -168,7 +175,7 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 <li>✅ 認証スキップ</li>
 <li>✅ フロントエンド開発に集中できる</li>
 </ul>
-<p>詳細は backend/dev/README.md を参照</p>
+<p>詳細は src/backend/dev/README.md を参照</p>
 </div>
 
 <hr />
@@ -185,7 +192,7 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 <h3 id="1-バックエンドを起動">1. バックエンドを起動<a class="header-link" href="#1-バックエンドを起動" title="Permanent link">&para;</a></h3>
 <p>ターミナル1:</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># backendフォルダに移動</span>
-<span class="nb">cd</span><span class="w"> </span>backend
+<span class="nb">cd</span><span class="w"> </span>src/backend
 
 <span class="c1"># 依存パッケージをインストール（初回のみ）</span>
 pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
@@ -202,7 +209,7 @@ functions-framework<span class="w"> </span>--target<span class="o">=</span>main<
 <h3 id="2-フロントエンドを起動">2. フロントエンドを起動<a class="header-link" href="#2-フロントエンドを起動" title="Permanent link">&para;</a></h3>
 <p>ターミナル2（別のターミナルを開く）:</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># frontendフォルダに移動</span>
-<span class="nb">cd</span><span class="w"> </span>frontend
+<span class="nb">cd</span><span class="w"> </span>src/frontend
 
 <span class="c1"># 依存パッケージをインストール（初回のみ）</span>
 npm<span class="w"> </span>install
@@ -255,7 +262,7 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 <div class="warning-box">
 <h3>🔧 よくあるエラーと対処法</h3>
 <p><strong>【CORS エラー】</strong><br>
-backend/.env を確認:<br>
+src/backend/.env を確認:<br>
 <code>ALLOWED_ORIGINS=http://localhost:5173</code><br>
 （末尾にスラッシュをつけない）</p>
 <p><strong>【認証エラー】</strong></p>
@@ -305,7 +312,7 @@ backend/.env を確認:<br>
 <hr />
 <h2 id="コードを変更してみよう">コードを変更してみよう<a class="header-link" href="#コードを変更してみよう" title="Permanent link">&para;</a></h2>
 <h3 id="実験1-aiの返答を変える">実験1: AIの返答を変える<a class="header-link" href="#実験1-aiの返答を変える" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="c1"># backend/src/agents/_template/agent.py</span>
+<div class="codehilite"><pre><span></span><code><span class="c1"># src/backend/src/agents/_template/agent.py</span>
 
 <span class="n">SYSTEM_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;あなたは関西弁で話すAIアシスタントやで。</span>
 <span class="s2">ユーザーの質問にフレンドリーに答えてや。&quot;&quot;&quot;</span>
@@ -313,7 +320,7 @@ backend/.env を確認:<br>
 
 <p>→ バックエンドを再起動 → チャットしてみる</p>
 <h3 id="実験2-画面の色を変える">実験2: 画面の色を変える<a class="header-link" href="#実験2-画面の色を変える" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="c">/* frontend/src/styles.css */</span>
+<div class="codehilite"><pre><span></span><code><span class="c">/* src/frontend/src/styles.css */</span>
 
 <span class="p">.</span><span class="nc">chat-container</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="k">background-color</span><span class="p">:</span><span class="w"> </span><span class="mh">#f0f8ff</span><span class="p">;</span><span class="w">  </span><span class="c">/* 薄い青に変更 */</span>
@@ -352,7 +359,7 @@ backend/.env を確認:<br>
 </tr>
 <tr>
 <td>2</td>
-<td><a href="./FLOW_01_チャット送信の流れ.md">FLOW_01_チャット送信の流れ.md</a></td>
+<td><a href="./11_チャット送信の流れ.md">11_チャット送信の流れ.md</a></td>
 <td>詳細なデータフロー</td>
 </tr>
 </tbody>

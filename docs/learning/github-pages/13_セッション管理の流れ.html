@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>13 セッション管理の流れ - GCP AI Agent 設計資料</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="header-logo">
+      <span>📚</span>
+      <span>GCP AI Agent 設計資料</span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">ホーム</a>
+      <a href="02_全体像.html">全体像</a>
+      <a href="https://github.com" target="_blank">GitHub</a>
+    </nav>
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">📖 はじめに</div>
+        <ul class="sidebar-nav">
+          <li><a href="01_はじめに読んでください.html" >はじめに読んでください</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🏗️ 仕組みを理解</div>
+        <ul class="sidebar-nav">
+          <li><a href="02_全体像.html" >全体像</a></li>
+          <li><a href="03_バックエンド解説.html" >バックエンド解説</a></li>
+          <li><a href="04_フロントエンド解説.html" >フロントエンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🛠️ セットアップ</div>
+        <ul class="sidebar-nav">
+          <li><a href="05_セットアップの流れ.html" >セットアップの流れ</a></li>
+          <li><a href="06_コマンド解説.html" >コマンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🚀 動かす</div>
+        <ul class="sidebar-nav">
+          <li><a href="07_動かしてみよう.html" >動かしてみよう</a></li>
+          <li><a href="08_AIカスタマイズ.html" >AIカスタマイズ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔧 上級編</div>
+        <ul class="sidebar-nav">
+          <li><a href="10_Gatewayアーキテクチャ.html" >Gatewayアーキテクチャ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔄 参考: フロー解説</div>
+        <ul class="sidebar-nav">
+          <li><a href="11_チャット送信の流れ.html" >チャット送信の流れ</a></li>
+          <li><a href="12_ログインの流れ.html" >ログインの流れ</a></li>
+          <li><a href="13_セッション管理の流れ.html" class="active">セッション管理の流れ</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <article class="content">
+        <h1 id="セッション管理の流れ">セッション管理の流れ<a class="header-link" href="#セッション管理の流れ" title="Permanent link">&para;</a></h1>
+<p>このドキュメントでは、複数の会話（セッション）を管理する仕組みを解説します。</p>
+<h2 id="セッションとは">セッションとは？<a class="header-link" href="#セッションとは" title="Permanent link">&para;</a></h2>
+<p>「セッション」とは、1つの独立した会話のことです。</p>
+<div class="codehilite"><pre><span></span><code>例：
+- セッションA: 「Pythonについて教えて」
+- セッションB: 「今日の天気は？」
+- セッションC: 「レシピを教えて」
+</code></pre></div>
+
+<p>複数のセッションを持つことで、異なるトピックの会話を同時に進行できます。</p>
+<h2 id="ファイル構成">ファイル構成<a class="header-link" href="#ファイル構成" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>ファイル</th>
+<th>役割</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>useSessions.ts</code></td>
+<td>セッションの作成・切り替え・削除を管理</td>
+</tr>
+<tr>
+<td><code>useChat.ts</code></td>
+<td>メッセージの送受信を管理</td>
+</tr>
+<tr>
+<td><code>SessionTabs.tsx</code></td>
+<td>タブUI（セッション一覧）を表示</td>
+</tr>
+<tr>
+<td><code>App.tsx</code></td>
+<td>各フックを統合</td>
+</tr>
+</tbody>
+</table>
+<h2 id="データの流れ">データの流れ<a class="header-link" href="#データの流れ" title="Permanent link">&para;</a></h2>
+<div class="architecture-box">
+<h3>📊 コンポーネント構成</h3>
+<pre>
+┌────────────────────────────────────────────────────────┐
+│                    App.tsx                              │
+│  ┌─────────────────┐    ┌─────────────────┐            │
+│  │  useSessions()  │←──→│    useChat()    │            │
+│  │ セッション管理   │    │ メッセージ管理   │            │
+│  └────────┬────────┘    └────────┬────────┘            │
+│           │                      │                      │
+│           └──────────┬───────────┘                      │
+│                      ↓                                  │
+│             ┌────────────────┐                          │
+│             │  ChatScreen    │                          │
+│             │ ┌────────────┐ │                          │
+│             │ │SessionTabs │ │                          │
+│             │ └────────────┘ │                          │
+│             └────────────────┘                          │
+└────────────────────────────────────────────────────────┘
+</pre>
+</div>
+
+<h2 id="セッションの作成フロー">セッションの作成フロー<a class="header-link" href="#セッションの作成フロー" title="Permanent link">&para;</a></h2>
+<div class="flow-box">
+<h3>➕ 新規セッション作成</h3>
+<pre>
+ユーザーが「+」ボタンをクリック
+      ↓
+SessionTabs: onNewSession() を呼び出し
+      ↓
+App.tsx: createSession() を呼び出し
+      ↓
+useSessions: 新しいセッションを作成
+      ↓
+ローカルストレージに自動保存
+      ↓
+画面に新しいタブが表示される
+</pre>
+</div>
+
+<h2 id="セッション切り替えフロー">セッション切り替えフロー<a class="header-link" href="#セッション切り替えフロー" title="Permanent link">&para;</a></h2>
+<div class="flow-box">
+<h3>🔄 セッション切り替え</h3>
+<pre>
+ユーザーがタブをクリック
+      ↓
+SessionTabs: onSelectSession(id) を呼び出し
+      ↓
+useSessions: activeSessionId を更新
+      ↓
+useChat: 選択したセッションのメッセージを表示
+</pre>
+</div>
+
+<h2 id="メッセージ送信時の処理">メッセージ送信時の処理<a class="header-link" href="#メッセージ送信時の処理" title="Permanent link">&para;</a></h2>
+<div class="flow-box">
+<h3>💬 メッセージ送信フロー</h3>
+<pre>
+ユーザーがメッセージを送信
+      ↓
+useChat: sendMessage() を実行
+      ↓
+バックエンドからレスポンスを受信
+      ↓
+useChat: onMessagesUpdate() を呼び出し
+      ↓
+useSessions: セッションのメッセージを更新
+      ↓
+ローカルストレージに自動保存
+      ↓
+タイトルが「新しい会話」の場合は自動生成
+</pre>
+</div>
+
+<h2 id="セッションのデータ構造">セッションのデータ構造<a class="header-link" href="#セッションのデータ構造" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><code><span class="kd">interface</span><span class="w"> </span><span class="nx">ChatSession</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w">           </span><span class="c1">// 一意のID（例: &quot;session_1705471200_abc123&quot;）</span>
+<span class="w">  </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w">        </span><span class="c1">// タイトル（例: &quot;Pythonについて教えて&quot;）</span>
+<span class="w">  </span><span class="nx">messages</span><span class="o">:</span><span class="w"> </span><span class="kt">Message</span><span class="p">[]</span><span class="w">  </span><span class="c1">// メッセージ履歴</span>
+<span class="w">  </span><span class="nx">threadId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w">     </span><span class="c1">// バックエンドとの会話ID</span>
+<span class="w">  </span><span class="nx">createdAt</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="w">    </span><span class="c1">// 作成日時</span>
+<span class="w">  </span><span class="nx">updatedAt</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="w">    </span><span class="c1">// 最終更新日時</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h2 id="ローカルストレージでの保存">ローカルストレージでの保存<a class="header-link" href="#ローカルストレージでの保存" title="Permanent link">&para;</a></h2>
+<p>セッションはブラウザの<strong>ローカルストレージ</strong>に保存されます。</p>
+<h3 id="保存場所">保存場所<a class="header-link" href="#保存場所" title="Permanent link">&para;</a></h3>
+<ul>
+<li>キー: <code>chat_sessions</code></li>
+<li>形式: JSON配列</li>
+</ul>
+<h3 id="制限事項">制限事項<a class="header-link" href="#制限事項" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>制限</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>最大セッション数</td>
+<td>10個</td>
+</tr>
+<tr>
+<td>容量目安</td>
+<td>約80KB（10セッション × 20メッセージ）</td>
+</tr>
+<tr>
+<td>デバイス間同期</td>
+<td>なし（ブラウザごとに独立）</td>
+</tr>
+<tr>
+<td>データ消失</td>
+<td>ブラウザのデータクリア時</td>
+</tr>
+</tbody>
+</table>
+<h3 id="なぜローカルストレージ">なぜローカルストレージ？<a class="header-link" href="#なぜローカルストレージ" title="Permanent link">&para;</a></h3>
+<div class="tip-box">
+<h3>💡 ローカルストレージを使う理由</h3>
+<ul>
+<li>GCP設定なしで動作確認できる</li>
+<li>バックエンドAPIの追加が不要</li>
+<li>シンプルな実装で初学者にも理解しやすい</li>
+</ul>
+</div>
+
+<h2 id="よくある質問">よくある質問<a class="header-link" href="#よくある質問" title="Permanent link">&para;</a></h2>
+<div class="info-box">
+<h3>❓ FAQ</h3>
+<p><strong>Q. セッションを削除したら復元できる？</strong><br>
+A. できません。削除前に確認ダイアログが表示されますが、一度削除すると復元できません。</p>
+<p><strong>Q. PCを変えたらセッションが見えない？</strong><br>
+A. 見えません。ローカルストレージはブラウザごとに独立しているため、別のデバイスでは表示されません。</p>
+<p><strong>Q. 最大10セッションを超えたらどうなる？</strong><br>
+A. 古いセッションが自動削除されます。新しいセッションを作成すると、最も古いセッションが削除されます。</p>
+<p><strong>Q. ブラウザのキャッシュをクリアしたら？</strong><br>
+A. セッションは消えます。ローカルストレージもクリアされるため、すべてのセッションが失われます。</p>
+</div>
+
+<h2 id="関連ドキュメント">関連ドキュメント<a class="header-link" href="#関連ドキュメント" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="./11_チャット送信の流れ.md">11_チャット送信の流れ</a> - メッセージ送受信の詳細</li>
+<li><a href="./04_フロントエンド解説.md">04_フロントエンド解説</a> - React/TypeScriptの基本</li>
+</ul>
+<h2 id="コード例">コード例<a class="header-link" href="#コード例" title="Permanent link">&para;</a></h2>
+<h3 id="セッション管理フックの使用">セッション管理フックの使用<a class="header-link" href="#セッション管理フックの使用" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// App.tsx での使用例</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useSessions</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./hooks/useSessions&#39;</span>
+
+<span class="kd">function</span><span class="w"> </span><span class="nx">App</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sessions</span><span class="p">,</span><span class="w">           </span><span class="c1">// セッション一覧</span>
+<span class="w">    </span><span class="nx">activeSession</span><span class="p">,</span><span class="w">      </span><span class="c1">// 現在のセッション</span>
+<span class="w">    </span><span class="nx">createSession</span><span class="p">,</span><span class="w">      </span><span class="c1">// 新規作成</span>
+<span class="w">    </span><span class="nx">switchSession</span><span class="p">,</span><span class="w">      </span><span class="c1">// 切り替え</span>
+<span class="w">    </span><span class="nx">closeSession</span><span class="p">,</span><span class="w">       </span><span class="c1">// 削除</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useSessions</span><span class="p">()</span>
+
+<span class="w">  </span><span class="c1">// 新しいセッションを作成</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">handleNewChat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">createSession</span><span class="p">()</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="c1">// セッションを切り替え</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">handleSelectSession</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">switchSession</span><span class="p">(</span><span class="nx">id</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="タイトル自動生成の仕組み">タイトル自動生成の仕組み<a class="header-link" href="#タイトル自動生成の仕組み" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// 最初のユーザーメッセージからタイトルを生成</span>
+<span class="c1">// 例: &quot;Pythonでリストをソートする方法を...&quot; → &quot;Pythonでリストをソート...&quot;</span>
+
+<span class="kd">function</span><span class="w"> </span><span class="nx">generateTitleFromMessage</span><span class="p">(</span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">maxLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">20</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">trimmed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">content</span><span class="p">.</span><span class="nx">trim</span><span class="p">().</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\n/g</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">trimmed</span><span class="p">.</span><span class="nx">length</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="nx">maxLength</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">trimmed</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">trimmed</span><span class="p">.</span><span class="nx">substring</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="nx">maxLength</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s1">&#39;...&#39;</span>
+<span class="p">}</span>
+</code></pre></div>
+      </article>
+      <footer class="footer">
+        GCP AI Agent 設計資料 | Built with Python & Markdown
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.querySelector('.menu-toggle');
+      if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

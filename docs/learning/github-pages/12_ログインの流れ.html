@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>12 ログインの流れ - GCP AI Agent 設計資料</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="header-logo">
+      <span>📚</span>
+      <span>GCP AI Agent 設計資料</span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">ホーム</a>
+      <a href="02_全体像.html">全体像</a>
+      <a href="https://github.com" target="_blank">GitHub</a>
+    </nav>
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">📖 はじめに</div>
+        <ul class="sidebar-nav">
+          <li><a href="01_はじめに読んでください.html" >はじめに読んでください</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🏗️ 仕組みを理解</div>
+        <ul class="sidebar-nav">
+          <li><a href="02_全体像.html" >全体像</a></li>
+          <li><a href="03_バックエンド解説.html" >バックエンド解説</a></li>
+          <li><a href="04_フロントエンド解説.html" >フロントエンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🛠️ セットアップ</div>
+        <ul class="sidebar-nav">
+          <li><a href="05_セットアップの流れ.html" >セットアップの流れ</a></li>
+          <li><a href="06_コマンド解説.html" >コマンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🚀 動かす</div>
+        <ul class="sidebar-nav">
+          <li><a href="07_動かしてみよう.html" >動かしてみよう</a></li>
+          <li><a href="08_AIカスタマイズ.html" >AIカスタマイズ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔧 上級編</div>
+        <ul class="sidebar-nav">
+          <li><a href="10_Gatewayアーキテクチャ.html" >Gatewayアーキテクチャ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔄 参考: フロー解説</div>
+        <ul class="sidebar-nav">
+          <li><a href="11_チャット送信の流れ.html" >チャット送信の流れ</a></li>
+          <li><a href="12_ログインの流れ.html" class="active">ログインの流れ</a></li>
+          <li><a href="13_セッション管理の流れ.html" >セッション管理の流れ</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <article class="content">
+        <h1 id="ログインの流れ---完全解説">ログインの流れ - 完全解説<a class="header-link" href="#ログインの流れ---完全解説" title="Permanent link">&para;</a></h1>
+<p><strong>このドキュメントの目的</strong>：<br />
+「ログインボタンを押したら何が起きるか」を、<strong>実際のコード</strong>と<strong>繋がり</strong>を見ながら理解する。</p>
+<p><strong>想定読者</strong>: GASを少し触ったことがある新卒エンジニア</p>
+<p><strong>読了時間</strong>: 約30分</p>
+<hr />
+<h2 id="まず知っておくべきこと">まず知っておくべきこと<a class="header-link" href="#まず知っておくべきこと" title="Permanent link">&para;</a></h2>
+<h3 id="なぜgoogleログインを使うの">なぜGoogleログインを使うの？<a class="header-link" href="#なぜgoogleログインを使うの" title="Permanent link">&para;</a></h3>
+<div class="flow-box">
+<h3>🔑 認証方式の比較</h3>
+<p><strong>【方法1: 自分でパスワード管理】</strong></p>
+<pre>
+ユーザー → パスワード → 自分のサーバー
+                         ↓
+                  パスワードを保存
+                         ↓
+                  もしハッキングされたら...
+                  全ユーザーのパスワードが漏洩！
+</pre>
+<p><strong>【方法2: Googleに任せる（OAuth）】← 今回はこっち</strong></p>
+<pre>
+ユーザー → Googleアカウント → Google
+                                ↓
+                         「この人は本物です」
+                                ↓
+                         自分のサーバー
+</pre>
+<ul>
+<li>✅ パスワードを保存しなくてよい</li>
+<li>✅ Googleのセキュリティに守られる</li>
+<li>✅ 2段階認証も自動で使える</li>
+</ul>
+</div>
+
+<h3 id="custom-claimsカスタムクレームとは">Custom Claims（カスタムクレーム）とは？<a class="header-link" href="#custom-claimsカスタムクレームとは" title="Permanent link">&para;</a></h3>
+<div class="info-box">
+<h3>🎫 Custom Claims - 銀行の例えで説明</h3>
+<p><strong>身分証明書（IDトークン）:</strong></p>
+<pre>
+┌─────────────────────────────────────┐
+│  名前: 山田太郎                       │
+│  生年月日: 1990/1/1                   │
+│  住所: 東京都...                      │
+│                                     │
+│  【追加情報（Custom Claims）】         │
+│  所属会社: 株式会社ACME                │  ← サーバーだけが書ける
+│  社員番号: A001                       │  ← ユーザーは改ざんできない
+└─────────────────────────────────────┘
+</pre>
+<p>この身分証があれば、<br>「株式会社ACMEの山田太郎さん」だと証明できる</p>
+</div>
+
+<hr />
+<h2 id="全体フロー図">全体フロー図<a class="header-link" href="#全体フロー図" title="Permanent link">&para;</a></h2>
+<div class="architecture-box">
+<h3>🔄 ログインの全体フロー</h3>
+<pre>
+【ブラウザ】                          【外部サービス】
+
+1. 「Googleでログイン」
+   ボタンをクリック
+        ↓
+   ┌─────────────────┐
+   │  useAuth.ts     │  ← 「ログイン係」
+   │  loginWithGoogle()
+   └────────┬────────┘
+            ↓
+   ┌─────────────────┐
+   │  firebase.ts    │  ← 「Firebase接続係」
+   │  signInWithPopup()
+   └────────┬────────┘
+            ↓
+   ポップアップが開く ───────────────→ Google
+            ↓                         ↓
+   ユーザーがGoogleアカウントを選択   「この人は本物です」
+            ↓                         ↓
+   ┌─────────────────┐              ← 認証結果を受け取り
+   │ Firebase Auth   │
+   │ ユーザー作成/更新│
+   └────────┬────────┘
+            ↓
+   ┌─────────────────┐
+   │ onAuthStateChanged()  ← 「ログイン完了したよ！」
+   │ 自動で呼ばれる    │      と通知してくれる
+   └────────┬────────┘
+            ↓
+2. ログイン完了！
+   チャット画面に切り替わる
+</pre>
+</div>
+
+<hr />
+<h2 id="ステップ1-ログインボタンをクリック">ステップ1: ログインボタンをクリック<a class="header-link" href="#ステップ1-ログインボタンをクリック" title="Permanent link">&para;</a></h2>
+<h3 id="なぜこのファイルがあるのか">なぜこのファイルがあるのか？<a class="header-link" href="#なぜこのファイルがあるのか" title="Permanent link">&para;</a></h3>
+<p><strong>問題</strong>: ログイン画面のボタンに直接ログイン処理を書くと...<br />
+- コードが長くなる<br />
+- 他の画面（設定画面など）で再利用できない<br />
+- テストしにくい</p>
+<p><strong>解決</strong>: ログイン処理を「フック（Hook）」として分離する</p>
+<h3 id="場所-srcfrontendsrchooksuseauthts">場所: <code>src/frontend/src/hooks/useAuth.ts</code><a class="header-link" href="#場所-srcfrontendsrchooksuseauthts" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// useAuth.ts（簡略版）</span>
+
+<span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">useAuth</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// ====================================</span>
+<span class="w">  </span><span class="c1">// 【このフックの役割】</span>
+<span class="w">  </span><span class="c1">// 1. 「今ログインしてる？」を管理</span>
+<span class="w">  </span><span class="c1">// 2. 「ログインする」機能を提供</span>
+<span class="w">  </span><span class="c1">// 3. 「ログアウトする」機能を提供</span>
+<span class="w">  </span><span class="c1">// ====================================</span>
+
+<span class="w">  </span><span class="c1">// ★ 状態の定義</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">setUser</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">null</span><span class="p">)</span><span class="w">      </span><span class="c1">// ログイン中のユーザー</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">loading</span><span class="p">,</span><span class="w"> </span><span class="nx">setLoading</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span><span class="w"> </span><span class="c1">// 読み込み中？</span>
+
+<span class="w">  </span><span class="c1">// ★ ログイン状態の監視（ページを開いた時に1回だけ実行）</span>
+<span class="w">  </span><span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// 「ログイン状態が変わったら教えて」と登録</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">unsubscribe</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">onAuthStateChanged</span><span class="p">(</span><span class="nx">auth</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">user</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">setUser</span><span class="p">(</span><span class="nx">user</span><span class="p">)</span><span class="w">       </span><span class="c1">// ユーザー情報を更新</span>
+<span class="w">      </span><span class="nx">setLoading</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span><span class="w">   </span><span class="c1">// 読み込み完了</span>
+<span class="w">    </span><span class="p">})</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">unsubscribe</span><span class="w">  </span><span class="c1">// ページを離れる時に解除</span>
+<span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="p">[])</span>
+
+<span class="w">  </span><span class="c1">// ★ Googleでログイン</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">loginWithGoogle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">await</span><span class="w"> </span><span class="nx">signInWithPopup</span><span class="p">(</span><span class="nx">auth</span><span class="p">,</span><span class="w"> </span><span class="nx">googleProvider</span><span class="p">)</span>
+<span class="w">      </span><span class="c1">// 成功すると onAuthStateChanged が自動で呼ばれる</span>
+<span class="w">      </span><span class="c1">// → setUser(user) が実行される</span>
+<span class="w">      </span><span class="c1">// → 画面が自動でチャット画面に切り替わる</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s1">&#39;ログイン失敗:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="c1">// ★ ログアウト</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">logout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">await</span><span class="w"> </span><span class="nx">signOut</span><span class="p">(</span><span class="nx">auth</span><span class="p">)</span>
+<span class="w">    </span><span class="c1">// 成功すると onAuthStateChanged が自動で呼ばれる</span>
+<span class="w">    </span><span class="c1">// → setUser(null) が実行される</span>
+<span class="w">    </span><span class="c1">// → 画面が自動でログイン画面に切り替わる</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">loading</span><span class="p">,</span><span class="w"> </span><span class="nx">loginWithGoogle</span><span class="p">,</span><span class="w"> </span><span class="nx">logout</span><span class="w"> </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="gas経験者向け-useeffect-とは">GAS経験者向け: useEffect とは？<a class="header-link" href="#gas経験者向け-useeffect-とは" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// GASの場合</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">onOpen</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// スプレッドシートを開いた時に1回だけ実行</span>
+<span class="p">}</span>
+
+<span class="c1">// Reactの場合</span>
+<span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// コンポーネントが表示された時に1回だけ実行</span>
+<span class="p">},</span><span class="w"> </span><span class="p">[])</span><span class="w">  </span><span class="c1">// ← この [] が「1回だけ」を意味する</span>
+</code></pre></div>
+
+<hr />
+<h2 id="ステップ2-firebase初期化">ステップ2: Firebase初期化<a class="header-link" href="#ステップ2-firebase初期化" title="Permanent link">&para;</a></h2>
+<h3 id="なぜこのファイルがあるのか_1">なぜこのファイルがあるのか？<a class="header-link" href="#なぜこのファイルがあるのか_1" title="Permanent link">&para;</a></h3>
+<p><strong>問題</strong>: Firebaseの設定を複数の場所で書くと...<br />
+- 同じコードが重複する<br />
+- 設定を変えたい時に全部直す必要がある</p>
+<p><strong>解決</strong>: Firebase初期化を1つのファイルにまとめる</p>
+<h3 id="場所-srcfrontendsrcservicesfirebasets">場所: <code>src/frontend/src/services/firebase.ts</code><a class="header-link" href="#場所-srcfrontendsrcservicesfirebasets" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// firebase.ts</span>
+
+<span class="c1">// ★ Firebase設定（環境変数から取得）</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">firebaseConfig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">apiKey</span><span class="o">:</span><span class="w"> </span><span class="kt">import.meta.env.VITE_FIREBASE_API_KEY</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">authDomain</span><span class="o">:</span><span class="w"> </span><span class="kt">import.meta.env.VITE_FIREBASE_AUTH_DOMAIN</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">projectId</span><span class="o">:</span><span class="w"> </span><span class="kt">import.meta.env.VITE_FIREBASE_PROJECT_ID</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1">// ★ Firebase初期化（アプリ全体で1回だけ）</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">app</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">initializeApp</span><span class="p">(</span><span class="nx">firebaseConfig</span><span class="p">)</span>
+
+<span class="c1">// ★ 認証機能を取得（他のファイルから使える）</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">auth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">getAuth</span><span class="p">(</span><span class="nx">app</span><span class="p">)</span>
+
+<span class="c1">// ★ Googleログイン用の設定</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">googleProvider</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">GoogleAuthProvider</span><span class="p">()</span>
+</code></pre></div>
+
+<h3 id="環境変数とは">環境変数とは？<a class="header-link" href="#環境変数とは" title="Permanent link">&para;</a></h3>
+<div class="warning-box">
+<h3>⚠️ APIキーの管理</h3>
+<p><strong>【問題】APIキーをコードに直接書くと...</strong></p>
+<pre>const apiKey = "AIzaSyXXXXXXXXXX"  // ← GitHubに公開される！</pre>
+<p><strong>【解決】.env ファイルに書く</strong></p>
+<pre>
+# .env ファイル（GitHubにはアップしない）
+VITE_FIREBASE_API_KEY=AIzaSyXXXXXXXXXX
+
+# コードでは環境変数から読む
+const apiKey = import.meta.env.VITE_FIREBASE_API_KEY
+</pre>
+</div>
+
+<hr />
+<h2 id="ステップ3-ログイン処理の詳細">ステップ3: ログイン処理の詳細<a class="header-link" href="#ステップ3-ログイン処理の詳細" title="Permanent link">&para;</a></h2>
+<h3 id="signinwithpopup-の動作">signInWithPopup の動作<a class="header-link" href="#signinwithpopup-の動作" title="Permanent link">&para;</a></h3>
+<div class="flow-box">
+<h3>🔟 ログインの10ステップ</h3>
+<ol>
+<li>signInWithPopup() を呼ぶ</li>
+<li>新しいウィンドウ（ポップアップ）が開く</li>
+<li>Googleの「アカウントを選択」画面が表示</li>
+<li>ユーザーがアカウントを選択</li>
+<li>Google: 「この人は本物です」</li>
+<li>Firebase Auth にユーザー情報が保存</li>
+<li>ポップアップが自動で閉じる</li>
+<li>onAuthStateChanged が自動で呼ばれる</li>
+<li>setUser(user) で状態が更新</li>
+<li>画面がチャット画面に切り替わる</li>
+</ol>
+</div>
+
+<h3 id="認証状態の変化パターン">認証状態の変化パターン<a class="header-link" href="#認証状態の変化パターン" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>シナリオ</th>
+<th>何が起きるか</th>
+<th>結果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>初めてアクセス</td>
+<td>onAuthStateChanged → user: null</td>
+<td>ログイン画面</td>
+</tr>
+<tr>
+<td>ログインボタンクリック</td>
+<td>signInWithPopup → onAuthStateChanged → user: {...}</td>
+<td>チャット画面</td>
+</tr>
+<tr>
+<td>ページリロード</td>
+<td>onAuthStateChanged → user: {...}（保存されていた）</td>
+<td>チャット画面</td>
+</tr>
+<tr>
+<td>ログアウト</td>
+<td>signOut → onAuthStateChanged → user: null</td>
+<td>ログイン画面</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="ステップ4-バックエンドでの認証検証">ステップ4: バックエンドでの認証検証<a class="header-link" href="#ステップ4-バックエンドでの認証検証" title="Permanent link">&para;</a></h2>
+<h3 id="なぜサーバー側でも検証が必要">なぜサーバー側でも検証が必要？<a class="header-link" href="#なぜサーバー側でも検証が必要" title="Permanent link">&para;</a></h3>
+<div class="warning-box">
+<h3>⚠️ フロントエンドだけで認証すると...</h3>
+<p>悪意のあるユーザーが、<br>
+ブラウザの開発者ツールで<br>
+「ログイン済み」に偽装できてしまう！</p>
+<p><strong>【解決】サーバー側でも必ずトークンを検証する</strong></p>
+<pre>
+フロントエンド: 「私は山田太郎です」
+        ↓ IDトークンを送信
+サーバー: 「本当に？Googleに確認するね」
+        ↓ Firebase Admin SDK で検証
+Google: 「本物の山田太郎さんです」
+        ↓
+サーバー: 「OK、処理を続けます」
+</pre>
+</div>
+
+<h3 id="場所-srcbackendsrccommonauthpy">場所: <code>src/backend/src/common/auth.py</code><a class="header-link" href="#場所-srcbackendsrccommonauthpy" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># auth.py（簡略版）</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">authenticate_request</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    リクエストを認証する</span>
+
+<span class="sd">    【4つの関門】</span>
+<span class="sd">    1. トークンがあるか？</span>
+<span class="sd">    2. トークンは本物か？</span>
+<span class="sd">    3. このユーザーは許可されているか？</span>
+<span class="sd">    4. どの会社に所属しているか？</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># 関門1: トークンがあるか？</span>
+    <span class="n">auth_header</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Authorization&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">auth_header</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;Bearer &quot;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;認証トークンがありません&quot;</span><span class="p">)</span>
+
+    <span class="n">id_token</span> <span class="o">=</span> <span class="n">auth_header</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;Bearer &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># 関門2: トークンは本物か？（Googleに確認）</span>
+    <span class="n">user_info</span> <span class="o">=</span> <span class="n">auth</span><span class="o">.</span><span class="n">verify_id_token</span><span class="p">(</span><span class="n">id_token</span><span class="p">)</span>
+
+    <span class="c1"># 関門3: このユーザーは許可されているか？</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_user_allowed</span><span class="p">(</span><span class="n">user_info</span><span class="p">[</span><span class="s2">&quot;email&quot;</span><span class="p">]):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;アクセスが許可されていません&quot;</span><span class="p">)</span>
+
+    <span class="c1"># 関門4: どの会社に所属しているか？</span>
+    <span class="n">user_info</span><span class="p">[</span><span class="s2">&quot;customer_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_user_customer_id</span><span class="p">(</span><span class="n">user_info</span><span class="p">[</span><span class="s2">&quot;uid&quot;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">user_info</span>  <span class="c1"># 全部通過！</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_user_customer_id</span><span class="p">(</span><span class="n">uid</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ユーザーの所属会社（顧客ID）を取得</span>
+
+<span class="sd">    【自動振り分け対応】</span>
+<span class="sd">    1. まずCustom Claimsに customer_id があるか確認</span>
+<span class="sd">    2. なければ、メールのドメインから顧客を自動検索</span>
+<span class="sd">    3. 見つかれば自動でCustom Claimsを設定</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">auth</span><span class="o">.</span><span class="n">get_user</span><span class="p">(</span><span class="n">uid</span><span class="p">)</span>
+    <span class="n">claims</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">custom_claims</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">customer_id</span> <span class="o">=</span> <span class="n">claims</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;customer_id&quot;</span><span class="p">)</span>
+
+    <span class="c1"># 既にCustom Claimsがあればそれを返す</span>
+    <span class="k">if</span> <span class="n">customer_id</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">customer_id</span>
+
+    <span class="c1"># 自動振り分けを試行</span>
+    <span class="k">if</span> <span class="n">email</span><span class="p">:</span>
+        <span class="n">customer_id</span> <span class="o">=</span> <span class="n">auto_assign_customer</span><span class="p">(</span><span class="n">uid</span><span class="p">,</span> <span class="n">email</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">customer_id</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">customer_id</span>
+
+    <span class="c1"># どちらにも該当しない場合はエラー</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;顧客に紐付けされていません。管理者に連絡してください。&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<hr />
+<h2 id="ステップ5-顧客会社への紐付け">ステップ5: 顧客（会社）への紐付け<a class="header-link" href="#ステップ5-顧客会社への紐付け" title="Permanent link">&para;</a></h2>
+<h3 id="なぜ顧客紐付けが必要">なぜ顧客紐付けが必要？<a class="header-link" href="#なぜ顧客紐付けが必要" title="Permanent link">&para;</a></h3>
+<div class="info-box">
+<h3>🏢 このシステムの構造</h3>
+<pre>
+顧客（会社）
+  └── ユーザー（社員）
+       └── データ（会話履歴など）
+
+例:
+株式会社ACME
+  ├── 山田太郎 → ACMEの会話履歴
+  └── 鈴木花子 → ACMEの会話履歴
+
+株式会社ベータ
+  └── 田中一郎 → ベータの会話履歴
+
+※ ACMEの人はベータのデータを見れない（情報漏洩防止）
+</pre>
+</div>
+
+<h3 id="管理者の作業手順推奨自動振り分け">管理者の作業手順（推奨：自動振り分け）<a class="header-link" href="#管理者の作業手順推奨自動振り分け" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># ターミナルで実行（管理者が行う）</span>
+<span class="nb">cd</span><span class="w"> </span>src/backend
+
+<span class="c1"># 1. 会社を追加</span>
+python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>add<span class="w"> </span>acme-corp<span class="w"> </span><span class="s2">&quot;株式会社ACME&quot;</span>
+<span class="c1"># → 結果: ✅ 顧客 &#39;株式会社ACME&#39; を作成しました</span>
+
+<span class="c1"># 2. ドメインを登録（社員全員が自動振り分け）</span>
+python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>add-domain<span class="w"> </span>acme-corp<span class="w"> </span>acme.co.jp
+<span class="c1"># → 結果: ✅ ドメイン &#39;@acme.co.jp&#39; を &#39;株式会社ACME&#39; に追加しました</span>
+<span class="c1"># → @acme.co.jp のユーザーは全員自動で振り分けられます！</span>
+
+<span class="c1"># 3. 業務委託者など外部メールを個別追加（必要な場合のみ）</span>
+python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>add-email<span class="w"> </span>acme-corp<span class="w"> </span>tanaka@gmail.com
+
+<span class="c1"># 4. 確認</span>
+python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>show<span class="w"> </span>acme-corp
+<span class="c1"># → 結果:</span>
+<span class="c1">#   === 株式会社ACME ===</span>
+<span class="c1">#</span>
+<span class="c1">#   顧客ID: acme-corp</span>
+<span class="c1">#</span>
+<span class="c1">#   --- 自動振り分け設定 ---</span>
+<span class="c1">#   許可ドメイン:</span>
+<span class="c1">#     @acme.co.jp</span>
+<span class="c1">#</span>
+<span class="c1">#   --- 所属ユーザー ---</span>
+<span class="c1">#     yamada@acme.co.jp （自動）</span>
+</code></pre></div>
+
+<h3 id="自動振り分けの仕組み">自動振り分けの仕組み<a class="header-link" href="#自動振り分けの仕組み" title="Permanent link">&para;</a></h3>
+<div class="tip-box">
+<h3>💡 自動振り分け vs 手動登録</h3>
+<p><strong>【従来の方法】400人の会社を登録する場合</strong></p>
+<ul>
+<li>→ 400回 add-user コマンドを実行... 大変！</li>
+<li>→ ユーザーは再ログインが必要</li>
+</ul>
+<p><strong>【自動振り分け】</strong></p>
+<ul>
+<li>→ 1回 add-domain を実行するだけ！</li>
+<li>→ @acme.co.jp のユーザーは全員自動で振り分け</li>
+<li>→ 再ログインも不要！</li>
+</ul>
+</div>
+
+<h3 id="手動紐付け特殊ケースのみ">手動紐付け（特殊ケースのみ）<a class="header-link" href="#手動紐付け特殊ケースのみ" title="Permanent link">&para;</a></h3>
+<p>自動振り分けを使わない特殊なケースでは、手動紐付けも可能です。</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 手動紐付け（ユーザーがログイン済みの場合のみ使用可能）</span>
+python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>add-user<span class="w"> </span>acme-corp<span class="w"> </span>yamada@acme.co.jp
+<span class="c1"># → ⚠️ 注意: ユーザーは再ログインが必要です</span>
+</code></pre></div>
+
+<h3 id="手動紐付けで再ログインが必要な理由">手動紐付けで再ログインが必要な理由<a class="header-link" href="#手動紐付けで再ログインが必要な理由" title="Permanent link">&para;</a></h3>
+<div class="info-box">
+<h3>🎫 IDトークンの仕組み</h3>
+<p><strong>ログイン時:</strong><br>
+Custom Claims が入った IDトークンが発行される</p>
+<pre>
+┌─────────────────────────────┐
+│ name: 山田太郎               │
+│ email: yamada@acme.co.jp    │
+│ customer_id: acme-corp      │ ← ここに入る
+└─────────────────────────────┘
+</pre>
+<p><strong>管理者が紐付けを変更しても:</strong><br>
+既に発行されたトークンは変わらない！</p>
+<p><strong>だから:</strong><br>
+再ログインして新しいトークンを取得する必要がある</p>
+<p>※ 自動振り分けの場合は、ログイン時に自動設定されるため再ログイン不要</p>
+</div>
+
+<hr />
+<h2 id="まとめファイルの繋がり">まとめ：ファイルの繋がり<a class="header-link" href="#まとめファイルの繋がり" title="Permanent link">&para;</a></h2>
+<div class="architecture-box">
+<h3>📁 ファイル構成と役割</h3>
+<pre>
+【ブラウザ側（フロントエンド）】
+
+┌──────────────┐
+│ firebase.ts  │  ← Firebase の設定・初期化
+│              │
+│ auth         │──→ useAuth.ts, api.ts で使う
+│ googleProvider│
+└──────────────┘
+       ↓
+┌──────────────┐
+│ useAuth.ts   │  ← ログイン・ログアウト処理
+│              │
+│ loginWithGoogle()
+│ logout()     │
+│ user         │──→ 画面の表示切り替えに使う
+└──────────────┘
+
+
+【サーバー側（バックエンド）】
+
+┌──────────────┐
+│  auth.py     │  ← トークン検証・顧客ID取得
+│              │
+│ authenticate_request()
+│ verify_token()
+│ get_user_customer_id()
+└──────────────┘
+
+
+【管理ツール】
+
+┌──────────────────────┐
+│ manage_customer.py    │  ← 顧客・ユーザー管理
+│                      │
+│ add                  │ → 顧客を追加
+│ add-domain           │ → ドメインを追加（自動振り分け）
+│ add-email            │ → メールを追加（個別登録）
+│ add-user             │ → ユーザーを手動紐付け
+│ show                 │ → 顧客情報を表示
+└──────────────────────┘
+</pre>
+</div>
+
+<hr />
+<h2 id="よくあるエラーと対処法">よくあるエラーと対処法<a class="header-link" href="#よくあるエラーと対処法" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>エラー</th>
+<th>原因</th>
+<th>対処法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>顧客に紐付けされていません</code></td>
+<td>ユーザーが会社に登録されていない</td>
+<td>管理者に連絡 → add-user 実行 → 再ログイン</td>
+</tr>
+<tr>
+<td><code>ポップアップがブロックされました</code></td>
+<td>ブラウザの設定</td>
+<td>ポップアップを許可する</td>
+</tr>
+<tr>
+<td><code>トークンの検証に失敗しました</code></td>
+<td>トークン期限切れ（1時間）</td>
+<td>ページをリロード or 再ログイン</td>
+</tr>
+<tr>
+<td><code>アクセスが許可されていません</code></td>
+<td>メールアドレスが許可リストにない</td>
+<td>管理者に連絡</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="確認問題">確認問題<a class="header-link" href="#確認問題" title="Permanent link">&para;</a></h2>
+<h3 id="理解度チェック">理解度チェック<a class="header-link" href="#理解度チェック" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>ログイン成功後、なぜ明示的に画面を切り替えるコードを書かなくてよい？</strong></li>
+</ol>
+<details>
+   <summary>答え</summary>
+   onAuthStateChanged が自動で呼ばれて、user の状態が更新されるから。
+   Reactは状態が変わると自動で画面を再描画する。
+   </details>
+
+<ol start="2">
+<li><strong>Custom Claims は誰が設定できる？</strong></li>
+</ol>
+<details>
+   <summary>答え</summary>
+   サーバー側（管理者）だけ。ユーザー自身は設定・変更できない。
+   だから「所属会社」のような重要な情報を安全に保存できる。
+   </details>
+
+<ol start="3">
+<li><strong>ユーザーを顧客に紐付けた後、なぜ再ログインが必要？</strong></li>
+</ol>
+<details>
+   <summary>答え</summary>
+   IDトークンは発行時の情報が入っている。
+   紐付け後に新しいトークンを取得しないと、customer_id が含まれない。
+   </details>
+
+<h3 id="実践チャレンジ">実践チャレンジ<a class="header-link" href="#実践チャレンジ" title="Permanent link">&para;</a></h3>
+<p>Firebase Console を開いて、以下を確認してみよう：</p>
+<ol>
+<li>Authentication → Users でユーザー一覧を確認</li>
+<li>ユーザーをクリックして、Custom Claims に customer_id があるか確認</li>
+</ol>
+<hr />
+<h2 id="次に読むべきドキュメント">次に読むべきドキュメント<a class="header-link" href="#次に読むべきドキュメント" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>05_セットアップの流れ.md</code> - 環境構築の手順</li>
+<li><code>11_チャット送信の流れ.md</code> - チャット処理の詳細</li>
+</ul>
+      </article>
+      <footer class="footer">
+        GCP AI Agent 設計資料 | Built with Python & Markdown
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.querySelector('.menu-toggle');
+      if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

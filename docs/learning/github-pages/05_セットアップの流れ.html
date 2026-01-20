@@ -60,11 +60,18 @@
       </div>
 
       <div class="sidebar-section">
+        <div class="sidebar-title">🔧 上級編</div>
+        <ul class="sidebar-nav">
+          <li><a href="10_Gatewayアーキテクチャ.html" >Gatewayアーキテクチャ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
         <div class="sidebar-title">🔄 参考: フロー解説</div>
         <ul class="sidebar-nav">
-          <li><a href="FLOW_01_チャット送信の流れ.html" >チャット送信の流れ</a></li>
-          <li><a href="FLOW_02_ログインの流れ.html" >ログインの流れ</a></li>
-          <li><a href="FLOW_04_セッション管理の流れ.html" >セッション管理の流れ</a></li>
+          <li><a href="11_チャット送信の流れ.html" >チャット送信の流れ</a></li>
+          <li><a href="12_ログインの流れ.html" >ログインの流れ</a></li>
+          <li><a href="13_セッション管理の流れ.html" >セッション管理の流れ</a></li>
         </ul>
       </div>
     </aside>
@@ -126,9 +133,9 @@ GCPプロジェクト作成 → Firebase設定 → サービスアカウント�
 </pre>
 <p><strong>【環境変数設定】</strong></p>
 <pre>
-┌──────────────────┐   ┌──────────────────┐
-│ 4. backend/.env  │   │ 5. frontend/.env │
-└──────────────────┘   └──────────────────┘
+┌────────────────────────┐   ┌────────────────────────┐
+│ 4. src/backend/.env    │   │ 5. src/frontend/.env   │
+└────────────────────────┘   └────────────────────────┘
 </pre>
 <p><strong>【依存関係インストール】</strong></p>
 <pre>
@@ -306,7 +313,7 @@ xxx@project.iam.gserviceaccount.com<br>
 <p>JSONファイルがダウンロードされる。</p>
 <h3 id="34-鍵ファイルを配置">3.4 鍵ファイルを配置<a class="header-link" href="#34-鍵ファイルを配置" title="Permanent link">&para;</a></h3>
 <p>ダウンロードしたJSONファイルを:</p>
-<div class="codehilite"><pre><span></span><code>backend/service-account.json
+<div class="codehilite"><pre><span></span><code>src/backend/service-account.json
 </code></pre></div>
 
 <p>に配置（リネーム）。</p>
@@ -325,7 +332,7 @@ xxx@project.iam.gserviceaccount.com<br>
 
 <hr />
 <h2 id="ステップ4-バックエンド環境変数設定">ステップ4: バックエンド環境変数設定<a class="header-link" href="#ステップ4-バックエンド環境変数設定" title="Permanent link">&para;</a></h2>
-<h3 id="場所-backendenv">場所: <code>backend/.env</code><a class="header-link" href="#場所-backendenv" title="Permanent link">&para;</a></h3>
+<h3 id="場所-srcbackendenv">場所: <code>src/backend/.env</code><a class="header-link" href="#場所-srcbackendenv" title="Permanent link">&para;</a></h3>
 <div class="codehilite"><pre><span></span><code><span class="c1"># ===== GCP設定 =====</span>
 <span class="c1"># GCPプロジェクトID（Firebase Consoleで確認）</span>
 <span class="nv">GOOGLE_CLOUD_PROJECT</span><span class="o">=</span>your-project-id
@@ -381,7 +388,7 @@ xxx@project.iam.gserviceaccount.com<br>
 </table>
 <hr />
 <h2 id="ステップ5-フロントエンド環境変数設定">ステップ5: フロントエンド環境変数設定<a class="header-link" href="#ステップ5-フロントエンド環境変数設定" title="Permanent link">&para;</a></h2>
-<h3 id="場所-frontendenv">場所: <code>frontend/.env</code><a class="header-link" href="#場所-frontendenv" title="Permanent link">&para;</a></h3>
+<h3 id="場所-srcfrontendenv">場所: <code>src/frontend/.env</code><a class="header-link" href="#場所-srcfrontendenv" title="Permanent link">&para;</a></h3>
 <div class="codehilite"><pre><span></span><code><span class="c1"># ===== Firebase設定 =====</span>
 <span class="c1"># Firebase Console → プロジェクト設定 → Webアプリ から取得</span>
 <span class="nv">VITE_FIREBASE_API_KEY</span><span class="o">=</span>AIzaSyXXXXXXXXXXXXXXXXXXXX
@@ -408,7 +415,7 @@ xxx@project.iam.gserviceaccount.com<br>
 <h2 id="ステップ6-バックエンド依存関係インストール">ステップ6: バックエンド依存関係インストール<a class="header-link" href="#ステップ6-バックエンド依存関係インストール" title="Permanent link">&para;</a></h2>
 <h3 id="ターミナルで実行">ターミナルで実行<a class="header-link" href="#ターミナルで実行" title="Permanent link">&para;</a></h3>
 <div class="codehilite"><pre><span></span><code><span class="c1"># backendフォルダに移動</span>
-<span class="nb">cd</span><span class="w"> </span>backend
+<span class="nb">cd</span><span class="w"> </span>src/backend
 
 <span class="c1"># 仮想環境を作成（推奨）</span>
 python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
@@ -437,7 +444,7 @@ flask-cors==4.*            # CORS対応
 <h2 id="ステップ7-フロントエンド依存関係インストール">ステップ7: フロントエンド依存関係インストール<a class="header-link" href="#ステップ7-フロントエンド依存関係インストール" title="Permanent link">&para;</a></h2>
 <h3 id="ターミナルで実行_1">ターミナルで実行<a class="header-link" href="#ターミナルで実行_1" title="Permanent link">&para;</a></h3>
 <div class="codehilite"><pre><span></span><code><span class="c1"># frontendフォルダに移動</span>
-<span class="nb">cd</span><span class="w"> </span>frontend
+<span class="nb">cd</span><span class="w"> </span>src/frontend
 
 <span class="c1"># 依存パッケージをインストール</span>
 npm<span class="w"> </span>install
@@ -484,22 +491,22 @@ python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>
 </code></pre></div>
 
 <hr />
-<h2 id="ステップ9-ドメインを登録自動振り分け">ステップ9: ドメインを登録（自動振り分け）<a class="header-link" href="#ステップ9-ドメインを登録自動振り分け" title="Permanent link">&para;</a></h2>
+<h2 id="ステップ9-メールドメインを登録自動振り分け">ステップ9: メールドメインを登録（自動振り分け）<a class="header-link" href="#ステップ9-メールドメインを登録自動振り分け" title="Permanent link">&para;</a></h2>
 <h3 id="推奨自動振り分けを使う">推奨：自動振り分けを使う<a class="header-link" href="#推奨自動振り分けを使う" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="c1"># ドメインを登録（社員全員が自動で振り分けられる）</span>
+<div class="codehilite"><pre><span></span><code><span class="c1"># メールドメイン（@以降）を登録（社員全員が自動で振り分けられる）</span>
 python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>add-domain<span class="w"> </span>test-corp<span class="w"> </span>test-corp.co.jp
 </code></pre></div>
 
 <p>成功すると:</p>
-<div class="codehilite"><pre><span></span><code><span class="o">===</span><span class="w"> </span><span class="n">ドメインを追加</span><span class="w"> </span><span class="o">===</span>
+<div class="codehilite"><pre><span></span><code><span class="o">===</span><span class="w"> </span><span class="n">メールドメインを追加</span><span class="w"> </span><span class="o">===</span>
 
-<span class="err">✅</span><span class="w"> </span><span class="n">ドメイン</span><span class="w"> </span><span class="s1">&#39;@test-corp.co.jp&#39;</span><span class="w"> </span><span class="n">を</span><span class="w"> </span><span class="s1">&#39;テスト株式会社&#39;</span><span class="w"> </span><span class="n">に追加しました</span>
+<span class="err">✅</span><span class="w"> </span><span class="n">メールドメイン</span><span class="w"> </span><span class="s1">&#39;@test-corp.co.jp&#39;</span><span class="w"> </span><span class="n">を</span><span class="w"> </span><span class="s1">&#39;テスト株式会社&#39;</span><span class="w"> </span><span class="n">に追加しました</span>
 
 <span class="err">→</span><span class="w"> </span><span class="nv">@test</span><span class="o">-</span><span class="n">corp</span><span class="p">.</span><span class="n">co</span><span class="p">.</span><span class="n">jp</span><span class="w"> </span><span class="n">のユーザーはログイン時に自動で振り分けられます</span>
 </code></pre></div>
 
 <h3 id="テスト用に個別メールを登録する場合">テスト用に個別メールを登録する場合<a class="header-link" href="#テスト用に個別メールを登録する場合" title="Permanent link">&para;</a></h3>
-<p>Gmailなど会社ドメイン以外でテストする場合:</p>
+<p>Gmailなど会社のメールドメイン以外でテストする場合:</p>
 <div class="codehilite"><pre><span></span><code>python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>add-email<span class="w"> </span>test-corp<span class="w"> </span>your-email@gmail.com
 </code></pre></div>
 
@@ -510,10 +517,11 @@ python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>
 <p><strong>【自動振り分け】</strong><br>
 → 1回 add-domain を実行するだけ！<br>
 → @acme.co.jp のユーザーは全員自動で振り分け</p>
+<p><strong>メモ:</strong> ここでいう「ドメイン」は、メールアドレスの@以降の部分（メールドメイン）です。URLドメインではありません。</p>
 <table>
 <tr><th>方法</th><th>コマンド</th><th>用途</th></tr>
-<tr><td>ドメイン登録</td><td>add-domain</td><td>社員全員を一括登録（@acme.co.jpなど）</td></tr>
-<tr><td>メール登録</td><td>add-email</td><td>業務委託者を個別登録（外部メール）</td></tr>
+<tr><td>メールドメイン登録</td><td>add-domain</td><td>社員全員を一括登録（@acme.co.jpなど）</td></tr>
+<tr><td>個別メール登録</td><td>add-email</td><td>業務委託者を個別登録（外部メール）</td></tr>
 </table>
 </div>
 
@@ -539,7 +547,7 @@ functions-framework<span class="w"> </span>--target<span class="o">=</span>main<
 <h2 id="ステップ11-フロントエンド起動">ステップ11: フロントエンド起動<a class="header-link" href="#ステップ11-フロントエンド起動" title="Permanent link">&para;</a></h2>
 <h3 id="ターミナル2別のターミナルで実行">ターミナル2（別のターミナル）で実行<a class="header-link" href="#ターミナル2別のターミナルで実行" title="Permanent link">&para;</a></h3>
 <div class="codehilite"><pre><span></span><code><span class="c1"># frontendフォルダに移動</span>
-<span class="nb">cd</span><span class="w"> </span>frontend
+<span class="nb">cd</span><span class="w"> </span>src/frontend
 
 <span class="c1"># 開発サーバーを起動</span>
 npm<span class="w"> </span>run<span class="w"> </span>dev
@@ -576,7 +584,7 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 対処: pip install -r requirements.txt を再実行</p>
 <p><strong>【エラー2】CORS エラー</strong><br>
 原因: ALLOWED_ORIGINS の設定が違う<br>
-対処: backend/.env を確認<br>
+対処: src/backend/.env を確認<br>
 ALLOWED_ORIGINS=http://localhost:5173（末尾スラッシュなし）</p>
 <p><strong>【エラー3】認証エラー / トークンの検証に失敗</strong><br>
 原因: service-account.json がない、または環境変数が未設定<br>
@@ -601,9 +609,9 @@ ALLOWED_ORIGINS=http://localhost:5173（末尾スラッシュなし）</p>
 <li>[ ] Firestore データベースを作成した</li>
 <li>[ ] Webアプリを登録してAPIキー等を取得した</li>
 <li>[ ] サービスアカウントを作成した</li>
-<li>[ ] 鍵をダウンロードして <code>backend/service-account.json</code> に配置した</li>
-<li>[ ] <code>backend/.env</code> を作成した</li>
-<li>[ ] <code>frontend/.env</code> を作成した</li>
+<li>[ ] 鍵をダウンロードして <code>src/backend/service-account.json</code> に配置した</li>
+<li>[ ] <code>src/backend/.env</code> を作成した</li>
+<li>[ ] <code>src/frontend/.env</code> を作成した</li>
 <li>[ ] <code>pip install -r requirements.txt</code> を実行した</li>
 <li>[ ] <code>npm install</code> を実行した</li>
 <li>[ ] 顧客を追加した</li>

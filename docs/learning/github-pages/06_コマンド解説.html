@@ -60,11 +60,18 @@
       </div>
 
       <div class="sidebar-section">
+        <div class="sidebar-title">🔧 上級編</div>
+        <ul class="sidebar-nav">
+          <li><a href="10_Gatewayアーキテクチャ.html" >Gatewayアーキテクチャ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
         <div class="sidebar-title">🔄 参考: フロー解説</div>
         <ul class="sidebar-nav">
-          <li><a href="FLOW_01_チャット送信の流れ.html" >チャット送信の流れ</a></li>
-          <li><a href="FLOW_02_ログインの流れ.html" >ログインの流れ</a></li>
-          <li><a href="FLOW_04_セッション管理の流れ.html" >セッション管理の流れ</a></li>
+          <li><a href="11_チャット送信の流れ.html" >チャット送信の流れ</a></li>
+          <li><a href="12_ログインの流れ.html" >ログインの流れ</a></li>
+          <li><a href="13_セッション管理の流れ.html" >セッション管理の流れ</a></li>
         </ul>
       </div>
     </aside>
@@ -228,10 +235,10 @@ firebase<span class="w"> </span>deploy<span class="w"> </span>--only<span class=
 <p><strong>【.shファイルがない場合】</strong><br>
 毎回これを打つ必要がある：</p>
 <pre>
-$ cd backend
+$ cd src/backend
 $ pip install -r requirements.txt
 $ python -m functions_framework --target=main --port=8080 &
-$ cd ../frontend
+$ cd ../src/frontend
 $ npm install
 $ npm run dev
 </pre>
@@ -267,7 +274,7 @@ sh<span class="w"> </span>start.sh
 <div class="codehilite"><pre><span></span><code><span class="ch">#!/bin/bash           ← 「このファイルはbashで実行してね」という宣言</span>
 
 <span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Hello&quot;</span><span class="w">          </span>←<span class="w"> </span>コマンド1
-<span class="nb">cd</span><span class="w"> </span>backend<span class="w">            </span>←<span class="w"> </span>コマンド2
+<span class="nb">cd</span><span class="w"> </span>src/backend<span class="w">            </span>←<span class="w"> </span>コマンド2
 pip<span class="w"> </span>install<span class="w"> </span>...<span class="w">       </span>←<span class="w"> </span>コマンド3
 
 <span class="c1"># 上から順番に実行される</span>
@@ -318,9 +325,9 @@ pip<span class="w"> </span>install<span class="w"> </span>...<span class="w">   
 <hr />
 <h2 id="-顧客管理コマンド">👥 顧客管理コマンド<a class="header-link" href="#-顧客管理コマンド" title="Permanent link">&para;</a></h2>
 <p>顧客（会社）とユーザーを管理するコマンドです。<br />
-<strong>backend/scripts/manage_customer.py</strong> を使います。</p>
+<strong>src/backend/scripts/manage_customer.py</strong> を使います。</p>
 <h3 id="実行方法_1">実行方法<a class="header-link" href="#実行方法_1" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>backend
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>src/backend
 python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>&lt;コマンド&gt;<span class="w"> </span><span class="o">[</span>引数...<span class="o">]</span>
 </code></pre></div>
 
@@ -356,7 +363,7 @@ python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>
 </tr>
 <tr>
 <td><code>add-domain</code></td>
-<td>ドメインを追加</td>
+<td>メールドメイン（@以降）を追加</td>
 <td><code>python scripts/manage_customer.py add-domain acme-corp acme.co.jp</code></td>
 </tr>
 <tr>
@@ -382,12 +389,12 @@ python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>
 </tbody>
 </table>
 <h3 id="クイックスタート新規顧客の追加">クイックスタート（新規顧客の追加）<a class="header-link" href="#クイックスタート新規顧客の追加" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>backend
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>src/backend
 
 <span class="c1"># 1. 顧客を作成</span>
 python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>add<span class="w"> </span>acme-corp<span class="w"> </span><span class="s2">&quot;株式会社ACME&quot;</span>
 
-<span class="c1"># 2. ドメインを登録（社員全員が自動振り分け）</span>
+<span class="c1"># 2. メールドメイン（@以降）を登録（社員全員が自動振り分け）</span>
 python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>add-domain<span class="w"> </span>acme-corp<span class="w"> </span>acme.co.jp
 
 <span class="c1"># 3. 確認</span>
@@ -403,10 +410,11 @@ python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>
 <p><strong>【自動振り分け】</strong><br>
 → 1回 add-domain を実行するだけ！<br>
 → @acme.co.jp のユーザーは全員自動で振り分け</p>
+<p><strong>メモ:</strong> ここでいう「ドメイン」は、メールアドレスの@以降の部分（メールドメイン）です。URLドメインではありません。</p>
 <table>
 <tr><th>方法</th><th>コマンド</th><th>用途</th></tr>
-<tr><td>ドメイン登録</td><td>add-domain</td><td>社員全員を一括登録（@acme.co.jpなど）</td></tr>
-<tr><td>メール登録</td><td>add-email</td><td>業務委託者を個別登録（外部メール）</td></tr>
+<tr><td>メールドメイン登録</td><td>add-domain</td><td>社員全員を一括登録（@acme.co.jpなど）</td></tr>
+<tr><td>個別メール登録</td><td>add-email</td><td>業務委託者を個別登録（外部メール）</td></tr>
 <tr><td>手動紐付け</td><td>add-user</td><td>自動振り分けを使わない特殊ケース</td></tr>
 </table>
 </div>
@@ -436,7 +444,7 @@ python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>
 <hr />
 <h2 id="よく使うコマンド">よく使うコマンド<a class="header-link" href="#よく使うコマンド" title="Permanent link">&para;</a></h2>
 <h3 id="cdchange-directory">cd（Change Directory）<a class="header-link" href="#cdchange-directory" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>backend
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>src/backend
 </code></pre></div>
 
 <p><strong>意味</strong>: 「backendフォルダに移動する」</p>
@@ -446,14 +454,14 @@ python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>
 【イメージ】
 あなたは今「GCP」という部屋にいます
     ↓
-「cd backend」で「backend」という部屋に移動
+「cd src/backend」で「backend」という部屋に移動
     ↓
 今は「GCP/backend」の部屋にいます
 </pre>
 </div>
 
 <p><strong>よく使うパターン</strong>:</p>
-<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>backend<span class="w">      </span><span class="c1"># backendフォルダに入る</span>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>src/backend<span class="w">      </span><span class="c1"># backendフォルダに入る</span>
 <span class="nb">cd</span><span class="w"> </span>..<span class="w">           </span><span class="c1"># 一つ上のフォルダに戻る</span>
 <span class="nb">cd</span><span class="w"> </span>~<span class="w">            </span><span class="c1"># ホームフォルダに戻る</span>
 </code></pre></div>
@@ -629,7 +637,7 @@ http://localhost:8080
 <h3>🔄 ローカル開発フロー</h3>
 <pre>
 【ターミナル1】                【ターミナル2】
-cd backend                     cd frontend
+cd src/backend                     cd src/frontend
 pip install -r requirements.txt    npm install
 functions-framework ...        npm run dev
     ↓                              ↓

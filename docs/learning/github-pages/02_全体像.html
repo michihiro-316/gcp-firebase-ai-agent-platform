@@ -60,11 +60,18 @@
       </div>
 
       <div class="sidebar-section">
+        <div class="sidebar-title">🔧 上級編</div>
+        <ul class="sidebar-nav">
+          <li><a href="10_Gatewayアーキテクチャ.html" >Gatewayアーキテクチャ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
         <div class="sidebar-title">🔄 参考: フロー解説</div>
         <ul class="sidebar-nav">
-          <li><a href="FLOW_01_チャット送信の流れ.html" >チャット送信の流れ</a></li>
-          <li><a href="FLOW_02_ログインの流れ.html" >ログインの流れ</a></li>
-          <li><a href="FLOW_04_セッション管理の流れ.html" >セッション管理の流れ</a></li>
+          <li><a href="11_チャット送信の流れ.html" >チャット送信の流れ</a></li>
+          <li><a href="12_ログインの流れ.html" >ログインの流れ</a></li>
+          <li><a href="13_セッション管理の流れ.html" >セッション管理の流れ</a></li>
         </ul>
       </div>
     </aside>
@@ -107,7 +114,11 @@
 React + TypeScript「見た目」を作る
 ↓ ② APIリクエスト
 
-<strong>🐍 バックエンド（処理担当）</strong>
+<strong>🚪 Gateway（認証・振り分け担当）</strong>
+Cloud Run Functions「どの会社のバックエンドに送るか」を決める
+↓ ③ 転送
+
+<strong>🐍 バックエンド（処理担当）※会社ごとに1つ</strong>
 Python + Flask「中身」を作る
 ↓
 
@@ -115,6 +126,21 @@ Python + Flask「中身」を作る
 <tr><th>🔐 認証</th><th>💾 DB</th><th>🤖 AI</th></tr>
 <tr><td>Firebase Auth</td><td>Firestore</td><td>Vertex AI (Gemini)</td></tr>
 </table>
+
+</div>
+</div>
+
+<div class="tip-box">
+<div class="box-title">💡 なぜGatewayがあるの？</div>
+<div class="box-content">
+
+**会社ごとにバックエンドを分ける**ことで、以下のメリットがあります：
+
+- 🏢 **A社だけの特殊カスタマイズ**が可能
+- 🔒 **他社への影響ゼロ**で安全に更新
+- 📦 **会社ごとに独立した環境**を提供
+
+Gatewayは「受付」として、ログインしたユーザーを正しい会社のバックエンドに案内します。
 
 </div>
 </div>
@@ -128,8 +154,9 @@ Python + Flask「中身」を作る
 <table>
 <tr><th>技術</th><th>役割</th><th>レストランで言うと</th></tr>
 <tr><td>React</td><td>画面を作る</td><td>内装・メニュー表</td></tr>
-<tr><td>Python/Flask</td><td>処理をする</td><td>厨房</td></tr>
-<tr><td>Firebase Auth</td><td>ログイン</td><td>受付・会員証確認</td></tr>
+<tr><td>Gateway</td><td>認証・振り分け</td><td>受付フロント（どの厨房に案内するか決める）</td></tr>
+<tr><td>Python/Flask</td><td>処理をする</td><td>厨房（会社ごとに別々）</td></tr>
+<tr><td>Firebase Auth</td><td>ログイン</td><td>会員証発行・確認</td></tr>
 <tr><td>Firestore</td><td>データ保存</td><td>冷蔵庫・倉庫</td></tr>
 <tr><td>Vertex AI (Gemini)</td><td>AI回答生成</td><td>シェフの頭脳</td></tr>
 </table>
@@ -186,15 +213,16 @@ Python + Flask「中身」を作る
 
 1️⃣ ユーザーが「こんにちは」と入力して送信
 ↓
-2️⃣ フロントエンド → バックエンドにリクエスト（IDトークン付き）
+2️⃣ フロントエンド → **Gateway**にリクエスト（IDトークン付き）
 ↓
-3️⃣ バックエンドでトークン検証
+3️⃣ **Gateway**でトークン検証
 　「この人、本物？」→ ✅ OK!
-　「許可されてる？」→ ✅ OK!
+　「どの会社の人？」→ A社！
 ↓
-4️⃣ Vertex AI (Gemini) に質問
+4️⃣ **Gateway** → A社のバックエンドに転送
 ↓
-5️⃣ AIが回答を生成
+5️⃣ バックエンドでAI処理
+　Vertex AI (Gemini) に質問 → AIが回答を生成
 ↓
 6️⃣ ストリーミングで少しずつ返す（「こん」→「にち」→「は！」）
 ↓
@@ -206,7 +234,7 @@ Python + Flask「中身」を作る
 <hr />
 <h2 id="マルチテナント複数会社対応">マルチテナント（複数会社対応）<a class="header-link" href="#マルチテナント複数会社対応" title="Permanent link">&para;</a></h2>
 <div class="architecture-box">
-<div class="box-title">🏢 会社ごとにデータを分離</div>
+<div class="box-title">🏢 会社ごとにデータとバックエンドを分離</div>
 <div class="box-content">
 
 **Firestore（データベース）**
@@ -215,12 +243,18 @@ Python + Flask「中身」を作る
 <div class="codehilite"><pre><span></span><code>customers/
 ├── 🏢 acme-corp/          ← A社のデータ
 │   ├── name: &quot;株式会社ACME&quot;
+│   ├── allowed_domains: [&quot;acme.co.jp&quot;]
+│   ├── cloud_functions_url: &quot;https://acme-backend-xxx.run.app&quot;  ← A社専用のバックエンドURL
+│   ├── enabled: true
 │   └── checkpoints/       ← A社の会話履歴
 │       ├── user1_abc/
 │       └── user2_def/
 │
 ├── 🏢 beta-inc/           ← B社のデータ
 │   ├── name: &quot;ベータ株式会社&quot;
+│   ├── allowed_domains: [&quot;beta-inc.co.jp&quot;]
+│   ├── cloud_functions_url: &quot;https://beta-backend-xxx.run.app&quot;  ← B社専用のバックエンドURL
+│   ├── enabled: true
 │   └── checkpoints/       ← B社の会話履歴
 │
 └── 🏢 gamma-llc/          ← C社のデータ
@@ -228,25 +262,32 @@ Python + Flask「中身」を作る
 
 
 
-💡 A社の人はB社のデータを見れない！（セキュリティ確保）
+💡 **A社の人はB社のデータを見れない！**（セキュリティ確保）
+
+**3層のセキュリティで保護:**
+1. **Firestore セキュリティルール** - 自社のデータのみアクセス可能
+2. **会社別バックエンド** - 物理的に別のCloud Run Functionsにデプロイ
+3. **Gatewayでの認証** - `customer_id` で正しいバックエンドに振り分け
 
 </div>
 </div>
 
 <p><strong>自動振り分けの仕組み</strong></p>
 <div class="tip-box">
-<div class="box-title">🎯 ドメインで自動振り分け</div>
+<div class="box-title">🎯 メールドメインで自動振り分け</div>
 <div class="box-content">
 
 <strong>【従来】</strong> 400人の社員を1人ずつ登録... 😓 大変！
 
 <strong>【今のシステム】</strong>
 <ol>
-<li>管理者:「acme.co.jp を登録しておくね」</li>
+<li>管理者:「acme.co.jp というメールドメインを登録しておくね」</li>
 <li>yamada@acme.co.jp がログイン</li>
 <li>システム:「@acme.co.jp だ！→ A社のデータに振り分け」</li>
 <li>完了！✅（再ログイン不要）</li>
 </ol>
+
+<p><strong>メモ:</strong> ここでいう「ドメイン」は、メールアドレスの@以降の部分（メールドメイン）です。URLドメインではありません。</p>
 
 </div>
 </div>
@@ -257,11 +298,18 @@ Python + Flask「中身」を作る
 <div class="box-title">📁 覚えておきたいファイル</div>
 <div class="box-content">
 
-**【バックエンド】backend/src/**
+**【Gateway】src/gateway/src/**
 
-<div class="codehilite"><pre><span></span><code>├── main.py              ★ すべての入口
+<div class="codehilite"><pre><span></span><code>└── main.py              ★ 認証とルーティング（全リクエストの入口）
+</code></pre></div>
+
+
+
+**【バックエンド】src/backend/src/**
+
+<div class="codehilite"><pre><span></span><code>├── main.py              ★ 会社ごとのバックエンド入口
 ├── common/
-│   ├── auth.py          ★ 認証処理（自動振り分け）
+│   ├── auth.py          ★ 認証処理（Gateway連携 + 自動振り分け）
 │   └── rate_limiter.py    使いすぎ防止
 └── agents/
     └── _template/
@@ -270,7 +318,7 @@ Python + Flask「中身」を作る
 
 
 
-**【フロントエンド】frontend/src/**
+**【フロントエンド】src/frontend/src/**
 
 <div class="codehilite"><pre><span></span><code>├── App.tsx              ★ 画面の入口
 ├── hooks/
@@ -279,12 +327,12 @@ Python + Flask「中身」を作る
 │   └── useSessions.ts     セッション管理
 └── services/
     ├── firebase.ts        Firebase接続
-    └── api.ts             サーバー通信
+    └── api.ts             サーバー通信（Gatewayにリクエスト）
 </code></pre></div>
 
 
 
-**【管理ツール】backend/scripts/**
+**【管理ツール】src/backend/scripts/**
 
 <div class="codehilite"><pre><span></span><code>└── manage_customer.py   ★ 顧客管理コマンド
 </code></pre></div>
@@ -307,11 +355,15 @@ Python + Flask「中身」を作る
 <tbody>
 <tr>
 <td>ユーザーが送ったメッセージは、どの順番で処理される？</td>
-<td>フロント→バック→AI→...</td>
+<td>フロント→Gateway→バック→AI→...</td>
+</tr>
+<tr>
+<td>Gatewayの役割は？</td>
+<td>認証して、正しい会社のバックエンドに転送</td>
 </tr>
 <tr>
 <td>会社Aのデータが会社Bに見えないのはなぜ？</td>
-<td>customer_id で分離</td>
+<td>customer_id で分離 + 別々のバックエンド</td>
 </tr>
 <tr>
 <td>ログイン後、何がもらえる？</td>

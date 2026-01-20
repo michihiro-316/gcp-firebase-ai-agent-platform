@@ -60,11 +60,18 @@
       </div>
 
       <div class="sidebar-section">
+        <div class="sidebar-title">🔧 上級編</div>
+        <ul class="sidebar-nav">
+          <li><a href="10_Gatewayアーキテクチャ.html" >Gatewayアーキテクチャ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
         <div class="sidebar-title">🔄 参考: フロー解説</div>
         <ul class="sidebar-nav">
-          <li><a href="FLOW_01_チャット送信の流れ.html" >チャット送信の流れ</a></li>
-          <li><a href="FLOW_02_ログインの流れ.html" >ログインの流れ</a></li>
-          <li><a href="FLOW_04_セッション管理の流れ.html" >セッション管理の流れ</a></li>
+          <li><a href="11_チャット送信の流れ.html" >チャット送信の流れ</a></li>
+          <li><a href="12_ログインの流れ.html" >ログインの流れ</a></li>
+          <li><a href="13_セッション管理の流れ.html" >セッション管理の流れ</a></li>
         </ul>
       </div>
     </aside>
@@ -95,7 +102,7 @@
 <h2 id="基本-system_prompt-を変更する">基本: SYSTEM_PROMPT を変更する<a class="header-link" href="#基本-system_prompt-を変更する" title="Permanent link">&para;</a></h2>
 <p>AIの性格・役割は <code>SYSTEM_PROMPT</code> で決まります。</p>
 <h3 id="ファイルの場所">ファイルの場所<a class="header-link" href="#ファイルの場所" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code>backend/src/agents/_template/agent.py
+<div class="codehilite"><pre><span></span><code>src/backend/src/agents/_template/agent.py
 </code></pre></div>
 
 <h3 id="変更箇所">変更箇所<a class="header-link" href="#変更箇所" title="Permanent link">&para;</a></h3>
@@ -175,14 +182,14 @@
 <h2 id="変更を確認する手順">変更を確認する手順<a class="header-link" href="#変更を確認する手順" title="Permanent link">&para;</a></h2>
 <h3 id="1-agentpy-を編集">1. agent.py を編集<a class="header-link" href="#1-agentpy-を編集" title="Permanent link">&para;</a></h3>
 <div class="codehilite"><pre><span></span><code><span class="c1"># VSCode で開く</span>
-code<span class="w"> </span>backend/src/agents/_template/agent.py
+code<span class="w"> </span>src/backend/src/agents/_template/agent.py
 
 <span class="c1"># または vim で開く</span>
-vim<span class="w"> </span>backend/src/agents/_template/agent.py
+vim<span class="w"> </span>src/backend/src/agents/_template/agent.py
 </code></pre></div>
 
 <h3 id="2-バックエンドを再起動">2. バックエンドを再起動<a class="header-link" href="#2-バックエンドを再起動" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>backend
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>src/backend
 <span class="c1"># Ctrl+C で停止してから再起動</span>
 functions-framework<span class="w"> </span>--target<span class="o">=</span>main<span class="w"> </span>--port<span class="o">=</span><span class="m">8080</span>
 </code></pre></div>
@@ -199,12 +206,12 @@ functions-framework<span class="w"> </span>--target<span class="o">=</span>main<
 <hr />
 <h2 id="顧客別にカスタマイズする場合">顧客別にカスタマイズする場合<a class="header-link" href="#顧客別にカスタマイズする場合" title="Permanent link">&para;</a></h2>
 <h3 id="1-テンプレートをコピー">1. テンプレートをコピー<a class="header-link" href="#1-テンプレートをコピー" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>backend/src/agents
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>src/backend/src/agents
 cp<span class="w"> </span>-r<span class="w"> </span>_template<span class="w"> </span>acme-corp
 </code></pre></div>
 
 <h3 id="2-agentpy-を編集">2. agent.py を編集<a class="header-link" href="#2-agentpy-を編集" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="c1"># agents/acme-corp/agent.py</span>
+<div class="codehilite"><pre><span></span><code><span class="c1"># src/backend/src/agents/acme-corp/agent.py</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">AcmeCorpAgent</span><span class="p">(</span><span class="n">BaseAgent</span><span class="p">):</span>
     <span class="n">SYSTEM_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;あなたはACME社の専門AIアシスタントです。</span>

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>10 Gatewayアーキテクチャ - GCP AI Agent 設計資料</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="header-logo">
+      <span>📚</span>
+      <span>GCP AI Agent 設計資料</span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">ホーム</a>
+      <a href="02_全体像.html">全体像</a>
+      <a href="https://github.com" target="_blank">GitHub</a>
+    </nav>
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">📖 はじめに</div>
+        <ul class="sidebar-nav">
+          <li><a href="01_はじめに読んでください.html" >はじめに読んでください</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🏗️ 仕組みを理解</div>
+        <ul class="sidebar-nav">
+          <li><a href="02_全体像.html" >全体像</a></li>
+          <li><a href="03_バックエンド解説.html" >バックエンド解説</a></li>
+          <li><a href="04_フロントエンド解説.html" >フロントエンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🛠️ セットアップ</div>
+        <ul class="sidebar-nav">
+          <li><a href="05_セットアップの流れ.html" >セットアップの流れ</a></li>
+          <li><a href="06_コマンド解説.html" >コマンド解説</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🚀 動かす</div>
+        <ul class="sidebar-nav">
+          <li><a href="07_動かしてみよう.html" >動かしてみよう</a></li>
+          <li><a href="08_AIカスタマイズ.html" >AIカスタマイズ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔧 上級編</div>
+        <ul class="sidebar-nav">
+          <li><a href="10_Gatewayアーキテクチャ.html" class="active">Gatewayアーキテクチャ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">🔄 参考: フロー解説</div>
+        <ul class="sidebar-nav">
+          <li><a href="11_チャット送信の流れ.html" >チャット送信の流れ</a></li>
+          <li><a href="12_ログインの流れ.html" >ログインの流れ</a></li>
+          <li><a href="13_セッション管理の流れ.html" >セッション管理の流れ</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <article class="content">
+        <h1 id="gateway-アーキテクチャ解説">Gateway アーキテクチャ解説<a class="header-link" href="#gateway-アーキテクチャ解説" title="Permanent link">&para;</a></h1>
+<h2 id="概要">概要<a class="header-link" href="#概要" title="Permanent link">&para;</a></h2>
+<p>本プラットフォームは「Gateway + Company Cloud Functions」構成を採用しています。</p>
+<div class="codehilite"><pre><span></span><code>   ユーザー（ブラウザ）
+        │
+        │ HTTPS + Firebase Token
+        ▼
+┌─────────────────────────────────────────┐
+│     Gateway Cloud Functions（1つ）       │
+│                                         │
+│  やること（3つだけ）:                     │
+│  1. Firebase 認証チェック                │
+│  2. customer_id から URL を取得          │
+│  3. そのまま転送（プロキシ）              │
+│                                         │
+└────────────────┬────────────────────────┘
+                 │
+                 │ そのまま転送
+                 ▼
+┌─────────────────────────────────────────┐
+│   Company Cloud Functions（会社ごと）    │
+│                                         │
+│  バックエンド API + AI Agent             │
+│  → 既存の src/backend/src/main.py       │
+│                                         │
+└─────────────────────────────────────────┘
+</code></pre></div>
+
+<hr />
+<h2 id="なぜこの設計か">なぜこの設計か<a class="header-link" href="#なぜこの設計か" title="Permanent link">&para;</a></h2>
+<h3 id="既存の問題点">既存の問題点<a class="header-link" href="#既存の問題点" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Cloud Functions は各社ごとにデプロイ → OK、そのまま維持</li>
+<li>でもフロントエンドは GCS で共有 → そのまま維持（今回は変更しない）</li>
+<li>認証が各 Cloud Functions で分散 → Gateway で一元化</li>
+</ul>
+<h3 id="この設計の良い点">この設計の良い点<a class="header-link" href="#この設計の良い点" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Gateway は「認証して転送するだけ」</strong> → シンプル</li>
+<li><strong>既存の Cloud Functions を変更しない</strong> → 移行リスク最小</li>
+<li><strong>既存コードをほぼそのまま使える</strong> → 学習コスト低い</li>
+<li><strong>Docker 不使用</strong> → 既存のデプロイ方式を維持</li>
+</ul>
+<h3 id="受託長期運用に向いている理由">受託・長期運用に向いている理由<a class="header-link" href="#受託長期運用に向いている理由" title="Permanent link">&para;</a></h3>
+<ul>
+<li>顧客ごとにコードをフォークできる</li>
+<li>1社だけ特殊なカスタマイズも可能</li>
+<li>他社への影響ゼロ</li>
+<li>新人エンジニアでも理解しやすい</li>
+</ul>
+<hr />
+<h2 id="gateway-の責務">Gateway の責務<a class="header-link" href="#gateway-の責務" title="Permanent link">&para;</a></h2>
+<p>Gateway は以下の3つだけを行います:</p>
+<h3 id="1-firebase-認証チェック">1. Firebase 認証チェック<a class="header-link" href="#1-firebase-認証チェック" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">verify_request</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Firebase トークンを検証して uid, customer_id を返す&quot;&quot;&quot;</span>
+    <span class="n">token</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Authorization&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;Bearer &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">decoded</span> <span class="o">=</span> <span class="n">auth</span><span class="o">.</span><span class="n">verify_id_token</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">check_revoked</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">uid</span> <span class="o">=</span> <span class="n">decoded</span><span class="p">[</span><span class="s2">&quot;uid&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Custom Claims から customer_id を取得</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">auth</span><span class="o">.</span><span class="n">get_user</span><span class="p">(</span><span class="n">uid</span><span class="p">)</span>
+    <span class="n">customer_id</span> <span class="o">=</span> <span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">custom_claims</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;customer_id&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">uid</span><span class="p">,</span> <span class="n">customer_id</span>
+</code></pre></div>
+
+<h3 id="2-customer_id-から-url-を取得">2. customer_id から URL を取得<a class="header-link" href="#2-customer_id-から-url-を取得" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_company_url</span><span class="p">(</span><span class="n">customer_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Firestore から転送先 URL を取得&quot;&quot;&quot;</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">collection</span><span class="p">(</span><span class="s2">&quot;customers&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">document</span><span class="p">(</span><span class="n">customer_id</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">doc</span><span class="o">.</span><span class="n">exists</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">doc</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cloud_functions_url&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span>
+</code></pre></div>
+
+<h3 id="3-リクエストをそのまま転送">3. リクエストをそのまま転送<a class="header-link" href="#3-リクエストをそのまま転送" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># リクエストを転送（ストリーミング対応）</span>
+<span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+    <span class="n">method</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">method</span><span class="p">,</span>
+    <span class="n">url</span><span class="o">=</span><span class="n">target_url</span><span class="p">,</span>
+    <span class="n">headers</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;X-Gateway-Verified&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;X-User-Id&quot;</span><span class="p">:</span> <span class="n">uid</span><span class="p">,</span>
+        <span class="s2">&quot;X-Customer-Id&quot;</span><span class="p">:</span> <span class="n">customer_id</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">get_data</span><span class="p">(),</span>
+    <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># SSE 対応</span>
+    <span class="n">timeout</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<hr />
+<h2 id="gateway-がやらないこと重要">Gateway がやらないこと（重要）<a class="header-link" href="#gateway-がやらないこと重要" title="Permanent link">&para;</a></h2>
+<ul>
+<li>AI 処理</li>
+<li>ビジネスロジック</li>
+<li>UI ロジック</li>
+<li>データベース操作（顧客 URL 取得以外）</li>
+</ul>
+<p>これらはすべて Company Cloud Functions で行います。</p>
+<hr />
+<h2 id="company-cloud-functions-の変更点">Company Cloud Functions の変更点<a class="header-link" href="#company-cloud-functions-の変更点" title="Permanent link">&para;</a></h2>
+<p>Gateway 経由のリクエストを受け付けるため、以下の認証関数が追加されています:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">authenticate_request_with_gateway</span><span class="p">(</span><span class="n">request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gateway 経由のリクエストを認証&quot;&quot;&quot;</span>
+
+    <span class="c1"># Gateway 経由かどうかを確認</span>
+    <span class="n">gateway_verified</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;X-Gateway-Verified&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">gateway_verified</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">:</span>
+        <span class="c1"># Gateway が認証済みなので、内部ヘッダーを信頼</span>
+        <span class="n">user_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;X-User-Id&quot;</span><span class="p">)</span>
+        <span class="n">customer_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;X-Customer-Id&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;uid&quot;</span><span class="p">:</span> <span class="n">user_id</span><span class="p">,</span>
+            <span class="s2">&quot;customer_id&quot;</span><span class="p">:</span> <span class="n">customer_id</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="c1"># Gateway 経由でない場合は従来の認証</span>
+    <span class="k">return</span> <span class="n">authenticate_request</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+</code></pre></div>
+
+<hr />
+<h2 id="firestore-スキーマ">Firestore スキーマ<a class="header-link" href="#firestore-スキーマ" title="Permanent link">&para;</a></h2>
+<p>Gateway が顧客の Cloud Functions URL を取得するため、以下のフィールドが必要です:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">customers</span><span class="o">/</span><span class="err">{</span><span class="n">customer_id</span><span class="err">}</span>
+<span class="err">├──</span><span class="w"> </span><span class="nl">name</span><span class="p">:</span><span class="w"> </span><span class="ss">&quot;ACME Corporation&quot;</span>
+<span class="err">├──</span><span class="w"> </span><span class="nl">allowed_emails</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="n">&quot;user@acme.co.jp&quot;, ...</span><span class="o">]</span>
+<span class="err">├──</span><span class="w"> </span><span class="nl">allowed_domains</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="n">&quot;acme.co.jp&quot;</span><span class="o">]</span>
+<span class="err">├──</span><span class="w"> </span><span class="nl">cloud_functions_url</span><span class="p">:</span><span class="w"> </span><span class="ss">&quot;https://xxx.cloudfunctions.net/{customer_id}-api&quot;</span><span class="w">  </span><span class="err">←</span><span class="w"> </span><span class="n">追加</span>
+<span class="err">├──</span><span class="w"> </span><span class="nl">enabled</span><span class="p">:</span><span class="w"> </span><span class="k">true</span><span class="w">  </span><span class="err">←</span><span class="w"> </span><span class="n">追加</span>
+<span class="err">└──</span><span class="w"> </span><span class="nl">created_at</span><span class="p">:</span><span class="w"> </span><span class="nc">timestamp</span>
+</code></pre></div>
+
+<hr />
+<h2 id="デプロイ方法">デプロイ方法<a class="header-link" href="#デプロイ方法" title="Permanent link">&para;</a></h2>
+<h3 id="gateway-のデプロイ">Gateway のデプロイ<a class="header-link" href="#gateway-のデプロイ" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PROJECT_ID</span><span class="o">=</span>your-project-id
+./infrastructure/deploy-gateway.sh
+</code></pre></div>
+
+<h3 id="company-cloud-functions-のデプロイ">Company Cloud Functions のデプロイ<a class="header-link" href="#company-cloud-functions-のデプロイ" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PROJECT_ID</span><span class="o">=</span>your-project-id
+./infrastructure/deploy-customer.sh<span class="w"> </span>customer-a
+</code></pre></div>
+
+<hr />
+<h2 id="移行の流れ">移行の流れ<a class="header-link" href="#移行の流れ" title="Permanent link">&para;</a></h2>
+<h3 id="phase-1-gateway-の追加既存を壊さない">Phase 1: Gateway の追加（既存を壊さない）<a class="header-link" href="#phase-1-gateway-の追加既存を壊さない" title="Permanent link">&para;</a></h3>
+<ol>
+<li><code>src/gateway/src/main.py</code> を作成（済み）</li>
+<li>Gateway Cloud Functions をデプロイ</li>
+<li>動作確認（既存の構成と並行稼働）</li>
+</ol>
+<h3 id="phase-2-フロントエンドの接続先変更">Phase 2: フロントエンドの接続先変更<a class="header-link" href="#phase-2-フロントエンドの接続先変更" title="Permanent link">&para;</a></h3>
+<ol>
+<li>フロントエンドの <code>VITE_API_BASE_URL</code> を Gateway に変更</li>
+<li>動作確認</li>
+</ol>
+<h3 id="phase-3-既存-cloud-functions-の調整オプション">Phase 3: 既存 Cloud Functions の調整（オプション）<a class="header-link" href="#phase-3-既存-cloud-functions-の調整オプション" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Gateway からの内部ヘッダー対応を追加（済み）</li>
+<li>直接アクセスを段階的に制限（必要に応じて）</li>
+</ol>
+<p><strong>重要</strong>: Phase 1 だけで動作するので、段階的に進められます。</p>
+<hr />
+<h2 id="ディレクトリ構造">ディレクトリ構造<a class="header-link" href="#ディレクトリ構造" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><code>gcp-firebase-ai-agent-platform/
+│
+├── src/
+│   ├── gateway/                      # Gateway Cloud Functions
+│   │   └── src/
+│   │       ├── main.py               # Gateway 本体（約100行）
+│   │       └── requirements.txt      # 依存関係
+│   │
+│   ├── backend/                      # Company Cloud Functions（既存）
+│   │   └── src/
+│   │       ├── main.py               # バックエンド本体
+│   │       ├── agents/               # AI エージェント
+│   │       └── common/               # 共通モジュール
+│   │
+│   └── frontend/                     # フロントエンド（既存）
+│
+└── infrastructure/
+    ├── deploy-gateway.sh             # Gateway デプロイ
+    └── deploy-customer.sh            # Company デプロイ（既存）
+</code></pre></div>
+
+<hr />
+<h2 id="セキュリティ">セキュリティ<a class="header-link" href="#セキュリティ" title="Permanent link">&para;</a></h2>
+<h3 id="認証フロー">認証フロー<a class="header-link" href="#認証フロー" title="Permanent link">&para;</a></h3>
+<ol>
+<li>フロントエンドが Firebase Token を取得</li>
+<li>Gateway が Token を検証し、customer_id を取得</li>
+<li>Gateway が内部ヘッダー（<code>X-Gateway-Verified</code>, <code>X-User-Id</code>, <code>X-Customer-Id</code>）を付与</li>
+<li>Company Cloud Functions が内部ヘッダーを信頼</li>
+</ol>
+<h3 id="backend-への直接アクセス防止cloud-run-iam">Backend への直接アクセス防止（Cloud Run IAM）<a class="header-link" href="#backend-への直接アクセス防止cloud-run-iam" title="Permanent link">&para;</a></h3>
+<p><strong>重要</strong>: Backend への直接アクセスを防ぐため、Cloud Run IAM で Gateway のみアクセス可能に設定することを推奨します。</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Backend を非公開に設定</span>
+gcloud<span class="w"> </span>run<span class="w"> </span>services<span class="w"> </span>update<span class="w"> </span>backend<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--no-allow-unauthenticated<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--region<span class="o">=</span>asia-northeast1
+
+<span class="c1"># Gateway のサービスアカウントに Backend へのアクセス権を付与</span>
+gcloud<span class="w"> </span>run<span class="w"> </span>services<span class="w"> </span>add-iam-policy-binding<span class="w"> </span>backend<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--member<span class="o">=</span><span class="s2">&quot;serviceAccount:gateway@PROJECT_ID.iam.gserviceaccount.com&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--role<span class="o">=</span><span class="s2">&quot;roles/run.invoker&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--region<span class="o">=</span>asia-northeast1
+</code></pre></div>
+
+<p>これにより、インターネットから直接 Backend にアクセスできなくなり、<code>X-Gateway-Verified</code> ヘッダーの偽装を防止できます。</p>
+<h3 id="直接アクセスの場合">直接アクセスの場合<a class="header-link" href="#直接アクセスの場合" title="Permanent link">&para;</a></h3>
+<p>Gateway を経由しない場合でも、Company Cloud Functions は従来通り Firebase Token を検証します。</p>
+<div class="codehilite"><pre><span></span><code><span class="k">if</span> <span class="n">gateway_verified</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">:</span>
+    <span class="c1"># Gateway 経由 → 内部ヘッダーを信頼</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;uid&quot;</span><span class="p">:</span> <span class="n">user_id</span><span class="p">,</span> <span class="s2">&quot;customer_id&quot;</span><span class="p">:</span> <span class="n">customer_id</span><span class="p">}</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="c1"># 従来の認証</span>
+    <span class="k">return</span> <span class="n">authenticate_request</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+</code></pre></div>
+
+<hr />
+<h2 id="トラブルシューティング">トラブルシューティング<a class="header-link" href="#トラブルシューティング" title="Permanent link">&para;</a></h2>
+<h3 id="gateway-のヘルスチェック">Gateway のヘルスチェック<a class="header-link" href="#gateway-のヘルスチェック" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code>curl<span class="w"> </span>https://gateway-xxx.cloudfunctions.net/health
+<span class="c1"># → {&quot;status&quot;: &quot;healthy&quot;, &quot;service&quot;: &quot;gateway&quot;}</span>
+</code></pre></div>
+
+<h3 id="認証エラー">認証エラー<a class="header-link" href="#認証エラー" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>401</code>: Firebase Token が無効</li>
+<li><code>403</code>: customer_id が未設定</li>
+<li><code>404</code>: customers コレクションに cloud_functions_url が未設定</li>
+</ul>
+<h3 id="sse-が途切れる">SSE が途切れる<a class="header-link" href="#sse-が途切れる" title="Permanent link">&para;</a></h3>
+<p>Gateway のタイムアウトは 300 秒に設定されています。それ以上かかる場合は調整が必要です。</p>
+      </article>
+      <footer class="footer">
+        GCP AI Agent 設計資料 | Built with Python & Markdown
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.querySelector('.menu-toggle');
+      if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

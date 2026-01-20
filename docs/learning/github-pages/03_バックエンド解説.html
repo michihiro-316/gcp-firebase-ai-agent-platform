@@ -60,11 +60,18 @@
       </div>
 
       <div class="sidebar-section">
+        <div class="sidebar-title">🔧 上級編</div>
+        <ul class="sidebar-nav">
+          <li><a href="10_Gatewayアーキテクチャ.html" >Gatewayアーキテクチャ</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
         <div class="sidebar-title">🔄 参考: フロー解説</div>
         <ul class="sidebar-nav">
-          <li><a href="FLOW_01_チャット送信の流れ.html" >チャット送信の流れ</a></li>
-          <li><a href="FLOW_02_ログインの流れ.html" >ログインの流れ</a></li>
-          <li><a href="FLOW_04_セッション管理の流れ.html" >セッション管理の流れ</a></li>
+          <li><a href="11_チャット送信の流れ.html" >チャット送信の流れ</a></li>
+          <li><a href="12_ログインの流れ.html" >ログインの流れ</a></li>
+          <li><a href="13_セッション管理の流れ.html" >セッション管理の流れ</a></li>
         </ul>
       </div>
     </aside>
@@ -108,10 +115,13 @@
 
 <hr />
 <h2 id="ファイル構成">ファイル構成<a class="header-link" href="#ファイル構成" title="Permanent link">&para;</a></h2>
-<div class="codehilite"><pre><span></span><code>backend/src/
-├── main.py              ★ すべての入口（最初に読む）
+<div class="codehilite"><pre><span></span><code>src/gateway/src/
+└── main.py              ★ Gateway（すべてのリクエストの入口）
+
+src/backend/src/
+├── main.py              ★ 会社別バックエンドの入口（Gatewayから転送される）
 ├── common/
-│   ├── auth.py          ★ 認証処理（2番目に読む）
+│   ├── auth.py          ★ 認証処理（Gateway連携 + 自動振り分け）
 │   ├── config.py           設定読み込み
 │   ├── firebase_init.py    Firebase初期化
 │   └── rate_limiter.py     レート制限
@@ -120,32 +130,81 @@
     │   ├── base_agent.py        エージェントの基底クラス
     │   └── firestore_checkpointer.py  会話履歴保存
     └── _template/
-        └── agent.py     ★ AIエージェント本体（3番目に読む）
+        └── agent.py     ★ AIエージェント本体
 
-backend/scripts/
+src/backend/scripts/
 └── manage_customer.py   ★ 顧客管理コマンド（運用時に必須）
 </code></pre></div>
 
-<hr />
-<h2 id="1-mainpy---すべての入口">1. main.py - すべての入口<a class="header-link" href="#1-mainpy---すべての入口" title="Permanent link">&para;</a></h2>
-<h3 id="なぜ入口が必要">なぜ「入口」が必要？<a class="header-link" href="#なぜ入口が必要" title="Permanent link">&para;</a></h3>
-<div class="info-box">
-<div class="box-title">🚪 main.py = ホテルのフロントデスク</div>
+<div class="tip-box">
+<div class="box-title">💡 Gateway と Backend の関係</div>
 <div class="box-content">
 
-<strong>【フロントデスクの仕事】</strong>
 
-お客さん:「チェックインしたいんですけど」
-↓
-フロント:「かしこまりました。お名前は？予約番号は？」
-↓
-フロント:「確認できました。こちらがお部屋の鍵です」
+<div class="codehilite"><pre><span></span><code>フロントエンド → Gateway（1つ）→ Backend（会社ごとに1つ）
+                    ↓
+         ・認証（トークン検証）
+         ・customer_id から転送先URL取得
+         ・リクエストをそのまま転送
+</code></pre></div>
+
+
+
+Gatewayは「認証して転送するだけ」のシンプルな役割です。
+AI処理やビジネスロジックは各会社のBackendで行います。
+
+</div>
+</div>
+
+<hr />
+<h2 id="1-gateway-srcgatewaysrcmainpy---すべてのリクエストの入口">1. Gateway (src/gateway/src/main.py) - すべてのリクエストの入口<a class="header-link" href="#1-gateway-srcgatewaysrcmainpy---すべてのリクエストの入口" title="Permanent link">&para;</a></h2>
+<h3 id="gatewayの役割3つだけ">Gatewayの役割（3つだけ）<a class="header-link" href="#gatewayの役割3つだけ" title="Permanent link">&para;</a></h3>
+<div class="info-box">
+<div class="box-title">🚪 Gateway = ホテルのフロントデスク</div>
+<div class="box-content">
+
+<strong>【Gatewayの仕事】</strong>
+
+1. **Firebase 認証チェック** - トークンは本物？
+2. **customer_id から URL を取得** - この人はどの会社？
+3. **リクエストをそのまま転送** - その会社のバックエンドへ
+
+
+<div class="codehilite"><pre><span></span><code><span class="c1"># Gateway の処理（簡略版）</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">chat</span><span class="p">():</span>
+    <span class="c1"># 1. 認証</span>
+    <span class="n">uid</span><span class="p">,</span> <span class="n">customer_id</span> <span class="o">=</span> <span class="n">verify_request</span><span class="p">()</span>
+
+    <span class="c1"># 2. 転送先URL取得（Firestoreから）</span>
+    <span class="n">target_url</span> <span class="o">=</span> <span class="n">get_company_url</span><span class="p">(</span><span class="n">customer_id</span><span class="p">)</span>
+
+    <span class="c1"># 3. 転送（内部ヘッダー付き）</span>
+    <span class="k">return</span> <span class="n">proxy_request</span><span class="p">(</span><span class="n">target_url</span><span class="p">,</span> <span class="n">uid</span><span class="p">,</span> <span class="n">customer_id</span><span class="p">)</span>
+</code></pre></div>
+
+
+
+Gatewayは「認証して転送するだけ」。AI処理は行いません。
+
+</div>
+</div>
+
+<hr />
+<h2 id="2-backend-mainpy---会社ごとのバックエンド">2. Backend main.py - 会社ごとのバックエンド<a class="header-link" href="#2-backend-mainpy---会社ごとのバックエンド" title="Permanent link">&para;</a></h2>
+<h3 id="なぜ会社ごとにバックエンドが必要">なぜ「会社ごとにバックエンド」が必要？<a class="header-link" href="#なぜ会社ごとにバックエンドが必要" title="Permanent link">&para;</a></h3>
+<div class="info-box">
+<div class="box-title">🏢 会社別バックエンドのメリット</div>
+<div class="box-content">
+
+- **A社だけ特殊なカスタマイズ**が可能
+- **他社への影響ゼロ**で安全に更新
+- **障害が他社に波及しない**
 
 <strong>【main.py の仕事】</strong>
 
 リクエスト:「/chat に POST したいんですけど」
 ↓
-main.py:「かしこまりました。トークンは？メッセージは？」
+main.py:「Gatewayから来たね。トークンは？メッセージは？」
 ↓
 main.py:「確認できました。こちらがAIの回答です」
 
@@ -177,13 +236,23 @@ main.py:「確認できました。こちらがAIの回答です」
 
 <strong>POST /chat</strong> → `{ "message": "こんにちは", "thread_id": "abc123" }`
 
-<strong>ステップ1: 認証チェック</strong>
+<strong>ステップ1: 認証チェック（Gateway経由かどうかで分岐）</strong>
 <ul>
-<li>トークンがない → エラー「認証トークンがありません」</li>
-<li>トークンが偽物 → エラー「認証トークンが無効です」</li>
-<li>許可されてない → エラー「アクセスが許可されていません」</li>
-<li>OK → user_info を取得（uid, email, customer_id）</li>
+<li>**Gateway経由の場合**: 内部ヘッダー（X-Gateway-Verified, X-User-Id, X-Customer-Id）を信頼</li>
+<li>**直接アクセスの場合**: 従来のトークン検証を実行</li>
 </ul>
+
+
+<div class="codehilite"><pre><span></span><code><span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;X-Gateway-Verified&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">:</span>
+    <span class="c1"># Gateway が認証済み → 内部ヘッダーを信頼</span>
+    <span class="n">user_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;X-User-Id&quot;</span><span class="p">)</span>
+    <span class="n">customer_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;X-Customer-Id&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="c1"># 従来の認証</span>
+    <span class="n">user_info</span> <span class="o">=</span> <span class="n">authenticate_request</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+</code></pre></div>
+
+
 
 <strong>ステップ2: レート制限チェック</strong>
 <ul>
@@ -302,7 +371,7 @@ main.py:「確認できました。こちらがAIの回答です」
 </code></pre></div>
 
 <hr />
-<h2 id="2-authpy---認証処理超重要">2. auth.py - 認証処理（超重要！）<a class="header-link" href="#2-authpy---認証処理超重要" title="Permanent link">&para;</a></h2>
+<h2 id="3-authpy---認証処理超重要">3. auth.py - 認証処理（超重要！）<a class="header-link" href="#3-authpy---認証処理超重要" title="Permanent link">&para;</a></h2>
 <h3 id="なぜ認証が必要">なぜ認証が必要？<a class="header-link" href="#なぜ認証が必要" title="Permanent link">&para;</a></h3>
 <div class="warning-box">
 <div class="box-title">🔐 認証がないと何が起きる？</div>
@@ -535,12 +604,14 @@ main.py:「確認できました。こちらがAIの回答です」
 </code></pre></div>
 
 <hr />
-<h2 id="3-agentpy---aiエージェント">3. agent.py - AIエージェント<a class="header-link" href="#3-agentpy---aiエージェント" title="Permanent link">&para;</a></h2>
+<h2 id="4-agentpy---aiエージェント">4. agent.py - AIエージェント<a class="header-link" href="#4-agentpy---aiエージェント" title="Permanent link">&para;</a></h2>
 <h3 id="aiエージェントって何">AIエージェントって何？<a class="header-link" href="#aiエージェントって何" title="Permanent link">&para;</a></h3>
 <div class="info-box">
 <div class="box-title">🤖 AIエージェント = AIを使いやすくするラッパー</div>
 <div class="box-content">
+
 <strong>【AIを直接使う場合】</strong>
+
 毎回これを書く必要がある:
 <ul>
 <li>システムプロンプトを設定</li>
@@ -549,9 +620,13 @@ main.py:「確認できました。こちらがAIの回答です」
 <li>結果を保存</li>
 </ul>
 ...面倒！😵
+
 <strong>【エージェントを使う場合】</strong>
-<code>agent.run("質問", thread_id)</code><br>
-↑ これだけ！中身は全部エージェントがやってくれる 😊
+
+`agent.run("質問", thread_id)`
+↑
+これだけ！中身は全部エージェントがやってくれる 😊
+
 </div>
 </div>
 
@@ -741,7 +816,7 @@ FirestoreCheckpointer（会話履歴を保存）
 </code></pre></div>
 
 <hr />
-<h2 id="4-firestore_checkpointerpy---会話履歴保存">4. firestore_checkpointer.py - 会話履歴保存<a class="header-link" href="#4-firestore_checkpointerpy---会話履歴保存" title="Permanent link">&para;</a></h2>
+<h2 id="5-firestore_checkpointerpy---会話履歴保存">5. firestore_checkpointer.py - 会話履歴保存<a class="header-link" href="#5-firestore_checkpointerpy---会話履歴保存" title="Permanent link">&para;</a></h2>
 <h3 id="なぜ会話履歴が必要">なぜ会話履歴が必要？<a class="header-link" href="#なぜ会話履歴が必要" title="Permanent link">&para;</a></h3>
 <div class="info-box">
 <div class="box-title">💾 会話履歴がないと...</div>
