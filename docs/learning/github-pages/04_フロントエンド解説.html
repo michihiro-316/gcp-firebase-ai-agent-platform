@@ -239,15 +239,84 @@
 
 
 
-Pythonでいうと:
+</div>
+
+<div class="warning-box">
+<h3>⚠️ 超重要: `inner` と `inner()` の違い</h3>
+
+**これ、初心者がつまずく最大のポイントです！**
+
 
 <div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">outer</span><span class="p">():</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">inner</span><span class="p">():</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;後で実行&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">inner</span>  <span class="c1"># inner() ではない！</span>
+
+    <span class="k">return</span> <span class="n">inner</span>    <span class="c1"># ← カッコなし = 関数そのものを返す</span>
+    <span class="c1"># return inner()  ← カッコあり = 関数を実行して、その結果を返す</span>
 </code></pre></div>
 
 
+
+**図で理解:**
+
+<pre>
+inner   ← 関数そのもの（まだ実行されていない）
+         「後で実行してね」という約束を渡す
+
+inner() ← 関数を実行した結果
+         今すぐ「後で実行」と表示される
+         返り値は None（print は何も返さないから）
+</pre>
+
+**具体例で比較:**
+
+
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">outer</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">inner</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;実行された！&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">42</span>
+
+    <span class="k">return</span> <span class="n">inner</span>   <span class="c1"># カッコなし</span>
+
+<span class="c1"># 使う側</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">outer</span><span class="p">()</span>   <span class="c1"># result には inner関数が入る</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>      <span class="c1"># → &lt;function inner at 0x...&gt;（関数オブジェクト）</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">())</span>    <span class="c1"># → 実行された！ → 42（ここで初めて実行）</span>
+</code></pre></div>
+
+
+
+
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">outer</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">inner</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;実行された！&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">42</span>
+
+    <span class="k">return</span> <span class="n">inner</span><span class="p">()</span>  <span class="c1"># カッコあり ← ここで実行されてしまう！</span>
+
+<span class="c1"># 使う側</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">outer</span><span class="p">()</span>   <span class="c1"># → 「実行された！」が表示される</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>      <span class="c1"># → 42（inner() の戻り値）</span>
+</code></pre></div>
+
+
+
+**JavaScript でも同じ:**
+
+
+<div class="codehilite"><pre><span></span><code><span class="c1">// カッコなし = 関数を返す</span>
+<span class="k">return</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">clearInterval</span><span class="p">(</span><span class="nx">timer</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
+
+<span class="c1">// カッコあり = 関数を実行して結果を返す（間違い！）</span>
+<span class="k">return</span><span class="w"> </span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">clearInterval</span><span class="p">(</span><span class="nx">timer</span><span class="p">);</span><span class="w"> </span><span class="p">})()</span><span class="w">  </span><span class="c1">// 今すぐ実行されてしまう</span>
+</code></pre></div>
+
+
+
+| 書き方 | 意味 | 結果 |
+|--------|------|------|
+| `return inner` | 関数を返す | 後で呼び出せる ✅ |
+| `return inner()` | 実行して結果を返す | 今すぐ実行される ❌ |
 
 </div>
 
