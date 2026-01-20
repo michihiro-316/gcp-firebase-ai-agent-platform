@@ -747,52 +747,240 @@ input の value="あ" で表示
 
 <hr />
 <h2 id="3-useeffect---副作用の処理">3. useEffect - 副作用の処理<a class="header-link" href="#3-useeffect---副作用の処理" title="Permanent link">&para;</a></h2>
-<h3 id="useeffect-とは">useEffect とは？<a class="header-link" href="#useeffect-とは" title="Permanent link">&para;</a></h3>
-<p>「副作用（Side Effect）」を実行するための仕組み。<br />
-副作用 = 画面描画以外の処理（API呼び出し、イベント登録など）</p>
-<div class="codehilite"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useState</span><span class="p">,</span><span class="w"> </span><span class="nx">useEffect</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;react&#39;</span><span class="p">;</span>
+<h3 id="まず副作用って何">まず「副作用」って何？<a class="header-link" href="#まず副作用って何" title="Permanent link">&para;</a></h3>
+<div class="info-box">
+<h3>🤔 副作用（Side Effect）とは</h3>
+<p><strong>副作用 = 画面の描画以外の処理</strong></p>
+<table>
+<tr><th>画面描画（本業）</th><th>副作用（本業以外）</th></tr>
+<tr><td>文字を表示する</td><td>サーバーからデータを取る</td></tr>
+<tr><td>ボタンを表示する</td><td>ローカルストレージに保存</td></tr>
+<tr><td>リストを表示する</td><td>タイマーを設定する</td></tr>
+<tr><td>色を変える</td><td>イベントリスナーを登録</td></tr>
+</table>
+<p>💡 Reactコンポーネントの本業は「画面を描くこと」。<br>
+それ以外の処理はすべて「副作用」と呼ぶ</p>
+</div>
 
+<h3 id="なぜ-useeffect-が必要なのか">なぜ useEffect が必要なのか？<a class="header-link" href="#なぜ-useeffect-が必要なのか" title="Permanent link">&para;</a></h3>
+<div class="warning-box">
+<h3>⚠️ useEffect なしで API を呼ぶとどうなる？</h3>
+<div class="box-content">
+
+
+<div class="codehilite"><pre><span></span><code><span class="c1">// ❌ 悪い例: useEffect なしで API を呼ぶ</span>
 <span class="kd">function</span><span class="w"> </span><span class="nx">UserProfile</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">setUser</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
 
-<span class="w">  </span><span class="c1">// ┌─────────────────────────────────────────────────────────────────┐</span>
-<span class="w">  </span><span class="c1">// │ useEffect(処理, 依存配列)                                        │</span>
-<span class="w">  </span><span class="c1">// │   処理: 実行したい関数                                            │</span>
-<span class="w">  </span><span class="c1">// │   依存配列: この値が変わったら再実行                               │</span>
-<span class="w">  </span><span class="c1">// └─────────────────────────────────────────────────────────────────┘</span>
-<span class="w">  </span><span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="c1">// コンポーネントが表示されたときに実行</span>
-<span class="w">    </span><span class="nx">fetchUser</span><span class="p">().</span><span class="nx">then</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setUser</span><span class="p">(</span><span class="nx">data</span><span class="p">));</span>
-<span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="p">[]);</span><span class="w">  </span><span class="c1">// [] = 最初の1回だけ実行</span>
+<span class="w">  </span><span class="c1">// ここに書くと...</span>
+<span class="w">  </span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;/api/user&#39;</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setUser</span><span class="p">(</span><span class="nx">data</span><span class="p">));</span><span class="w">  </span><span class="c1">// 無限ループ！</span>
 
 <span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;{</span><span class="nx">user</span><span class="o">?</span><span class="p">.</span><span class="nx">name</span><span class="p">}&lt;/</span><span class="nt">div</span><span class="p">&gt;;</span>
 <span class="p">}</span>
 </code></pre></div>
 
-<h3 id="依存配列のパターン">依存配列のパターン<a class="header-link" href="#依存配列のパターン" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="c1">// パターン1: 最初の1回だけ実行</span>
-<span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;マウント時に1回だけ&quot;</span><span class="p">);</span>
+
+
+**何が起きる？**
+<pre>
+① コンポーネント実行 → fetch() 呼ばれる
+② setUser() で state 更新 → 再レンダリング発生
+③ コンポーネント再実行 → fetch() また呼ばれる
+④ setUser() で state 更新 → 再レンダリング発生
+⑤ 無限ループ！！！💥
+</pre>
+
+**useEffect を使う理由:**
+「画面が表示されたときに1回だけ」実行したいから
+
+</div>
+</div>
+
+<h3 id="useeffect-の基本形">useEffect の基本形<a class="header-link" href="#useeffect-の基本形" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// ここに「やりたい処理」を書く</span>
+<span class="p">},</span><span class="w"> </span><span class="p">[]);</span><span class="w">  </span><span class="c1">// ← これは「依存配列」</span>
+</code></pre></div>
+
+<div class="flow-box">
+<h3>📝 useEffect の書き方</h3>
+<pre>
+useEffect(
+  () => { ... },    ← 第1引数: 実行したい処理（関数）
+  []                ← 第2引数: 依存配列（いつ実行するか）
+);
+
+依存配列の意味:
+  []      → 最初の1回だけ実行（画面が表示されたとき）
+  [userId] → userId が変わるたびに実行
+  なし    → 毎回実行（ほぼ使わない）
+</pre>
+</div>
+
+<h3 id="先に-promise-を理解しよう">先に Promise を理解しよう<a class="header-link" href="#先に-promise-を理解しよう" title="Permanent link">&para;</a></h3>
+<p>useEffect の中で <code>fetch().then()</code> を使うので、先に Promise を理解しましょう。</p>
+<div class="info-box">
+<h3>⏳ Promise とは「約束」</h3>
+<p><strong>Promise = 「あとで結果を教えるよ」という約束</strong></p>
+<pre>
+【レストランで例えると】
+
+店員:「料理ができたらお呼びしますね」← これが Promise
+    ↓
+（あなたは待つ）
+    ↓
+店員:「できました！」← Promise が解決（resolve）
+    ↓
+あなた: 料理を受け取る ← .then() で結果を受け取る
+</pre>
+<p>サーバーとの通信は時間がかかるので「あとで結果を教える」仕組みが必要</p>
+</div>
+
+<h3 id="then-の書き方">.then() の書き方<a class="header-link" href="#then-の書き方" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// fetch() は Promise を返す</span>
+<span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;/api/user&#39;</span><span class="p">)</span><span class="w">      </span><span class="c1">// ① サーバーにリクエスト送信（時間かかる）</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">response</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">   </span><span class="c1">// ② レスポンスが返ってきたら実行</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">();</span><span class="w">  </span><span class="c1">// JSON に変換（これも Promise）</span>
+<span class="w">  </span><span class="p">})</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">       </span><span class="c1">// ③ JSON 変換が終わったら実行</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span><span class="w">  </span><span class="c1">// { name: &quot;太郎&quot;, age: 25 }</span>
+<span class="w">  </span><span class="p">});</span>
+</code></pre></div>
+
+<div class="flow-box">
+<h3>🔄 .then() の処理の流れ</h3>
+<pre>
+fetch('/api/user')  ← サーバーにリクエスト（1〜2秒かかる）
+        │
+        │  待っている間、他の処理は続く
+        ↓
+    .then(response => ...)  ← レスポンス到着！ここが実行される
+        │
+        ↓
+    .then(data => ...)  ← 次の処理
+
+💡 ポイント: .then() は「終わったら次へ」を繋げていく
+</pre>
+</div>
+
+<h3 id="useeffect--fetch-の完全な例">useEffect + fetch の完全な例<a class="header-link" href="#useeffect--fetch-の完全な例" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useState</span><span class="p">,</span><span class="w"> </span><span class="nx">useEffect</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;react&#39;</span><span class="p">;</span>
+
+<span class="kd">function</span><span class="w"> </span><span class="nx">UserProfile</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">setUser</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+
+<span class="w">  </span><span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// 画面が表示されたときに1回だけ実行</span>
+<span class="w">    </span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;/api/user&#39;</span><span class="p">)</span>
+<span class="w">      </span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">response</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">())</span><span class="w">  </span><span class="c1">// JSON に変換</span>
+<span class="w">      </span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">setUser</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span><span class="w">  </span><span class="c1">// state を更新</span>
+<span class="w">      </span><span class="p">});</span>
+<span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="p">[]);</span><span class="w">  </span><span class="c1">// [] = 最初の1回だけ</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;{</span><span class="nx">user</span><span class="o">?</span><span class="p">.</span><span class="nx">name</span><span class="p">}&lt;/</span><span class="nt">div</span><span class="p">&gt;;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<div class="architecture-box">
+<h3>🔍 このコードを1行ずつ解説</h3>
+<pre>
+const [user, setUser] = useState(null);
+       ↑         ↑              ↑
+    現在値   更新関数      初期値（まだデータない）
+
+useEffect(() => {
+    ↑
+  「画面が表示されたら実行して」という指示
+
+  fetch('/api/user')
+    ↑
+  サーバーに「ユーザー情報ちょうだい」と依頼
+
+    .then(response => response.json())
+                         ↑
+            返ってきたデータを JSON 形式に変換
+
+    .then(data => {
+      setUser(data);  ← state を更新 → 画面が再描画される
+    });
+
+}, []);
+   ↑
+ 空配列 = 最初の1回だけ実行
+
+return <div>{user?.name}</div>;
+             ↑
+           user が null の間は何も表示しない
+           user にデータが入ったら名前を表示
+</pre>
+</div>
+
+<h3 id="username-の意味オプショナルチェーン">user?.name の意味（オプショナルチェーン）<a class="header-link" href="#username-の意味オプショナルチェーン" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// user?.name は以下と同じ意味</span>
+<span class="nx">user</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="nx">user.name</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="kt">undefined</span>
+
+<span class="c1">// もし user が null や undefined だったら、</span>
+<span class="c1">// .name にアクセスせず undefined を返す</span>
+<span class="c1">// → エラーにならない！</span>
+</code></pre></div>
+
+<h3 id="asyncawait-で書き直すより読みやすい">async/await で書き直す（より読みやすい）<a class="header-link" href="#asyncawait-で書き直すより読みやすい" title="Permanent link">&para;</a></h3>
+<p><code>.then()</code> の代わりに <code>async/await</code> を使うと読みやすくなります。</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// 内部で async 関数を定義して即実行</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">fetchData</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;/api/user&#39;</span><span class="p">);</span><span class="w">  </span><span class="c1">// 待つ</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">();</span><span class="w">         </span><span class="c1">// 待つ</span>
+<span class="w">    </span><span class="nx">setUser</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span>
+<span class="w">  </span><span class="p">};</span>
+
+<span class="w">  </span><span class="nx">fetchData</span><span class="p">();</span><span class="w">  </span><span class="c1">// 実行</span>
 <span class="p">},</span><span class="w"> </span><span class="p">[]);</span>
+</code></pre></div>
+
+<div class="tip-box">
+<h3>💡 .then() と async/await は同じこと</h3>
+<pre>
+【.then() 版】
+fetch('/api/user')
+  .then(response => response.json())
+  .then(data => setUser(data));
+
+【async/await 版】
+const response = await fetch('/api/user');
+const data = await response.json();
+setUser(data);
+
+どちらも「終わるまで待つ」を表現している
+async/await の方が「上から順に読める」ので読みやすい
+</pre>
+</div>
+
+<h3 id="依存配列のパターン">依存配列のパターン<a class="header-link" href="#依存配列のパターン" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// パターン1: 最初の1回だけ実行（一番よく使う）</span>
+<span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;画面が表示されたときに1回だけ&quot;</span><span class="p">);</span>
+<span class="p">},</span><span class="w"> </span><span class="p">[]);</span><span class="w">  </span><span class="c1">// 空配列 = 1回だけ</span>
 
 <span class="c1">// パターン2: 特定の値が変わったら実行</span>
 <span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;userId が変わったら実行&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;userId が変わったから、データを取り直す&quot;</span><span class="p">);</span>
 <span class="w">  </span><span class="nx">fetchUserData</span><span class="p">(</span><span class="nx">userId</span><span class="p">);</span>
 <span class="p">},</span><span class="w"> </span><span class="p">[</span><span class="nx">userId</span><span class="p">]);</span><span class="w">  </span><span class="c1">// userId が変わるたびに実行</span>
 
-<span class="c1">// パターン3: 毎回実行（非推奨）</span>
+<span class="c1">// パターン3: 毎回実行（ほぼ使わない）</span>
 <span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;毎レンダリングで実行&quot;</span><span class="p">);</span>
-<span class="p">});</span><span class="w">  </span><span class="c1">// 依存配列なし = 毎回実行</span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;レンダリングのたびに実行&quot;</span><span class="p">);</span>
+<span class="p">});</span><span class="w">  </span><span class="c1">// 依存配列なし = 毎回</span>
 
 <span class="c1">// パターン4: クリーンアップ関数付き</span>
 <span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">subscription</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">subscribeToData</span><span class="p">();</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">timer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">setInterval</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;tick&#39;</span><span class="p">),</span><span class="w"> </span><span class="mf">1000</span><span class="p">);</span>
 
-<span class="w">  </span><span class="c1">// クリーンアップ: コンポーネントが消えるときに実行</span>
+<span class="w">  </span><span class="c1">// return で「後片付け」を定義</span>
 <span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nx">subscription</span><span class="p">.</span><span class="nx">unsubscribe</span><span class="p">();</span>
+<span class="w">    </span><span class="nx">clearInterval</span><span class="p">(</span><span class="nx">timer</span><span class="p">);</span><span class="w">  </span><span class="c1">// タイマーを停止</span>
 <span class="w">  </span><span class="p">};</span>
 <span class="p">},</span><span class="w"> </span><span class="p">[]);</span>
 </code></pre></div>
@@ -809,9 +997,39 @@ useEffect        依存配列の     依存配列の      クリーンアップ
 </pre>
 <ul>
 <li><strong>マウント</strong> = 画面に表示されたとき</li>
-<li><strong>アンマウント</strong> = 画面から消えたとき</li>
+<li><strong>アンマウント</strong> = 画面から消えたとき（別ページに移動など）</li>
+<li><strong>クリーンアップ</strong> = タイマー停止、イベント解除など後片付け</li>
 </ul>
 </div>
+
+<h3 id="実践例-ローディング状態の管理">実践例: ローディング状態の管理<a class="header-link" href="#実践例-ローディング状態の管理" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="kd">function</span><span class="w"> </span><span class="nx">UserProfile</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">setUser</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">loading</span><span class="p">,</span><span class="w"> </span><span class="nx">setLoading</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span><span class="w">   </span><span class="c1">// ローディング中？</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">error</span><span class="p">,</span><span class="w"> </span><span class="nx">setError</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span><span class="w">       </span><span class="c1">// エラー発生？</span>
+
+<span class="w">  </span><span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;/api/user&#39;</span><span class="p">)</span>
+<span class="w">      </span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">response</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">response</span><span class="p">.</span><span class="nx">ok</span><span class="p">)</span><span class="w"> </span><span class="k">throw</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="ne">Error</span><span class="p">(</span><span class="s1">&#39;取得失敗&#39;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">();</span>
+<span class="w">      </span><span class="p">})</span>
+<span class="w">      </span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">setUser</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span>
+<span class="w">        </span><span class="nx">setLoading</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span><span class="w">  </span><span class="c1">// ローディング終了</span>
+<span class="w">      </span><span class="p">})</span>
+<span class="w">      </span><span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">setError</span><span class="p">(</span><span class="nx">err</span><span class="p">.</span><span class="nx">message</span><span class="p">);</span>
+<span class="w">        </span><span class="nx">setLoading</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+<span class="w">      </span><span class="p">});</span>
+<span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="p">[]);</span>
+
+<span class="w">  </span><span class="c1">// 状態に応じて表示を切り替え</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">loading</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span><span class="nx">読み込み中</span><span class="p">...&lt;/</span><span class="nt">div</span><span class="p">&gt;;</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">error</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span><span class="nx">エラー</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="nx">error</span><span class="p">}&lt;/</span><span class="nt">div</span><span class="p">&gt;;</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;{</span><span class="nx">user</span><span class="p">.</span><span class="nx">name</span><span class="p">}&lt;/</span><span class="nt">div</span><span class="p">&gt;;</span>
+<span class="p">}</span>
+</code></pre></div>
 
 <hr />
 <h2 id="4-カスタムフック---ロジックの再利用">4. カスタムフック - ロジックの再利用<a class="header-link" href="#4-カスタムフック---ロジックの再利用" title="Permanent link">&para;</a></h2>
