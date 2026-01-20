@@ -185,65 +185,65 @@ src/frontend/
 <h3>⚠️ 超重要：どのファイルに何を書く？</h3>
 <div class="box-content">
 
-**【index.html】全ページ共通で1回だけ読み込むもの**
-- Google Tag Manager (GTM)
-- Google Analytics
-- 外部CSS/フォント（Google Fontsなど）
-- `<title>` や `<meta>` タグ
-- favicon の設定
+<p><strong>【index.html】全ページ共通で1回だけ読み込むもの</strong></p>
+<ul>
+<li>Google Tag Manager (GTM)</li>
+<li>Google Analytics</li>
+<li>外部CSS/フォント（Google Fontsなど）</li>
+<li><code>&lt;title&gt;</code> や <code>&lt;meta&gt;</code> タグ</li>
+<li>favicon の設定</li>
+</ul>
 
+<pre><code class="language-html">&lt;!-- index.html の例 --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+  &lt;!-- ↓ 全ページ共通で1回だけ読み込むもの --&gt;
+  &lt;meta charset="UTF-8" /&gt;
+  &lt;title&gt;AIチャット&lt;/title&gt;
+  &lt;link rel="icon" href="/favicon.ico" /&gt;
 
-<div class="codehilite"><pre><span></span><code><span class="cm">&lt;!-- index.html の例 --&gt;</span>
-<span class="cp">&lt;!DOCTYPE html&gt;</span>
-<span class="p">&lt;</span><span class="nt">html</span> <span class="na">lang</span><span class="o">=</span><span class="s">&quot;ja&quot;</span><span class="p">&gt;</span>
-<span class="p">&lt;</span><span class="nt">head</span><span class="p">&gt;</span>
-  <span class="cm">&lt;!-- ↓ 全ページ共通で1回だけ読み込むもの --&gt;</span>
-  <span class="p">&lt;</span><span class="nt">meta</span> <span class="na">charset</span><span class="o">=</span><span class="s">&quot;UTF-8&quot;</span> <span class="p">/&gt;</span>
-  <span class="p">&lt;</span><span class="nt">title</span><span class="p">&gt;</span>AIチャット<span class="p">&lt;/</span><span class="nt">title</span><span class="p">&gt;</span>
-  <span class="p">&lt;</span><span class="nt">link</span> <span class="na">rel</span><span class="o">=</span><span class="s">&quot;icon&quot;</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;/favicon.ico&quot;</span> <span class="p">/&gt;</span>
+  &lt;!-- GTM（Google Tag Manager）--&gt;
+  &lt;script&gt;(function(w,d,s,l,i){...})(window,document,'script','dataLayer','GTM-XXXX');&lt;/script&gt;
 
-  <span class="cm">&lt;!-- GTM（Google Tag Manager）--&gt;</span>
-  <span class="p">&lt;</span><span class="nt">script</span><span class="p">&gt;(</span><span class="kd">function</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span><span class="nx">d</span><span class="p">,</span><span class="nx">s</span><span class="p">,</span><span class="nx">l</span><span class="p">,</span><span class="nx">i</span><span class="p">){...})(</span><span class="nb">window</span><span class="p">,</span><span class="nb">document</span><span class="p">,</span><span class="s1">&#39;script&#39;</span><span class="p">,</span><span class="s1">&#39;dataLayer&#39;</span><span class="p">,</span><span class="s1">&#39;GTM-XXXX&#39;</span><span class="p">);&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+  &lt;!-- Google Fonts --&gt;
+  &lt;link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&amp;display=swap" rel="stylesheet"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;!-- ↓ Reactがここにコンポーネントを描画する --&gt;
+  &lt;div id="root"&gt;&lt;/div&gt;
 
-  <span class="cm">&lt;!-- Google Fonts --&gt;</span>
-  <span class="p">&lt;</span><span class="nt">link</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;https://fonts.googleapis.com/css2?family=Noto+Sans+JP&amp;display=swap&quot;</span> <span class="na">rel</span><span class="o">=</span><span class="s">&quot;stylesheet&quot;</span><span class="p">&gt;</span>
-<span class="p">&lt;/</span><span class="nt">head</span><span class="p">&gt;</span>
-<span class="p">&lt;</span><span class="nt">body</span><span class="p">&gt;</span>
-  <span class="cm">&lt;!-- ↓ Reactがここにコンポーネントを描画する --&gt;</span>
-  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;root&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+  &lt;!-- ↓ main.tsx を読み込んでReactを起動 --&gt;
+  &lt;script type="module" src="/src/main.tsx"&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
 
-  <span class="cm">&lt;!-- ↓ main.tsx を読み込んでReactを起動 --&gt;</span>
-  <span class="p">&lt;</span><span class="nt">script</span> <span class="na">type</span><span class="o">=</span><span class="s">&quot;module&quot;</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;/src/main.tsx&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
-<span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
-<span class="p">&lt;/</span><span class="nt">html</span><span class="p">&gt;</span>
-</code></pre></div>
+<p><strong>【main.tsx】Reactを起動するだけ</strong></p>
+<ul>
+<li><code>index.html</code> の <code>#root</code> にReactアプリを埋め込む</li>
+<li>基本的に変更不要</li>
+</ul>
 
+<pre><code class="language-tsx">// main.tsx
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App'
 
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  &lt;React.StrictMode&gt;
+    &lt;App /&gt;  {/* ← ここからReactの世界が始まる */}
+  &lt;/React.StrictMode&gt;
+)
+</code></pre>
 
-**【main.tsx】Reactを起動するだけ**
-- `index.html` の `#root` にReactアプリを埋め込む
-- 基本的に変更不要
-
-
-<div class="codehilite"><pre><span></span><code><span class="c1">// main.tsx</span>
-<span class="k">import</span><span class="w"> </span><span class="nx">React</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;react&#39;</span>
-<span class="k">import</span><span class="w"> </span><span class="nx">ReactDOM</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;react-dom/client&#39;</span>
-<span class="k">import</span><span class="w"> </span><span class="nx">App</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./App&#39;</span>
-
-<span class="nx">ReactDOM</span><span class="p">.</span><span class="nx">createRoot</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;root&#39;</span><span class="p">)</span><span class="o">!</span><span class="p">).</span><span class="nx">render</span><span class="p">(</span>
-<span class="w">  </span><span class="p">&lt;</span><span class="nt">React</span><span class="p">.</span><span class="na">StrictMode</span><span class="p">&gt;</span>
-<span class="w">    </span><span class="p">&lt;</span><span class="nt">App</span><span class="w"> </span><span class="p">/&gt;</span><span class="w">  </span><span class="p">{</span><span class="cm">/* ← ここからReactの世界が始まる */</span><span class="p">}</span>
-<span class="w">  </span><span class="p">&lt;/</span><span class="nt">React</span><span class="p">.</span><span class="na">StrictMode</span><span class="p">&gt;</span>
-<span class="p">)</span>
-</code></pre></div>
-
-
-
-**【App.tsx 以下】画面の中身**
-- ログイン状態による表示切り替え
-- チャット画面
-- ヘッダー、フッターなどのUI
-- 動的に変わる部分はすべてここ
+<p><strong>【App.tsx 以下】画面の中身</strong></p>
+<ul>
+<li>ログイン状態による表示切り替え</li>
+<li>チャット画面</li>
+<li>ヘッダー、フッターなどのUI</li>
+<li>動的に変わる部分はすべてここ</li>
+</ul>
 
 </div>
 </div>
