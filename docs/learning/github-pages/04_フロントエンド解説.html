@@ -1251,15 +1251,12 @@ clearInterval(timer);    ← ✅ 実行される（引数付きで呼び出し�
 
 **つまり:**
 
-<pre>
-┌────────────────────────────────┬──────────────┬─────────────────────┐
-│ 書き方                          │ 何をしている？ │ 実行タイミング        │
-├────────────────────────────────┼──────────────┼─────────────────────┤
-│ clearInterval(timer)           │ 関数を呼び出す │ <strong>今すぐ</strong>実行           │
-│ () => { clearInterval(timer); }│ 関数を作る    │ <strong>まだ</strong>実行されない     │
-│ return () => { ... }           │ 関数を作って返す│ <strong>後で</strong>誰かが呼ぶと実行│
-└────────────────────────────────┴──────────────┴─────────────────────┘
-</pre>
+<table>
+<tr><th>書き方</th><th>何をしている？</th><th>実行タイミング</th></tr>
+<tr><td><code>clearInterval(timer)</code></td><td>関数を呼び出す</td><td><strong>今すぐ</strong>実行</td></tr>
+<tr><td><code>() => { clearInterval(timer); }</code></td><td>関数を作る</td><td><strong>まだ</strong>実行されない</td></tr>
+<tr><td><code>return () => { ... }</code></td><td>関数を作って返す</td><td><strong>後で</strong>誰かが呼ぶと実行</td></tr>
+</table>
 
 **だから useEffect の return は:**
 
@@ -1279,42 +1276,7 @@ Reactはこの「実行の仕方」を受け取って保存し、画面が消え
 </div>
 
 <hr />
-<p><strong>🐍 Pythonで同じことをすると？</strong></p>
-<p>JavaScriptの <code>return () =&gt; { ... }</code> が分かりにくい場合、Pythonで考えてみましょう。</p>
-<div class="codehilite"><pre><span></span><code><span class="c1"># Python版（イメージ）</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">use_effect</span><span class="p">(</span><span class="n">エフェクト関数</span><span class="p">,</span> <span class="n">依存配列</span><span class="p">):</span>
-    <span class="c1"># Reactがこれを呼び出す</span>
-    <span class="n">クリーンアップ関数</span> <span class="o">=</span> <span class="n">エフェクト関数</span><span class="p">()</span>  <span class="c1"># ← エフェクト実行、戻り値を保存</span>
-
-    <span class="c1"># ... 後で、画面が消えるとき ...</span>
-    <span class="k">if</span> <span class="n">クリーンアップ関数</span><span class="p">:</span>
-        <span class="n">クリーンアップ関数</span><span class="p">()</span>  <span class="c1"># ← ここで初めて実行！</span>
-
-
-<span class="c1"># 使う側</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">my_effect</span><span class="p">():</span>
-    <span class="c1"># ① 画面表示時に実行される</span>
-    <span class="n">timer</span> <span class="o">=</span> <span class="n">start_interval</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;tick&#39;</span><span class="p">),</span> <span class="mi">1000</span><span class="p">)</span>
-
-    <span class="c1"># ② 関数を「定義して返す」だけ（実行しない！）</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">cleanup</span><span class="p">():</span>
-        <span class="n">stop_interval</span><span class="p">(</span><span class="n">timer</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">cleanup</span>  <span class="c1"># ← cleanup() ではない！カッコなし！</span>
-
-
-<span class="n">use_effect</span><span class="p">(</span><span class="n">my_effect</span><span class="p">,</span> <span class="p">[])</span>
-</code></pre></div>
-
-<p><strong>重要: <code>return cleanup</code> vs <code>return cleanup()</code></strong></p>
-<table>
-<tr><th>書き方</th><th>意味</th><th>結果</th></tr>
-<tr><td><code>return cleanup</code></td><td>関数を返す</td><td>✅ Reactが後で呼び出せる</td></tr>
-<tr><td><code>return cleanup()</code></td><td>今すぐ実行して結果を返す</td><td>❌ 即実行される（useEffectでは間違い）</td></tr>
-</table>
-
-<hr />
-<p><strong>実際のタイマーの例（より実用的に）:</strong></p>
+<p><strong>実際のタイマーの例:</strong></p>
 <div class="codehilite"><pre><span></span><code><span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="c1">// ① 画面表示時: タイマー開始</span>
 <span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">timer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">setInterval</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
@@ -1328,11 +1290,71 @@ Reactはこの「実行の仕方」を受け取って保存し、画面が消え
 <span class="p">},</span><span class="w"> </span><span class="p">[]);</span>
 </code></pre></div>
 
+<div class="warning-box">
+<h3>⚠️ よくある疑問: setInterval は「完了」しないの？</h3>
+
+**Q: setInterval が動き続けるなら、次の行（return）に到達しないのでは？**
+
+A: **いいえ、到達します！** setInterval は **非同期** だからです。
+
+<pre>
+【誤解しやすいイメージ】（❌ 間違い）
+
+const timer = setInterval(...);  ← ここで1秒待機...?
+return () => { ... };            ← setIntervalが終わるまで到達しない...?
+</pre>
+
+<pre>
+【実際の動き】（✅ 正解）
+
+const timer = setInterval(...);  ← 「予約だけ」して即座に次へ進む！
+return () => { ... };            ← すぐにここに到達する！
+</pre>
+
+**setInterval は「内部でwhileループで待機」しているわけではありません。**
+
+<table>
+<tr><th>イメージ</th><th>実際の動作</th></tr>
+<tr><td>❌ whileループで待つ<br>（ブロッキング）</td><td>✅ 予約だけして即座に戻る<br>（ノンブロッキング）</td></tr>
+<tr><td>❌ setInterval完了まで待機</td><td>✅ ブラウザのタイマーに「後で呼んで」と依頼するだけ</td></tr>
+</table>
+
+**🐍 Pythonで例えると:**
+
+setInterval は **Python の `async`/`await`** に近い概念です。
+
+
+<div class="codehilite"><pre><span></span><code><span class="c1"># Python の async（ブロックしない）</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">poll</span><span class="p">():</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;tick&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># ← 他の処理に譲る</span>
+
+<span class="c1"># JavaScript の setInterval（ブロックしない）</span>
+<span class="n">setInterval</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;tick&quot;</span><span class="p">),</span> <span class="mi">1000</span><span class="p">);</span>  <span class="o">//</span> <span class="err">←</span> <span class="n">登録後</span><span class="err">、</span><span class="n">即座に次の行へ</span>
+</code></pre></div>
+
+
+
+どちらも「メインスレッドをブロックせず、後でコールバックを実行する」という非同期の考え方です。
+
+</div>
+
 <p><strong>時系列で見ると:</strong></p>
 <pre>
 ユーザーがチャット画面を開く
     ↓
-① setInterval 開始
+useEffect の関数が実行される
+    ↓
+① const timer = setInterval(...)
+   → ブラウザ:「1秒ごとに呼ぶね」と予約（即座に完了）
+    ↓
+② return () => { clearInterval(timer); }
+   → クリーンアップ関数をReactに渡す（即座に完了）
+    ↓
+useEffect 完了！（ここまで一瞬）
+    ↓
+〜〜〜 バックグラウンドでタイマーが動く 〜〜〜
     ↓
 1秒後: fetchNewMessages() 実行
 2秒後: fetchNewMessages() 実行
@@ -1341,104 +1363,13 @@ Reactはこの「実行の仕方」を受け取って保存し、画面が消え
     ↓
 ユーザーが設定画面に移動
     ↓
-② Reactが return の関数を実行
+Reactが return の関数を実行
     ↓
 clearInterval(timer) でタイマー停止
     ↓
 もう fetchNewMessages() は呼ばれない ✅
 </pre>
 
-<div class="codehilite"><pre><span></span><code><span class="nt">&lt;div</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;tip-box&quot;</span><span class="nt">&gt;</span>
-<span class="nt">&lt;h3&gt;</span>💡<span class="w"> </span>パターン4の解説:<span class="w"> </span>setInterval<span class="w"> </span>と<span class="w"> </span>clearInterval<span class="nt">&lt;/h3&gt;</span>
-
-**setInterval<span class="w"> </span>とは？**
-
-「一定間隔で処理を繰り返す」ための関数です。
-
-<span class="nt">&lt;pre&gt;</span>
-setInterval(処理,<span class="w"> </span>ミリ秒)
-<span class="w">    </span>↑<span class="w">           </span>↑
-<span class="w"> </span>繰り返す処理<span class="w">  </span>間隔（1000<span class="w"> </span>=<span class="w"> </span>1秒）
-<span class="nt">&lt;/pre&gt;</span>
-
-**具体例:**
-```javascript
-//<span class="w"> </span>1秒ごとに「tick」と表示（止めるまで永遠に続く）
-setInterval(()<span class="w"> </span>=&gt;<span class="w"> </span>console.log(&#39;tick&#39;),<span class="w"> </span>1000);
-
-//<span class="w"> </span>時間の流れ:
-//<span class="w"> </span>0秒<span class="w"> </span>→<span class="w"> </span>1秒<span class="w"> </span>→<span class="w"> </span>2秒<span class="w"> </span>→<span class="w"> </span>3秒<span class="w"> </span>→<span class="w"> </span>4秒<span class="w"> </span>→<span class="w"> </span>...
-//<span class="w">        </span>tick<span class="w">   </span>tick<span class="w">   </span>tick<span class="w">   </span>tick<span class="w">   </span>...（ずっと続く）
-</code></pre></div>
-
-<p><strong>実用的な例:</strong></p>
-<div class="codehilite"><pre><span></span><code><span class="c1">// 1秒ごとに新着メッセージを取得</span>
-<span class="kd">const</span><span class="w"> </span><span class="nx">timer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">setInterval</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nx">fetchNewMessages</span><span class="p">();</span><span class="w">  </span><span class="c1">// サーバーに問い合わせ</span>
-<span class="p">},</span><span class="w"> </span><span class="mf">1000</span><span class="p">);</span>
-</code></pre></div>
-
-<hr />
-<p><strong>🔑 return で「関数を返す」とは？（超重要！）</strong></p>
-<p>アロー関数 <code>() =&gt; { }</code> については上の「Pythonエンジニア向け」で説明しました。<br />
-ここでは <code>return</code> の使い方に集中します。</p>
-<div class="codehilite"><pre><span></span><code><span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">timer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">setInterval</span><span class="p">(...);</span>
-
-<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">              </span><span class="c1">// ← 関数を「作って返す」だけ</span>
-<span class="w">    </span><span class="nx">clearInterval</span><span class="p">(</span><span class="nx">timer</span><span class="p">);</span><span class="w">     </span><span class="c1">//    この時点では実行されない！</span>
-<span class="w">  </span><span class="p">};</span>
-<span class="p">},</span><span class="w"> </span><span class="p">[]);</span>
-</code></pre></div>
-
-<p>ポイント: <code>return () =&gt; { ... }</code> は関数を<strong>実行せずに返す</strong>だけ。<br />
-Reactがこの関数を受け取って、<strong>後で</strong>（画面から消えるとき）呼び出します。</p>
-<div class="codehilite"><pre><span></span><code><span class="c1"># Pythonで同じことをすると:</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">effect</span><span class="p">():</span>
-    <span class="n">timer</span> <span class="o">=</span> <span class="n">start_timer</span><span class="p">()</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">cleanup</span><span class="p">():</span>          <span class="c1"># 関数を定義</span>
-        <span class="n">stop_timer</span><span class="p">(</span><span class="n">timer</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">cleanup</span>          <span class="c1"># 実行せずに返す（cleanup() ではない！）</span>
-
-<span class="c1"># 呼び出し側:</span>
-<span class="n">cleanup_func</span> <span class="o">=</span> <span class="n">effect</span><span class="p">()</span>     <span class="c1"># cleanup関数を受け取る</span>
-<span class="c1"># ... 後で ...</span>
-<span class="n">cleanup_func</span><span class="p">()</span>              <span class="c1"># ここで初めて実行される</span>
-</code></pre></div>
-
-<hr />
-<p><strong>なぜ後片付けが必要？</strong></p>
-<pre>
-【後片付けなしの場合】 ❌
-① チャット画面を表示 → タイマー開始（tick tick tick...）
-② 設定画面に移動 → チャット画面は消えた
-③ でもタイマーは動き続ける！💥 メモリリーク＆無駄な通信
-
-【後片付けありの場合】 ✅
-① チャット画面を表示 → タイマー開始
-② 設定画面に移動 → return の関数が自動実行 → タイマー停止
-③ 余計な処理なし！
-</pre>
-
-<p><strong>実際の流れ:</strong></p>
-<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">ユーザーがチャット画面を開く</span>
-<span class="w">   </span><span class="err">→</span><span class="w"> </span><span class="n">setInterval</span><span class="w"> </span><span class="n">開始</span>
-<span class="w">   </span><span class="err">→</span><span class="w"> </span><span class="mf">1</span><span class="n">秒後</span><span class="p">:</span><span class="w"> </span><span class="n">fetchNewMessages</span><span class="p">()</span><span class="w"> </span><span class="n">実行</span>
-<span class="w">   </span><span class="err">→</span><span class="w"> </span><span class="mf">2</span><span class="n">秒後</span><span class="p">:</span><span class="w"> </span><span class="n">fetchNewMessages</span><span class="p">()</span><span class="w"> </span><span class="n">実行</span>
-<span class="w">   </span><span class="err">→</span><span class="w"> </span><span class="mf">3</span><span class="n">秒後</span><span class="p">:</span><span class="w"> </span><span class="n">fetchNewMessages</span><span class="p">()</span><span class="w"> </span><span class="n">実行</span>
-<span class="w">   </span><span class="err">→</span><span class="w"> </span><span class="mf">...</span><span class="err">（</span><span class="n">ずっと続く</span><span class="err">）</span>
-
-<span class="mf">2.</span><span class="w"> </span><span class="n">ユーザーが設定画面に移動</span>
-<span class="w">   </span><span class="err">→</span><span class="w"> </span><span class="n">Reactが</span><span class="err">「</span><span class="n">画面消えるよ</span><span class="err">」</span><span class="n">と検知</span>
-<span class="w">   </span><span class="err">→</span><span class="w"> </span><span class="kr">return</span><span class="w"> </span><span class="n">で返した関数を実行</span>
-<span class="w">   </span><span class="err">→</span><span class="w"> </span><span class="n">clearInterval</span><span class="p">(</span><span class="n">timer</span><span class="p">)</span><span class="w"> </span><span class="n">でタイマー停止</span>
-<span class="w">   </span><span class="err">→</span><span class="w"> </span><span class="n">もう</span><span class="w"> </span><span class="n">fetchNewMessages</span><span class="p">()</span><span class="w"> </span><span class="n">は呼ばれない</span>
-</code></pre></div>
-
-<p><code>clearInterval(timer)</code> = 「このタイマーを止めて」という命令<br />
-</div></p>
 <div class="info-box">
 <h3>🎯 useEffect のライフサイクル</h3>
 <p>コンポーネントの一生:</p>
