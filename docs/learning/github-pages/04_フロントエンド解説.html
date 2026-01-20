@@ -412,6 +412,339 @@ return &lt;h1&gt;こんにちは、{name}さん！&lt;/h1&gt;;
 <span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">first</span><span class="p">,</span><span class="w"> </span><span class="nx">second</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">2</span><span class="p">];</span><span class="w">  </span><span class="c1">// first = 1, second = 2</span>
 </code></pre></div>
 
+<h3 id="setcountはどこで定義した超よくある質問">「setCount」はどこで定義した？（超よくある質問）<a class="header-link" href="#setcountはどこで定義した超よくある質問" title="Permanent link">&para;</a></h3>
+<div class="warning-box">
+<h3>❓ 「setCount って自分で作ってないのに、なぜ使える？」</h3>
+<div class="box-content">
+
+**答え: `useState` が内部で作って返してくれる**
+
+
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">count</span><span class="p">,</span><span class="w"> </span><span class="nx">setCount</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="mf">0</span><span class="p">);</span>
+<span class="c1">//            ↑ これは useState が作った関数</span>
+</code></pre></div>
+
+
+
+自分で `function setCount() {...}` と書いたわけではない！
+`useState` を呼ぶと、React が以下を返してくれる：
+
+1. **現在の値**（`count`）
+2. **その値を更新する関数**（`setCount`）
+
+<pre>
+useState(0) が返すもの:
+┌─────────────────────────────────────────┐
+│  [0] → 現在の値（最初は初期値の 0）       │
+│  [1] → 更新関数（React が用意してくれる） │
+└─────────────────────────────────────────┘
+</pre>
+
+**ポイント**: `setCount` を呼ぶと、Reactは：
+1. 新しい値を内部に保存
+2. コンポーネントを再レンダリング（画面更新）
+
+</div>
+</div>
+
+<h3 id="初期値と現在値の違い混乱しやすい">初期値と現在値の違い（混乱しやすい）<a class="header-link" href="#初期値と現在値の違い混乱しやすい" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">count</span><span class="p">,</span><span class="w"> </span><span class="nx">setCount</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="mf">0</span><span class="p">);</span>
+<span class="c1">//                                 ↑ 初期値（最初の1回だけ使う）</span>
+<span class="c1">//           ↑ 現在の値（常に変化しうる）</span>
+</code></pre></div>
+
+<div class="info-box">
+<h3>📝 初期値 vs 現在値</h3>
+<table>
+<tr><th>用語</th><th>意味</th><th>例</th></tr>
+<tr><td><strong>初期値</strong></td><td>useState の引数。最初のレンダリング時だけ使う</td><td><code>useState(0)</code> の <code>0</code></td></tr>
+<tr><td><strong>現在値</strong></td><td>今のstate。更新のたびに変わる</td><td><code>count</code>（0→1→2→...）</td></tr>
+</table>
+<p>💡 2回目以降のレンダリングでは、初期値 <code>0</code> は無視される</p>
+</div>
+
+<h3 id="関数型更新prev--連続更新で必須">関数型更新（prev）- 連続更新で必須！<a class="header-link" href="#関数型更新prev--連続更新で必須" title="Permanent link">&para;</a></h3>
+<div class="warning-box">
+<h3>⚠️ 連続で setState すると、期待通りに動かない？</h3>
+<div class="box-content">
+
+**問題のあるコード:**
+
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">count</span><span class="p">,</span><span class="w"> </span><span class="nx">setCount</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="mf">0</span><span class="p">);</span>
+
+<span class="kd">function</span><span class="w"> </span><span class="nx">handleClick</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">setCount</span><span class="p">(</span><span class="nx">count</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span><span class="w">  </span><span class="c1">// count=0 なので 0+1=1</span>
+<span class="w">  </span><span class="nx">setCount</span><span class="p">(</span><span class="nx">count</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span><span class="w">  </span><span class="c1">// count=0 なので 0+1=1</span>
+<span class="w">  </span><span class="nx">setCount</span><span class="p">(</span><span class="nx">count</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span><span class="w">  </span><span class="c1">// count=0 なので 0+1=1</span>
+<span class="w">  </span><span class="c1">// 結果: count は 1 になる（3じゃない！）</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+
+**なぜ？** `setCount` は非同期で、`count` はまだ古い値のまま
+
+**解決: 関数型更新（prev）を使う**
+
+<div class="codehilite"><pre><span></span><code><span class="kd">function</span><span class="w"> </span><span class="nx">handleClick</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">setCount</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">prev</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span><span class="w">  </span><span class="c1">// prev=0 → 1</span>
+<span class="w">  </span><span class="nx">setCount</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">prev</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span><span class="w">  </span><span class="c1">// prev=1 → 2</span>
+<span class="w">  </span><span class="nx">setCount</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">prev</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span><span class="w">  </span><span class="c1">// prev=2 → 3</span>
+<span class="w">  </span><span class="c1">// 結果: count は 3 になる！✅</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+
+</div>
+</div>
+
+<div class="info-box">
+<h3>🔑 prev の正体</h3>
+<p><strong>prev は「過去の値」ではなく「更新直前の最新値」</strong></p>
+<pre>
+setCount(prev => prev + 1)
+         ↑
+         これは「更新が適用される直前の state」
+
+時系列:
+  1回目: prev=0 → 0+1=1 を返す → state=1
+  2回目: prev=1 → 1+1=2 を返す → state=2
+  3回目: prev=2 → 2+1=3 を返す → state=3
+</pre>
+<p><strong>いつ関数型を使う？</strong></p>
+<ul>
+<li>✅ 連続で更新するとき</li>
+<li>✅ 現在の値を元に計算するとき</li>
+<li>✅ 非同期処理の中で更新するとき</li>
+</ul>
+</div>
+
+<h3 id="配列-state-の更新超重要">配列 state の更新（超重要！）<a class="header-link" href="#配列-state-の更新超重要" title="Permanent link">&para;</a></h3>
+<p>実際のアプリでは、配列（リスト）を state で管理することが多い。<br />
+<strong>破壊的変更（push等）はNG！必ずコピーして新しい配列を作る</strong></p>
+<div class="architecture-box">
+<h3>📦 配列 state の更新テンプレート</h3>
+
+**セットアップ:**
+
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">items</span><span class="p">,</span><span class="w"> </span><span class="nx">setItems</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">([</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">1</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;りんご&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">2</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;バナナ&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="p">]);</span>
+</code></pre></div>
+
+
+
+**① 追加（末尾に追加）**
+
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">newItem</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">3</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;みかん&quot;</span><span class="w"> </span><span class="p">};</span>
+<span class="nx">setItems</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">[...</span><span class="nx">prev</span><span class="p">,</span><span class="w"> </span><span class="nx">newItem</span><span class="p">]);</span>
+<span class="c1">// 結果: [りんご, バナナ, みかん]</span>
+</code></pre></div>
+
+
+
+**② 削除（特定のIDを削除）**
+
+<div class="codehilite"><pre><span></span><code><span class="nx">setItems</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">prev</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">item</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">item</span><span class="p">.</span><span class="nx">id</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="mf">2</span><span class="p">));</span>
+<span class="c1">// 結果: [りんご, みかん]  ← id:2 のバナナが消えた</span>
+</code></pre></div>
+
+
+
+**③ 更新（特定のアイテムを変更）**
+
+<div class="codehilite"><pre><span></span><code><span class="nx">setItems</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">prev</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">item</span><span class="w"> </span><span class="p">=&gt;</span>
+<span class="w">  </span><span class="nx">item</span><span class="p">.</span><span class="nx">id</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="mf">1</span>
+<span class="w">    </span><span class="o">?</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="nx">item</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;青りんご&quot;</span><span class="w"> </span><span class="p">}</span><span class="w">  </span><span class="c1">// id:1 だけ変更</span>
+<span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="nx">item</span><span class="w">                           </span><span class="c1">// それ以外はそのまま</span>
+<span class="p">));</span>
+<span class="c1">// 結果: [青りんご, バナナ, みかん]</span>
+</code></pre></div>
+
+
+
+</div>
+
+<div class="warning-box">
+<h3>❌ やってはいけない（破壊的変更）</h3>
+<div class="box-content">
+
+
+<div class="codehilite"><pre><span></span><code><span class="c1">// ❌ NG: push は元の配列を変更する</span>
+<span class="nx">items</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">newItem</span><span class="p">);</span>
+<span class="nx">setItems</span><span class="p">(</span><span class="nx">items</span><span class="p">);</span><span class="w">  </span><span class="c1">// Reactは「同じ配列」と判断して再描画しない</span>
+
+<span class="c1">// ❌ NG: 直接代入</span>
+<span class="nx">items</span><span class="p">[</span><span class="mf">0</span><span class="p">].</span><span class="nx">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;青りんご&quot;</span><span class="p">;</span>
+<span class="nx">setItems</span><span class="p">(</span><span class="nx">items</span><span class="p">);</span><span class="w">  </span><span class="c1">// 同じく再描画されない</span>
+</code></pre></div>
+
+
+
+**なぜNG？**
+Reactは「配列の参照（アドレス）」が変わったかで再描画を判断する。
+`push` や直接代入は参照が同じままなので、Reactは変化に気づかない。
+
+**✅ 正解: スプレッド構文で新しい配列を作る**
+
+<div class="codehilite"><pre><span></span><code><span class="nx">setItems</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">[...</span><span class="nx">prev</span><span class="p">,</span><span class="w"> </span><span class="nx">newItem</span><span class="p">]);</span><span class="w">  </span><span class="c1">// 新しい配列を作成</span>
+</code></pre></div>
+
+
+
+</div>
+</div>
+
+<h3 id="オブジェクト-state-の更新">オブジェクト state の更新<a class="header-link" href="#オブジェクト-state-の更新" title="Permanent link">&para;</a></h3>
+<p>オブジェクト（連想配列/dict）も配列と同じ原則：<strong>コピーして一部を変える</strong></p>
+<div class="architecture-box">
+<h3>🔧 オブジェクト state の更新テンプレート</h3>
+
+**セットアップ:**
+
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">setUser</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;太郎&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">age</span><span class="o">:</span><span class="w"> </span><span class="kt">25</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">email</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;taro@example.com&quot;</span>
+<span class="p">});</span>
+</code></pre></div>
+
+
+
+**① 一部だけ更新**
+
+<div class="codehilite"><pre><span></span><code><span class="nx">setUser</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">({</span>
+<span class="w">  </span><span class="p">...</span><span class="nx">prev</span><span class="p">,</span><span class="w">           </span><span class="c1">// 既存のプロパティをコピー</span>
+<span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;花子&quot;</span><span class="w">       </span><span class="c1">// name だけ上書き</span>
+<span class="p">}));</span>
+<span class="c1">// 結果: { name: &quot;花子&quot;, age: 25, email: &quot;taro@example.com&quot; }</span>
+</code></pre></div>
+
+
+
+**② ネストしたオブジェクトの更新**
+
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">setUser</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;太郎&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">profile</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">age</span><span class="o">:</span><span class="w"> </span><span class="kt">25</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">city</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;東京&quot;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">});</span>
+
+<span class="c1">// profile.age だけ更新</span>
+<span class="nx">setUser</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">({</span>
+<span class="w">  </span><span class="p">...</span><span class="nx">prev</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">profile</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">...</span><span class="nx">prev</span><span class="p">.</span><span class="nx">profile</span><span class="p">,</span><span class="w">  </span><span class="c1">// profile の中身もコピー</span>
+<span class="w">    </span><span class="nx">age</span><span class="o">:</span><span class="w"> </span><span class="kt">26</span><span class="w">           </span><span class="c1">// age だけ上書き</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}));</span>
+</code></pre></div>
+
+
+
+</div>
+
+<div class="warning-box">
+<h3>❌ よくある間違い</h3>
+<div class="box-content">
+
+
+<div class="codehilite"><pre><span></span><code><span class="c1">// ❌ NG: 他のプロパティが消える</span>
+<span class="nx">setUser</span><span class="p">({</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;花子&quot;</span><span class="w"> </span><span class="p">});</span>
+<span class="c1">// 結果: { name: &quot;花子&quot; }  ← age, email が消えた！</span>
+
+<span class="c1">// ✅ OK: スプレッドで既存をコピー</span>
+<span class="nx">setUser</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">({</span><span class="w"> </span><span class="p">...</span><span class="nx">prev</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;花子&quot;</span><span class="w"> </span><span class="p">}));</span>
+<span class="c1">// 結果: { name: &quot;花子&quot;, age: 25, email: &quot;taro@example.com&quot; }</span>
+</code></pre></div>
+
+
+
+</div>
+</div>
+
+<hr />
+<h2 id="25-フォーム入力controlled-component">2.5 フォーム入力（controlled component）<a class="header-link" href="#25-フォーム入力controlled-component" title="Permanent link">&para;</a></h2>
+<p>フォームの入力欄を state で管理する方法。<br />
+設定画面や入力フォームで必須のパターン！</p>
+<h3 id="基本-テキスト入力">基本: テキスト入力<a class="header-link" href="#基本-テキスト入力" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="kd">function</span><span class="w"> </span><span class="nx">InputForm</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">text</span><span class="p">,</span><span class="w"> </span><span class="nx">setText</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="w">      </span><span class="p">&lt;</span><span class="nt">input</span>
+<span class="w">        </span><span class="na">type</span><span class="o">=</span><span class="s">&quot;text&quot;</span>
+<span class="w">        </span><span class="na">value</span><span class="o">=</span><span class="p">{</span><span class="nx">text</span><span class="p">}</span><span class="w">                           </span><span class="err">//</span><span class="w"> </span><span class="na">①</span><span class="w"> </span><span class="na">表示は</span><span class="w"> </span><span class="na">state</span><span class="w"> </span><span class="na">が正</span>
+<span class="w">        </span><span class="na">onChange</span><span class="o">=</span><span class="p">{(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setText</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">target</span><span class="p">.</span><span class="nx">value</span><span class="p">)}</span><span class="w">  </span><span class="err">//</span><span class="w"> </span><span class="na">②</span><span class="w"> </span><span class="na">入力したら</span><span class="w"> </span><span class="na">state</span><span class="w"> </span><span class="na">更新</span>
+<span class="w">      </span><span class="p">/&gt;</span>
+<span class="w">      </span><span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span><span class="nx">入力内容</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="nx">text</span><span class="p">}&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+<span class="w">    </span><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="w">  </span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<div class="flow-box">
+<h3>🔄 controlled component の動き</h3>
+<pre>
+ユーザーが「あ」と入力
+    ↓
+onChange 発火 → setText("あ")
+    ↓
+state が "あ" に更新
+    ↓
+React が再レンダリング
+    ↓
+input の value="あ" で表示
+</pre>
+<p><strong>ポイント:</strong> state が「唯一の情報源（Single Source of Truth）」</p>
+</div>
+
+<h3 id="実践例-todoリストに追加">実践例: TODOリストに追加<a class="header-link" href="#実践例-todoリストに追加" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="kd">function</span><span class="w"> </span><span class="nx">TodoApp</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">text</span><span class="p">,</span><span class="w"> </span><span class="nx">setText</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">todos</span><span class="p">,</span><span class="w"> </span><span class="nx">setTodos</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">&lt;</span><span class="nt">string</span><span class="err">[]</span><span class="p">&gt;([]);</span>
+
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">handleAdd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">text</span><span class="p">.</span><span class="nx">trim</span><span class="p">())</span><span class="w"> </span><span class="k">return</span><span class="p">;</span><span class="w">  </span><span class="c1">// 空文字は追加しない</span>
+
+<span class="w">    </span><span class="nx">setTodos</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">[...</span><span class="nx">prev</span><span class="p">,</span><span class="w"> </span><span class="nx">text</span><span class="p">]);</span><span class="w">  </span><span class="c1">// リストに追加</span>
+<span class="w">    </span><span class="nx">setText</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">);</span><span class="w">                         </span><span class="c1">// 入力欄をクリア</span>
+<span class="w">  </span><span class="p">};</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="w">      </span><span class="p">&lt;</span><span class="nt">input</span>
+<span class="w">        </span><span class="na">value</span><span class="o">=</span><span class="p">{</span><span class="nx">text</span><span class="p">}</span>
+<span class="w">        </span><span class="na">onChange</span><span class="o">=</span><span class="p">{(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setText</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">target</span><span class="p">.</span><span class="nx">value</span><span class="p">)}</span>
+<span class="w">        </span><span class="na">placeholder</span><span class="o">=</span><span class="s">&quot;やることを入力&quot;</span>
+<span class="w">      </span><span class="p">/&gt;</span>
+<span class="w">      </span><span class="p">&lt;</span><span class="nt">button</span><span class="w"> </span><span class="na">onClick</span><span class="o">=</span><span class="p">{</span><span class="nx">handleAdd</span><span class="p">}&gt;</span><span class="nx">追加</span><span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
+
+<span class="w">      </span><span class="p">&lt;</span><span class="nt">ul</span><span class="p">&gt;</span>
+<span class="w">        </span><span class="p">{</span><span class="nx">todos</span><span class="p">.</span><span class="nx">map</span><span class="p">((</span><span class="nx">todo</span><span class="p">,</span><span class="w"> </span><span class="nx">index</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">(</span>
+<span class="w">          </span><span class="p">&lt;</span><span class="nt">li</span><span class="w"> </span><span class="na">key</span><span class="o">=</span><span class="p">{</span><span class="nx">index</span><span class="p">}&gt;{</span><span class="nx">todo</span><span class="p">}&lt;/</span><span class="nt">li</span><span class="p">&gt;</span>
+<span class="w">        </span><span class="p">))}</span>
+<span class="w">      </span><span class="p">&lt;/</span><span class="nt">ul</span><span class="p">&gt;</span>
+<span class="w">    </span><span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="w">  </span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<div class="tip-box">
+<h3>💡 フォームのポイントまとめ</h3>
+<ul>
+<li><strong>value={state}</strong>: 表示内容は state が決める</li>
+<li><strong>onChange</strong>: 入力のたびに state を更新</li>
+<li><strong>送信後は setText("")</strong>: 入力欄をクリア</li>
+<li><strong>trim() でチェック</strong>: 空白だけの入力を防ぐ</li>
+</ul>
+</div>
+
 <hr />
 <h2 id="3-useeffect---副作用の処理">3. useEffect - 副作用の処理<a class="header-link" href="#3-useeffect---副作用の処理" title="Permanent link">&para;</a></h2>
 <h3 id="useeffect-とは">useEffect とは？<a class="header-link" href="#useeffect-とは" title="Permanent link">&para;</a></h3>
