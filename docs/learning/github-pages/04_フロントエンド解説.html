@@ -136,20 +136,161 @@
 </tbody>
 </table>
 <hr />
-<h2 id="ファイル構成">ファイル構成<a class="header-link" href="#ファイル構成" title="Permanent link">&para;</a></h2>
+<h2 id="ファイルの拡張子を理解しよう">ファイルの拡張子を理解しよう<a class="header-link" href="#ファイルの拡張子を理解しよう" title="Permanent link">&para;</a></h2>
+<div class="info-box">
+<h3>📝 拡張子の意味</h3>
+<table>
+<tr><th>拡張子</th><th>意味</th><th>用途</th></tr>
+<tr><td><strong>.js</strong></td><td>JavaScript</td><td>普通のJavaScriptファイル</td></tr>
+<tr><td><strong>.ts</strong></td><td>TypeScript</td><td>型付きJavaScript（HTMLを含まない）</td></tr>
+<tr><td><strong>.jsx</strong></td><td>JavaScript + JSX</td><td>React用（HTMLっぽい記法を含む）</td></tr>
+<tr><td><strong>.tsx</strong></td><td>TypeScript + JSX</td><td>React用＋型付き（<strong>このプロジェクトの主役</strong>）</td></tr>
+</table>
+<p><strong>【.tsx のポイント】</strong></p>
+<pre>
+// .ts ファイル（HTMLなし）
+function add(a: number, b: number): number {
+  return a + b;
+}
+
+// .tsx ファイル（HTMLあり = JSX）
+function Button(): JSX.Element {
+  return &lt;button&gt;クリック&lt;/button&gt;;  // ← これがJSX
+}
+</pre>
+<p>💡 <strong>使い分け:</strong></p>
+<ul>
+<li>UIを含む（画面パーツ）→ <code>.tsx</code></li>
+<li>UIを含まない（ロジックのみ）→ <code>.ts</code></li>
+</ul>
+</div>
+
+<hr />
+<h2 id="プロジェクト構成の全体像">プロジェクト構成の全体像<a class="header-link" href="#プロジェクト構成の全体像" title="Permanent link">&para;</a></h2>
+<div class="architecture-box">
+<h3>🏗️ Reactプロジェクトの構成</h3>
+<pre>
+src/frontend/
+├── index.html           ← ★ HTMLの土台（1回だけ読み込まれる）
+├── src/
+│   ├── main.tsx         ← ★ Reactの起動スクリプト
+│   ├── App.tsx          ← ★ メインコンポーネント
+│   └── components/      ← 各種UIパーツ
+├── .env                 ← 環境変数（APIキーなど）
+└── vite.config.ts       ← Viteの設定
+</pre>
+</div>
+
+<div class="warning-box">
+<h3>⚠️ 超重要：どのファイルに何を書く？</h3>
+<div class="box-content">
+
+**【index.html】全ページ共通で1回だけ読み込むもの**
+- Google Tag Manager (GTM)
+- Google Analytics
+- 外部CSS/フォント（Google Fontsなど）
+- `<title>` や `<meta>` タグ
+- favicon の設定
+
+
+<div class="codehilite"><pre><span></span><code><span class="cm">&lt;!-- index.html の例 --&gt;</span>
+<span class="cp">&lt;!DOCTYPE html&gt;</span>
+<span class="p">&lt;</span><span class="nt">html</span> <span class="na">lang</span><span class="o">=</span><span class="s">&quot;ja&quot;</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">head</span><span class="p">&gt;</span>
+  <span class="cm">&lt;!-- ↓ 全ページ共通で1回だけ読み込むもの --&gt;</span>
+  <span class="p">&lt;</span><span class="nt">meta</span> <span class="na">charset</span><span class="o">=</span><span class="s">&quot;UTF-8&quot;</span> <span class="p">/&gt;</span>
+  <span class="p">&lt;</span><span class="nt">title</span><span class="p">&gt;</span>AIチャット<span class="p">&lt;/</span><span class="nt">title</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">link</span> <span class="na">rel</span><span class="o">=</span><span class="s">&quot;icon&quot;</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;/favicon.ico&quot;</span> <span class="p">/&gt;</span>
+
+  <span class="cm">&lt;!-- GTM（Google Tag Manager）--&gt;</span>
+  <span class="p">&lt;</span><span class="nt">script</span><span class="p">&gt;(</span><span class="kd">function</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span><span class="nx">d</span><span class="p">,</span><span class="nx">s</span><span class="p">,</span><span class="nx">l</span><span class="p">,</span><span class="nx">i</span><span class="p">){...})(</span><span class="nb">window</span><span class="p">,</span><span class="nb">document</span><span class="p">,</span><span class="s1">&#39;script&#39;</span><span class="p">,</span><span class="s1">&#39;dataLayer&#39;</span><span class="p">,</span><span class="s1">&#39;GTM-XXXX&#39;</span><span class="p">);&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+
+  <span class="cm">&lt;!-- Google Fonts --&gt;</span>
+  <span class="p">&lt;</span><span class="nt">link</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;https://fonts.googleapis.com/css2?family=Noto+Sans+JP&amp;display=swap&quot;</span> <span class="na">rel</span><span class="o">=</span><span class="s">&quot;stylesheet&quot;</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">head</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">body</span><span class="p">&gt;</span>
+  <span class="cm">&lt;!-- ↓ Reactがここにコンポーネントを描画する --&gt;</span>
+  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;root&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+
+  <span class="cm">&lt;!-- ↓ main.tsx を読み込んでReactを起動 --&gt;</span>
+  <span class="p">&lt;</span><span class="nt">script</span> <span class="na">type</span><span class="o">=</span><span class="s">&quot;module&quot;</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;/src/main.tsx&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">html</span><span class="p">&gt;</span>
+</code></pre></div>
+
+
+
+**【main.tsx】Reactを起動するだけ**
+- `index.html` の `#root` にReactアプリを埋め込む
+- 基本的に変更不要
+
+
+<div class="codehilite"><pre><span></span><code><span class="c1">// main.tsx</span>
+<span class="k">import</span><span class="w"> </span><span class="nx">React</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;react&#39;</span>
+<span class="k">import</span><span class="w"> </span><span class="nx">ReactDOM</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;react-dom/client&#39;</span>
+<span class="k">import</span><span class="w"> </span><span class="nx">App</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./App&#39;</span>
+
+<span class="nx">ReactDOM</span><span class="p">.</span><span class="nx">createRoot</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;root&#39;</span><span class="p">)</span><span class="o">!</span><span class="p">).</span><span class="nx">render</span><span class="p">(</span>
+<span class="w">  </span><span class="p">&lt;</span><span class="nt">React</span><span class="p">.</span><span class="na">StrictMode</span><span class="p">&gt;</span>
+<span class="w">    </span><span class="p">&lt;</span><span class="nt">App</span><span class="w"> </span><span class="p">/&gt;</span><span class="w">  </span><span class="p">{</span><span class="cm">/* ← ここからReactの世界が始まる */</span><span class="p">}</span>
+<span class="w">  </span><span class="p">&lt;/</span><span class="nt">React</span><span class="p">.</span><span class="na">StrictMode</span><span class="p">&gt;</span>
+<span class="p">)</span>
+</code></pre></div>
+
+
+
+**【App.tsx 以下】画面の中身**
+- ログイン状態による表示切り替え
+- チャット画面
+- ヘッダー、フッターなどのUI
+- 動的に変わる部分はすべてここ
+
+</div>
+</div>
+
+<div class="flow-box">
+<h3>🔄 読み込まれる順番</h3>
+<pre>
+ブラウザ
+  │
+  ↓ ① index.html を読む
+  │
+  ├─▶ &lt;head&gt; の中身を処理
+  │     ・GTM スクリプト実行
+  │     ・CSS/フォント読み込み
+  │
+  ├─▶ &lt;body&gt; の中身を処理
+  │     ・#root という空の div を作成
+  │
+  ↓ ② main.tsx を読む
+  │
+  ├─▶ React を起動
+  │     ・#root に App コンポーネントを描画
+  │
+  ↓ ③ App.tsx が描画される
+  │
+  └─▶ ユーザーの操作に応じて画面が更新
+        ・ログイン → ChatScreen
+        ・メッセージ送信 → 画面更新
+</pre>
+<p><strong>ポイント:</strong> index.html は「器」、React は「中身」を担当</p>
+</div>
+
+<hr />
+<h2 id="ファイル構成詳細">ファイル構成（詳細）<a class="header-link" href="#ファイル構成詳細" title="Permanent link">&para;</a></h2>
 <div class="codehilite"><pre><span></span><code>src/frontend/src/
 ├── App.tsx              ← 🎯 メインコンポーネント（ここから始まる）
 ├── main.tsx             ← エントリーポイント（Reactの起動）
 ├── hooks/               ← 🎣 カスタムフック（ロジックを再利用）
-│   ├── useAuth.ts       ← ログイン処理
-│   ├── useChat.ts       ← チャット処理
-│   └── useSessions.ts   ← セッション管理（複数会話の保存）
+│   ├── useAuth.ts       ← ログイン処理（UIなし → .ts）
+│   ├── useChat.ts       ← チャット処理（UIなし → .ts）
+│   └── useSessions.ts   ← セッション管理（UIなし → .ts）
 ├── services/            ← 外部サービス連携
-│   ├── firebase.ts      ← Firebase初期化
-│   └── api.ts           ← APIクライアント
+│   ├── firebase.ts      ← Firebase初期化（UIなし → .ts）
+│   └── api.ts           ← APIクライアント（UIなし → .ts）
 ├── components/          ← UIパーツ
-│   ├── ChatScreen.tsx   ← チャット画面
-│   └── LoginScreen.tsx  ← ログイン画面
+│   ├── ChatScreen.tsx   ← チャット画面（UIあり → .tsx）
+│   └── LoginScreen.tsx  ← ログイン画面（UIあり → .tsx）
 └── renderers/           ← 【上級者向け】チャット表示カスタマイズ
 </code></pre></div>
 
