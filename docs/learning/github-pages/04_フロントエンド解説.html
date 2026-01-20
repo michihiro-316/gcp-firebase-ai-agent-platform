@@ -1390,22 +1390,25 @@ useEffect        依存配列の     依存配列の      クリーンアップ
 <h3 id="実践例-ローディング状態の管理">実践例: ローディング状態の管理<a class="header-link" href="#実践例-ローディング状態の管理" title="Permanent link">&para;</a></h3>
 <div class="codehilite"><pre><span></span><code><span class="kd">function</span><span class="w"> </span><span class="nx">UserProfile</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">user</span><span class="p">,</span><span class="w"> </span><span class="nx">setUser</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
-<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">loading</span><span class="p">,</span><span class="w"> </span><span class="nx">setLoading</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span><span class="w">   </span><span class="c1">// ローディング中？</span>
-<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">error</span><span class="p">,</span><span class="w"> </span><span class="nx">setError</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span><span class="w">       </span><span class="c1">// エラー発生？</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">loading</span><span class="p">,</span><span class="w"> </span><span class="nx">setLoading</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span><span class="w">   </span><span class="c1">// ローディング中か？（true = 読み込み中）</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">error</span><span class="p">,</span><span class="w"> </span><span class="nx">setError</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span><span class="w">       </span><span class="c1">// エラーメッセージ（なければ null）</span>
 
 <span class="w">  </span><span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;/api/user&#39;</span><span class="p">)</span>
 <span class="w">      </span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">response</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">response</span><span class="p">.</span><span class="nx">ok</span><span class="p">)</span><span class="w"> </span><span class="k">throw</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="ne">Error</span><span class="p">(</span><span class="s1">&#39;取得失敗&#39;</span><span class="p">);</span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">();</span>
+<span class="w">        </span><span class="c1">// response.ok = HTTPステータスが 200-299 なら true</span>
+<span class="w">        </span><span class="c1">// !response.ok = 失敗（404, 500 など）なら true</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">response</span><span class="p">.</span><span class="nx">ok</span><span class="p">)</span><span class="w"> </span><span class="k">throw</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="ne">Error</span><span class="p">(</span><span class="s1">&#39;取得失敗&#39;</span><span class="p">);</span><span class="w">  </span><span class="c1">// ← エラーを投げて .catch へ飛ばす</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">();</span><span class="w">  </span><span class="c1">// JSONをパースして次の .then へ</span>
 <span class="w">      </span><span class="p">})</span>
 <span class="w">      </span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="nx">setUser</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span>
-<span class="w">        </span><span class="nx">setLoading</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span><span class="w">  </span><span class="c1">// ローディング終了</span>
+<span class="w">        </span><span class="nx">setLoading</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span><span class="w">  </span><span class="c1">// ローディング終了（false = もう読み込み中じゃない）</span>
 <span class="w">      </span><span class="p">})</span>
 <span class="w">      </span><span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nx">setError</span><span class="p">(</span><span class="nx">err</span><span class="p">.</span><span class="nx">message</span><span class="p">);</span>
-<span class="w">        </span><span class="nx">setLoading</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+<span class="w">        </span><span class="c1">// ↑ の throw や、通信エラーがここに来る</span>
+<span class="w">        </span><span class="nx">setError</span><span class="p">(</span><span class="nx">err</span><span class="p">.</span><span class="nx">message</span><span class="p">);</span><span class="w">  </span><span class="c1">// err.message = &quot;取得失敗&quot; など</span>
+<span class="w">        </span><span class="nx">setLoading</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span><span class="w">      </span><span class="c1">// エラーでも読み込みは終了</span>
 <span class="w">      </span><span class="p">});</span>
 <span class="w">  </span><span class="p">},</span><span class="w"> </span><span class="p">[]);</span>
 
@@ -1415,6 +1418,35 @@ useEffect        依存配列の     依存配列の      クリーンアップ
 <span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;{</span><span class="nx">user</span><span class="p">.</span><span class="nx">name</span><span class="p">}&lt;/</span><span class="nt">div</span><span class="p">&gt;;</span>
 <span class="p">}</span>
 </code></pre></div>
+
+<div class="tip-box">
+<h3>💡 loading = true は「読み込み中」という意味</h3>
+
+**Q: 「ローディング中をtrueにする」って変じゃない？**
+
+A: これは**フラグ（旗）**の考え方です。
+
+
+<div class="codehilite"><pre><span></span><code><span class="n">loading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">true</span><span class="w">   </span><span class="err">→</span><span class="w"> </span><span class="err">「ローディング中フラグが立っている」→</span><span class="w"> </span><span class="err">読み込み中</span>
+<span class="n">loading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">false</span><span class="w">  </span><span class="err">→</span><span class="w"> </span><span class="err">「ローディング中フラグが下りている」→</span><span class="w"> </span><span class="err">読み込み完了</span>
+</code></pre></div>
+
+
+
+**実際の開発でもこの書き方が標準です：**
+- `isLoading` や `loading` という名前で「〜中かどうか」を表す
+- `true` = その状態である、`false` = その状態ではない
+
+
+<div class="codehilite"><pre><span></span><code><span class="c1">// よく見るパターン</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">isLoading</span><span class="p">,</span><span class="w"> </span><span class="nx">setIsLoading</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span><span class="w">   </span><span class="c1">// 読み込み中？</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">isOpen</span><span class="p">,</span><span class="w"> </span><span class="nx">setIsOpen</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span><span class="w">        </span><span class="c1">// モーダルが開いている？</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">isSubmitting</span><span class="p">,</span><span class="w"> </span><span class="nx">setIsSubmitting</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span><span class="w">  </span><span class="c1">// 送信中？</span>
+</code></pre></div>
+
+
+
+</div>
 
 <hr />
 <h2 id="4-カスタムフック---ロジックの再利用">4. カスタムフック - ロジックの再利用<a class="header-link" href="#4-カスタムフック---ロジックの再利用" title="Permanent link">&para;</a></h2>
