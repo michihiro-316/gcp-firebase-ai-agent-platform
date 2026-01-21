@@ -123,39 +123,97 @@ GCPプロジェクト作成 → Firebase設定 → サービスアカウント�
 <h2 id="全体の流れ">全体の流れ<a class="header-link" href="#全体の流れ" title="Permanent link">&para;</a></h2>
 <div class="flow-box">
 <h3>🗺️ セットアップの全体像</h3>
-<p><strong>【事前準備】</strong></p>
-<pre>
-┌──────────┐   ┌──────────┐   ┌──────────────────┐
-│ 1. GCP   │ → │ 2. Fire- │ → │ 3. サービス      │
-│ プロジェ │   │   base   │   │   アカウント     │
-│ クト作成 │   │   設定   │   │   作成           │
-└──────────┘   └──────────┘   └──────────────────┘
-</pre>
-<p><strong>【環境変数設定】</strong></p>
-<pre>
-┌────────────────────────┐   ┌────────────────────────┐
-│ 4. src/backend/.env    │   │ 5. src/frontend/.env   │
-└────────────────────────┘   └────────────────────────┘
-</pre>
-<p><strong>【依存関係インストール】</strong></p>
-<pre>
-┌──────────────────┐   ┌──────────────────┐
-│ 6. pip install   │   │ 7. npm install   │
-└──────────────────┘   └──────────────────┘
-</pre>
-<p><strong>【初期データ設定】</strong></p>
-<pre>
-┌──────────────────┐   ┌──────────────────┐
-│ 8. 顧客を追加    │ → │ 9. ドメイン登録  │
-└──────────────────┘   └──────────────────┘
-</pre>
-<p><strong>【起動】</strong></p>
-<pre>
-┌──────────────────┐   ┌──────────────────┐   ┌──────────┐
-│ 10. バックエンド │ → │ 11. フロント     │ → │ 12. 動作 │
-│     起動         │   │     エンド起動   │   │   確認   │
-└──────────────────┘   └──────────────────┘   └──────────┘
-</pre>
+
+<!-- 事前準備 -->
+<div style="margin-bottom: 24px;">
+  <div style="background: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px 6px 0 0; font-weight: bold; display: inline-block;">事前準備</div>
+  <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 16px; background: #eff6ff; border-radius: 0 6px 6px 6px; border: 2px solid #3b82f6;">
+    <div style="background: white; border: 2px solid #3b82f6; border-radius: 8px; padding: 12px 20px; text-align: center; min-width: 120px;">
+      <div style="font-size: 0.8em; color: #6b7280;">STEP 1</div>
+      <div style="font-weight: bold; color: #1e40af;">GCP<br>プロジェクト作成</div>
+    </div>
+    <div style="color: #3b82f6; font-size: 1.5em;">→</div>
+    <div style="background: white; border: 2px solid #3b82f6; border-radius: 8px; padding: 12px 20px; text-align: center; min-width: 120px;">
+      <div style="font-size: 0.8em; color: #6b7280;">STEP 2</div>
+      <div style="font-weight: bold; color: #1e40af;">Firebase<br>設定</div>
+    </div>
+    <div style="color: #3b82f6; font-size: 1.5em;">→</div>
+    <div style="background: white; border: 2px solid #3b82f6; border-radius: 8px; padding: 12px 20px; text-align: center; min-width: 120px;">
+      <div style="font-size: 0.8em; color: #6b7280;">STEP 3</div>
+      <div style="font-weight: bold; color: #1e40af;">サービス<br>アカウント作成</div>
+    </div>
+  </div>
+</div>
+
+<!-- 環境変数設定 -->
+<div style="margin-bottom: 24px;">
+  <div style="background: #10b981; color: white; padding: 8px 16px; border-radius: 6px 6px 0 0; font-weight: bold; display: inline-block;">環境変数設定</div>
+  <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 16px; background: #ecfdf5; border-radius: 0 6px 6px 6px; border: 2px solid #10b981;">
+    <div style="background: white; border: 2px solid #10b981; border-radius: 8px; padding: 12px 20px; text-align: center; min-width: 140px;">
+      <div style="font-size: 0.8em; color: #6b7280;">STEP 4</div>
+      <div style="font-weight: bold; color: #065f46;">src/backend/.env</div>
+    </div>
+    <div style="background: white; border: 2px solid #10b981; border-radius: 8px; padding: 12px 20px; text-align: center; min-width: 140px;">
+      <div style="font-size: 0.8em; color: #6b7280;">STEP 5</div>
+      <div style="font-weight: bold; color: #065f46;">src/frontend/.env</div>
+    </div>
+  </div>
+</div>
+
+<!-- 依存関係インストール -->
+<div style="margin-bottom: 24px;">
+  <div style="background: #8b5cf6; color: white; padding: 8px 16px; border-radius: 6px 6px 0 0; font-weight: bold; display: inline-block;">依存関係インストール</div>
+  <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 16px; background: #f5f3ff; border-radius: 0 6px 6px 6px; border: 2px solid #8b5cf6;">
+    <div style="background: white; border: 2px solid #8b5cf6; border-radius: 8px; padding: 12px 20px; text-align: center; min-width: 140px;">
+      <div style="font-size: 0.8em; color: #6b7280;">STEP 6</div>
+      <div style="font-weight: bold; color: #5b21b6;">pip install</div>
+      <div style="font-size: 0.75em; color: #6b7280;">（Python）</div>
+    </div>
+    <div style="background: white; border: 2px solid #8b5cf6; border-radius: 8px; padding: 12px 20px; text-align: center; min-width: 140px;">
+      <div style="font-size: 0.8em; color: #6b7280;">STEP 7</div>
+      <div style="font-weight: bold; color: #5b21b6;">npm install</div>
+      <div style="font-size: 0.75em; color: #6b7280;">（JavaScript）</div>
+    </div>
+  </div>
+</div>
+
+<!-- 初期データ設定 -->
+<div style="margin-bottom: 24px;">
+  <div style="background: #f59e0b; color: white; padding: 8px 16px; border-radius: 6px 6px 0 0; font-weight: bold; display: inline-block;">初期データ設定</div>
+  <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 16px; background: #fffbeb; border-radius: 0 6px 6px 6px; border: 2px solid #f59e0b;">
+    <div style="background: white; border: 2px solid #f59e0b; border-radius: 8px; padding: 12px 20px; text-align: center; min-width: 120px;">
+      <div style="font-size: 0.8em; color: #6b7280;">STEP 8</div>
+      <div style="font-weight: bold; color: #b45309;">顧客を追加</div>
+    </div>
+    <div style="color: #f59e0b; font-size: 1.5em;">→</div>
+    <div style="background: white; border: 2px solid #f59e0b; border-radius: 8px; padding: 12px 20px; text-align: center; min-width: 120px;">
+      <div style="font-size: 0.8em; color: #6b7280;">STEP 9</div>
+      <div style="font-weight: bold; color: #b45309;">ドメイン登録</div>
+    </div>
+  </div>
+</div>
+
+<!-- 起動 -->
+<div style="margin-bottom: 8px;">
+  <div style="background: #ef4444; color: white; padding: 8px 16px; border-radius: 6px 6px 0 0; font-weight: bold; display: inline-block;">起動</div>
+  <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 16px; background: #fef2f2; border-radius: 0 6px 6px 6px; border: 2px solid #ef4444;">
+    <div style="background: white; border: 2px solid #ef4444; border-radius: 8px; padding: 12px 20px; text-align: center; min-width: 120px;">
+      <div style="font-size: 0.8em; color: #6b7280;">STEP 10</div>
+      <div style="font-weight: bold; color: #b91c1c;">バックエンド<br>起動</div>
+    </div>
+    <div style="color: #ef4444; font-size: 1.5em;">→</div>
+    <div style="background: white; border: 2px solid #ef4444; border-radius: 8px; padding: 12px 20px; text-align: center; min-width: 120px;">
+      <div style="font-size: 0.8em; color: #6b7280;">STEP 11</div>
+      <div style="font-weight: bold; color: #b91c1c;">フロントエンド<br>起動</div>
+    </div>
+    <div style="color: #ef4444; font-size: 1.5em;">→</div>
+    <div style="background: #ef4444; border: 2px solid #ef4444; border-radius: 8px; padding: 12px 20px; text-align: center; min-width: 120px;">
+      <div style="font-size: 0.8em; color: #fecaca;">STEP 12</div>
+      <div style="font-weight: bold; color: white;">🎉 動作確認</div>
+    </div>
+  </div>
+</div>
+
 </div>
 
 <hr />
