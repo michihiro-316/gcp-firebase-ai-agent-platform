@@ -1034,6 +1034,24 @@ useEffect(
 <p>サーバーとの通信は時間がかかるので「あとで結果を教える」仕組みが必要</p>
 </div>
 
+<h3 id="promise-の返り値">Promise の返り値<a class="header-link" href="#promise-の返り値" title="Permanent link">&para;</a></h3>
+<p>Promise を返す関数を呼ぶと、<strong>すぐには結果が返ってこない</strong>のがポイントです。</p>
+<pre class="codehilite"><code class="language-tsx">// ❌ こう書いても、result には Promise オブジェクトが入るだけ
+const result = fetch('/api/user');
+console.log(result);  // Promise { &lt;pending&gt; } ← まだ結果がない！
+
+// ✅ 結果を受け取るには .then() を使う
+fetch('/api/user').then(response =&gt; {
+  console.log(response);  // ← ここで初めて結果が使える！
+});
+</code></pre>
+
+<div class="warning-box">
+<h3>⚠️ 初心者がハマるポイント</h3>
+<p>Promise を返す関数（fetch など）は、<strong>呼んだ瞬間には結果が返ってこない</strong>。<br>
+結果を使うには <code>.then()</code> の中で受け取る必要がある！</p>
+</div>
+
 <h3 id="then-の書き方">.then() の書き方<a class="header-link" href="#then-の書き方" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-tsx">// fetch() は Promise を返す
 fetch('/api/user')      // ① サーバーにリクエスト送信（時間かかる）
