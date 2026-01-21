@@ -412,23 +412,12 @@ src/frontend/
 <p>本来ブラウザは <code>.tsx</code>（TypeScript + React）を読めません。<br>
 これを可能にしているのが <strong>Vite（ビルドツール）</strong> です。</p>
 <pre>
-【Vite = 翻訳 + 配達】
-
 あなたのコード           Vite            ブラウザ
   (TypeScript)    →    (翻訳)    →    (JavaScript)
   (React JSX)     →    (翻訳)    →    (HTML + JS)
-
-┌─────────────────────────────────────────────────────┐
-│ npm run dev を実行すると...                         │
-│                                                     │
-│ 1. Vite が起動                                      │
-│ 2. main.tsx を見つける                              │
-│ 3. TypeScript/React → JavaScript に翻訳            │
-│ 4. localhost:5173 で配達（サーバー起動）             │
-│ 5. ブラウザで画面が見れる！                          │
-└─────────────────────────────────────────────────────┘
 </pre>
-<p>設定は <code>vite.config.ts</code> に書きます（ポート番号など）。</p>
+<p><code>npm run dev</code> で Vite が起動し、翻訳しながら localhost:5173 で配信してくれます。</p>
+<p>👉 詳しくは <a href="./05_セットアップの流れ.html#npm-install-npm-run-dev-とは">セットアップの流れ「npm install / npm run dev とは」</a> を参照</p>
 </div>
 
 <p><strong>【main.tsx】Reactを起動するだけ</strong></p>
