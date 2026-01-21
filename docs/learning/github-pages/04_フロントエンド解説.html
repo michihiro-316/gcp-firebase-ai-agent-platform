@@ -1257,21 +1257,30 @@ useEffect(() =&gt; {
 </code></pre>
 
 <p><strong>図で見ると:</strong></p>
-<pre>
-useEffect( ┌─────────────────────────────────┐ , [] );
-           │ () => {                         │ ← 関数を「定義」している
-           │                                 │   （実行ではない！）
-           │   ① 画面表示時の処理            │
-           │   const timer = setInterval(...);│
-           │                                 │
-           │   return () => {                │ ← 関数を返す
-           │     ② 画面消去時の処理          │   （まだ実行しない！）
-           │     clearInterval(timer);       │
-           │   };                            │
-           │                                 │
-           │ }                               │
-           └─────────────────────────────────┘
-</pre>
+<div style="background: #1e293b; border-radius: 8px; padding: 20px; font-family: monospace; color: #e2e8f0; display: flex; align-items: flex-start; gap: 8px;">
+  <div style="color: #94a3b8;">useEffect(</div>
+  <div style="border: 2px solid #64748b; border-radius: 6px; padding: 12px; flex: 1;">
+    <div style="color: #f8fafc;">() =&gt; {</div>
+    <div style="padding-left: 20px; margin: 8px 0;">
+      <div style="color: #94a3b8;">① 画面表示時の処理</div>
+      <div style="color: #f8fafc;">const timer = setInterval(...);</div>
+    </div>
+    <div style="padding-left: 20px; margin-top: 12px;">
+      <div style="color: #f8fafc;">return () =&gt; {</div>
+      <div style="padding-left: 20px;">
+        <div style="color: #94a3b8;">② 画面消去時の処理</div>
+        <div style="color: #f8fafc;">clearInterval(timer);</div>
+      </div>
+      <div style="color: #f8fafc;">};</div>
+    </div>
+    <div style="color: #f8fafc; margin-top: 8px;">}</div>
+  </div>
+  <div style="color: #94a3b8;">, []);</div>
+  <div style="margin-left: 12px; font-size: 0.9em;">
+    <div style="color: #fbbf24; margin-bottom: 40px;">← 関数を「定義」している<br>　（実行ではない！）</div>
+    <div style="color: #fbbf24;">← 関数を返す<br>　（まだ実行しない！）</div>
+  </div>
+</div>
 
 <div class="warning-box">
 <h3>⚠️ 「() => {}」が紛らわしい理由</h3>
