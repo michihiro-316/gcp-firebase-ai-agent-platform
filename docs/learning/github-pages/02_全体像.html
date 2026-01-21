@@ -188,14 +188,14 @@ Gatewayは「受付」として、ログインしたユーザーを正しい会�
 
 中身（イメージ）:
 
-<div class="codehilite"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;山田太郎&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;yamada@acme.co.jp&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;会社&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;株式会社ACME&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;有効期限&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-01-16 15:00&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;署名&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Google公式のお墨付き ✅&quot;</span>
-<span class="p">}</span>
-</code></pre></div>
+<pre class="codehilite"><code class="language-json">{
+  &quot;name&quot;: &quot;山田太郎&quot;,
+  &quot;email&quot;: &quot;yamada@acme.co.jp&quot;,
+  &quot;会社&quot;: &quot;株式会社ACME&quot;,
+  &quot;有効期限&quot;: &quot;2024-01-16 15:00&quot;,
+  &quot;署名&quot;: &quot;Google公式のお墨付き ✅&quot;
+}
+</code></pre>
 
 
 
@@ -240,7 +240,7 @@ Gatewayは「受付」として、ログインしたユーザーを正しい会�
 **Firestore（データベース）**
 
 
-<div class="codehilite"><pre><span></span><code>customers/
+<pre class="codehilite"><code>customers/
 ├── 🏢 acme-corp/          ← A社のデータ
 │   ├── name: &quot;株式会社ACME&quot;
 │   ├── allowed_domains: [&quot;acme.co.jp&quot;]
@@ -258,7 +258,7 @@ Gatewayは「受付」として、ログインしたユーザーを正しい会�
 │   └── checkpoints/       ← B社の会話履歴
 │
 └── 🏢 gamma-llc/          ← C社のデータ
-</code></pre></div>
+</code></pre>
 
 
 
@@ -300,27 +300,27 @@ Gatewayは「受付」として、ログインしたユーザーを正しい会�
 
 **【Gateway】src/gateway/src/**
 
-<div class="codehilite"><pre><span></span><code>└── main.py              ★ 認証とルーティング（全リクエストの入口）
-</code></pre></div>
+<pre class="codehilite"><code>└── main.py              ★ 認証とルーティング（全リクエストの入口）
+</code></pre>
 
 
 
 **【バックエンド】src/backend/src/**
 
-<div class="codehilite"><pre><span></span><code>├── main.py              ★ 会社ごとのバックエンド入口
+<pre class="codehilite"><code>├── main.py              ★ 会社ごとのバックエンド入口
 ├── common/
 │   ├── auth.py          ★ 認証処理（Gateway連携 + 自動振り分け）
 │   └── rate_limiter.py    使いすぎ防止
 └── agents/
     └── _template/
         └── agent.py     ★ AI処理本体
-</code></pre></div>
+</code></pre>
 
 
 
 **【フロントエンド】src/frontend/src/**
 
-<div class="codehilite"><pre><span></span><code>├── App.tsx              ★ 画面の入口
+<pre class="codehilite"><code>├── App.tsx              ★ 画面の入口
 ├── hooks/
 │   ├── useAuth.ts       ★ ログイン処理
 │   ├── useChat.ts       ★ チャット処理
@@ -328,14 +328,14 @@ Gatewayは「受付」として、ログインしたユーザーを正しい会�
 └── services/
     ├── firebase.ts        Firebase接続
     └── api.ts             サーバー通信（Gatewayにリクエスト）
-</code></pre></div>
+</code></pre>
 
 
 
 **【管理ツール】src/backend/scripts/**
 
-<div class="codehilite"><pre><span></span><code>└── manage_customer.py   ★ 顧客管理コマンド
-</code></pre></div>
+<pre class="codehilite"><code>└── manage_customer.py   ★ 顧客管理コマンド
+</code></pre>
 
 
 

@@ -147,21 +147,21 @@
 </ul>
 <h3 id="手順">手順<a class="header-link" href="#手順" title="Permanent link">&para;</a></h3>
 <p><strong>ターミナル1: モックサーバー起動</strong></p>
-<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>src/backend/dev
-pip<span class="w"> </span>install<span class="w"> </span>flask<span class="w"> </span>flask-cors<span class="w">  </span><span class="c1"># 初回のみ</span>
-python<span class="w"> </span>mock_server.py
-</code></pre></div>
+<pre class="codehilite"><code class="language-bash">cd src/backend/dev
+pip install flask flask-cors  # 初回のみ
+python mock_server.py
+</code></pre>
 
 <p><strong>ターミナル2: フロントエンド起動</strong></p>
-<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>src/frontend
-npm<span class="w"> </span>install<span class="w">  </span><span class="c1"># 初回のみ</span>
+<pre class="codehilite"><code class="language-bash">cd src/frontend
+npm install  # 初回のみ
 
-<span class="c1"># .env を編集</span>
-<span class="c1"># VITE_API_BASE_URL=http://localhost:8080</span>
-<span class="c1"># VITE_DEBUG_MODE=true</span>
+# .env を編集
+# VITE_API_BASE_URL=http://localhost:8080
+# VITE_DEBUG_MODE=true
 
-npm<span class="w"> </span>run<span class="w"> </span>dev
-</code></pre></div>
+npm run dev
+</code></pre>
 
 <p><strong>ブラウザで確認</strong></p>
 <p>http://localhost:5173/ を開く → 認証なしでチャット画面が表示される</p>
@@ -191,38 +191,38 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 <h2 id="本番モードの手順">本番モードの手順<a class="header-link" href="#本番モードの手順" title="Permanent link">&para;</a></h2>
 <h3 id="1-バックエンドを起動">1. バックエンドを起動<a class="header-link" href="#1-バックエンドを起動" title="Permanent link">&para;</a></h3>
 <p>ターミナル1:</p>
-<div class="codehilite"><pre><span></span><code><span class="c1"># backendフォルダに移動</span>
-<span class="nb">cd</span><span class="w"> </span>src/backend
+<pre class="codehilite"><code class="language-bash"># backendフォルダに移動
+cd src/backend
 
-<span class="c1"># 依存パッケージをインストール（初回のみ）</span>
-pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+# 依存パッケージをインストール（初回のみ）
+pip install -r requirements.txt
 
-<span class="c1"># サーバーを起動</span>
-functions-framework<span class="w"> </span>--target<span class="o">=</span>main<span class="w"> </span>--port<span class="o">=</span><span class="m">8080</span>
-</code></pre></div>
+# サーバーを起動
+functions-framework --target=main --port=8080
+</code></pre>
 
 <p>成功すると:</p>
-<div class="codehilite"><pre><span></span><code><span class="k">*</span> Serving Flask app &#39;main&#39;
-<span class="k">*</span> Running on http://127.0.0.1:8080
-</code></pre></div>
+<pre class="codehilite"><code>* Serving Flask app 'main'
+* Running on http://127.0.0.1:8080
+</code></pre>
 
 <h3 id="2-フロントエンドを起動">2. フロントエンドを起動<a class="header-link" href="#2-フロントエンドを起動" title="Permanent link">&para;</a></h3>
 <p>ターミナル2（別のターミナルを開く）:</p>
-<div class="codehilite"><pre><span></span><code><span class="c1"># frontendフォルダに移動</span>
-<span class="nb">cd</span><span class="w"> </span>src/frontend
+<pre class="codehilite"><code class="language-bash"># frontendフォルダに移動
+cd src/frontend
 
-<span class="c1"># 依存パッケージをインストール（初回のみ）</span>
-npm<span class="w"> </span>install
+# 依存パッケージをインストール（初回のみ）
+npm install
 
-<span class="c1"># 開発サーバーを起動</span>
-npm<span class="w"> </span>run<span class="w"> </span>dev
-</code></pre></div>
+# 開発サーバーを起動
+npm run dev
+</code></pre>
 
 <p>成功すると:</p>
-<div class="codehilite"><pre><span></span><code>VITE v5.x.x  ready in xxx ms
+<pre class="codehilite"><code>VITE v5.x.x  ready in xxx ms
 
 ➜  Local:   http://localhost:5173/
-</code></pre></div>
+</code></pre>
 
 <h3 id="3-ブラウザでアクセス">3. ブラウザでアクセス<a class="header-link" href="#3-ブラウザでアクセス" title="Permanent link">&para;</a></h3>
 <p>http://localhost:5173/ を開く</p>
@@ -285,8 +285,8 @@ src/backend/.env を確認:<br>
 <h2 id="デバッグのコツ">デバッグのコツ<a class="header-link" href="#デバッグのコツ" title="Permanent link">&para;</a></h2>
 <h3 id="バックエンドのログを見る">バックエンドのログを見る<a class="header-link" href="#バックエンドのログを見る" title="Permanent link">&para;</a></h3>
 <p>ターミナル1に表示される:</p>
-<div class="codehilite"><pre><span></span><code><span class="mf">127.0.0.1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="err">[</span><span class="mf">16</span><span class="o">/</span><span class="n">Jan</span><span class="o">/</span><span class="mf">2024</span><span class="w"> </span><span class="mf">10</span><span class="p">:</span><span class="mf">00</span><span class="p">:</span><span class="mf">00</span><span class="err">]</span><span class="w"> </span><span class="s">&quot;POST /chat HTTP/1.1&quot;</span><span class="w"> </span><span class="mf">200</span><span class="w"> </span><span class="o">-</span>
-</code></pre></div>
+<pre class="codehilite"><code>127.0.0.1 - - [16/Jan/2024 10:00:00] &quot;POST /chat HTTP/1.1&quot; 200 -
+</code></pre>
 
 <h3 id="ブラウザの開発者ツール">ブラウザの開発者ツール<a class="header-link" href="#ブラウザの開発者ツール" title="Permanent link">&para;</a></h3>
 <div class="info-box">
@@ -312,20 +312,20 @@ src/backend/.env を確認:<br>
 <hr />
 <h2 id="コードを変更してみよう">コードを変更してみよう<a class="header-link" href="#コードを変更してみよう" title="Permanent link">&para;</a></h2>
 <h3 id="実験1-aiの返答を変える">実験1: AIの返答を変える<a class="header-link" href="#実験1-aiの返答を変える" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="c1"># src/backend/src/agents/_template/agent.py</span>
+<pre class="codehilite"><code class="language-python"># src/backend/src/agents/_template/agent.py
 
-<span class="n">SYSTEM_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;あなたは関西弁で話すAIアシスタントやで。</span>
-<span class="s2">ユーザーの質問にフレンドリーに答えてや。&quot;&quot;&quot;</span>
-</code></pre></div>
+SYSTEM_PROMPT = &quot;&quot;&quot;あなたは関西弁で話すAIアシスタントやで。
+ユーザーの質問にフレンドリーに答えてや。&quot;&quot;&quot;
+</code></pre>
 
 <p>→ バックエンドを再起動 → チャットしてみる</p>
 <h3 id="実験2-画面の色を変える">実験2: 画面の色を変える<a class="header-link" href="#実験2-画面の色を変える" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="c">/* src/frontend/src/styles.css */</span>
+<pre class="codehilite"><code class="language-css">/* src/frontend/src/styles.css */
 
-<span class="p">.</span><span class="nc">chat-container</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="k">background-color</span><span class="p">:</span><span class="w"> </span><span class="mh">#f0f8ff</span><span class="p">;</span><span class="w">  </span><span class="c">/* 薄い青に変更 */</span>
-<span class="p">}</span>
-</code></pre></div>
+.chat-container {
+  background-color: #f0f8ff;  /* 薄い青に変更 */
+}
+</code></pre>
 
 <p>→ 自動で画面が更新される（ホットリロード）</p>
 <hr />

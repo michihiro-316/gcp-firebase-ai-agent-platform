@@ -84,8 +84,8 @@
 <hr />
 <h2 id="-ワンコマンド起動推奨">🚀 ワンコマンド起動（推奨）<a class="header-link" href="#-ワンコマンド起動推奨" title="Permanent link">&para;</a></h2>
 <p>本プロジェクトでは、複雑なコマンドを1つにまとめた起動スクリプトを用意しています。</p>
-<div class="codehilite"><pre><span></span><code>./start.sh
-</code></pre></div>
+<pre class="codehilite"><code class="language-bash">./start.sh
+</code></pre>
 
 <p><strong>これだけで以下が自動実行されます：</strong></p>
 <table>
@@ -115,20 +115,20 @@
 </tbody>
 </table>
 <h3 id="startsh-の中身を理解する">start.sh の中身を理解する<a class="header-link" href="#startsh-の中身を理解する" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="c1"># Step 1: バックエンド起動</span>
-python<span class="w"> </span>-m<span class="w"> </span>functions_framework<span class="w"> </span>--target<span class="o">=</span>main<span class="w"> </span>--port<span class="o">=</span><span class="m">8080</span><span class="w"> </span><span class="p">&amp;</span>
-<span class="c1">#   └── python -m: Pythonモジュールとして実行</span>
-<span class="c1">#   └── functions_framework: Cloud Functionsローカル実行ツール</span>
-<span class="c1">#   └── --target=main: backend/src/main.py の main関数を実行</span>
-<span class="c1">#   └── --port=8080: ポート8080で待ち受け</span>
-<span class="c1">#   └── &amp;: バックグラウンドで実行</span>
+<pre class="codehilite"><code class="language-bash"># Step 1: バックエンド起動
+python -m functions_framework --target=main --port=8080 &amp;
+#   └── python -m: Pythonモジュールとして実行
+#   └── functions_framework: Cloud Functionsローカル実行ツール
+#   └── --target=main: backend/src/main.py の main関数を実行
+#   └── --port=8080: ポート8080で待ち受け
+#   └── &amp;: バックグラウンドで実行
 
-<span class="c1"># Step 2: フロントエンド起動</span>
-npm<span class="w"> </span>run<span class="w"> </span>dev<span class="w"> </span><span class="p">&amp;</span>
-<span class="c1">#   └── npm run: package.jsonのscriptsを実行</span>
-<span class="c1">#   └── dev: 開発サーバー（Vite）を起動</span>
-<span class="c1">#   └── &amp;: バックグラウンドで実行</span>
-</code></pre></div>
+# Step 2: フロントエンド起動
+npm run dev &amp;
+#   └── npm run: package.jsonのscriptsを実行
+#   └── dev: 開発サーバー（Vite）を起動
+#   └── &amp;: バックグラウンドで実行
+</code></pre>
 
 <h3 id="起動後のシステム構成">起動後のシステム構成<a class="header-link" href="#起動後のシステム構成" title="Permanent link">&para;</a></h3>
 <div class="architecture-box">
@@ -163,27 +163,27 @@ npm<span class="w"> </span>run<span class="w"> </span>dev<span class="w"> </span
 <hr />
 <h2 id="-デプロイコマンド">📦 デプロイコマンド<a class="header-link" href="#-デプロイコマンド" title="Permanent link">&para;</a></h2>
 <h3 id="顧客別デプロイ">顧客別デプロイ<a class="header-link" href="#顧客別デプロイ" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code>./infrastructure/deploy-customer.sh<span class="w"> </span>&lt;customer-id&gt;
-</code></pre></div>
+<pre class="codehilite"><code class="language-bash">./infrastructure/deploy-customer.sh &lt;customer-id&gt;
+</code></pre>
 
 <p><strong>例:</strong></p>
-<div class="codehilite"><pre><span></span><code>./infrastructure/deploy-customer.sh<span class="w"> </span>acme-corp
-</code></pre></div>
+<pre class="codehilite"><code class="language-bash">./infrastructure/deploy-customer.sh acme-corp
+</code></pre>
 
 <h3 id="deploy-customersh-の中身を理解する">deploy-customer.sh の中身を理解する<a class="header-link" href="#deploy-customersh-の中身を理解する" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="c1"># 1. バックエンドをCloud Functionsにデプロイ</span>
-gcloud<span class="w"> </span>functions<span class="w"> </span>deploy<span class="w"> </span><span class="si">${</span><span class="nv">CUSTOMER_ID</span><span class="si">}</span>-chat-api<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--runtime<span class="w"> </span>python311<span class="w"> </span><span class="se">\ </span><span class="w">             </span><span class="c1"># Python 3.11を使用</span>
-<span class="w">  </span>--trigger-http<span class="w"> </span><span class="se">\ </span><span class="w">                  </span><span class="c1"># HTTPリクエストで起動</span>
-<span class="w">  </span>--entry-point<span class="w"> </span>main<span class="w"> </span><span class="se">\ </span><span class="w">              </span><span class="c1"># main関数を実行</span>
-<span class="w">  </span>--set-env-vars<span class="w"> </span><span class="nv">CUSTOMER_ID</span><span class="o">=</span><span class="si">${</span><span class="nv">CUSTOMER_ID</span><span class="si">}</span><span class="w">  </span><span class="c1"># 環境変数設定</span>
+<pre class="codehilite"><code class="language-bash"># 1. バックエンドをCloud Functionsにデプロイ
+gcloud functions deploy ${CUSTOMER_ID}-chat-api \
+  --runtime python311 \              # Python 3.11を使用
+  --trigger-http \                   # HTTPリクエストで起動
+  --entry-point main \               # main関数を実行
+  --set-env-vars CUSTOMER_ID=${CUSTOMER_ID}  # 環境変数設定
 
-<span class="c1"># 2. フロントエンドをビルド</span>
-npm<span class="w"> </span>run<span class="w"> </span>build<span class="w">                        </span><span class="c1"># dist/ フォルダに出力</span>
+# 2. フロントエンドをビルド
+npm run build                        # dist/ フォルダに出力
 
-<span class="c1"># 3. Firebase Hostingにデプロイ</span>
-firebase<span class="w"> </span>deploy<span class="w"> </span>--only<span class="w"> </span>hosting<span class="w">       </span><span class="c1"># dist/ をアップロード</span>
-</code></pre></div>
+# 3. Firebase Hostingにデプロイ
+firebase deploy --only hosting       # dist/ をアップロード
+</code></pre>
 
 <h3 id="デプロイ後の構成">デプロイ後の構成<a class="header-link" href="#デプロイ後の構成" title="Permanent link">&para;</a></h3>
 <div class="architecture-box">
@@ -216,18 +216,18 @@ firebase<span class="w"> </span>deploy<span class="w"> </span>--only<span class=
 
 <hr />
 <h2 id="基本ターミナルとは">基本：ターミナルとは？<a class="header-link" href="#基本ターミナルとは" title="Permanent link">&para;</a></h2>
-<div class="codehilite"><pre><span></span><code>ターミナル = コンピュータに文字で命令を出す画面
+<pre class="codehilite"><code>ターミナル = コンピュータに文字で命令を出す画面
 
 マウスでクリック → GUI（グラフィカル）
 文字で命令       → CLI（コマンドライン）
-</code></pre></div>
+</code></pre>
 
 <p>プログラマーはCLIをよく使います。速いからです。</p>
 <hr />
 <h2 id="-シェルスクリプトshとは">📄 シェルスクリプト（.sh）とは？<a class="header-link" href="#-シェルスクリプトshとは" title="Permanent link">&para;</a></h2>
 <h3 id="一言で説明">一言で説明<a class="header-link" href="#一言で説明" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="na">.shファイル</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="err">複数のコマンドをまとめた「レシピ」</span>
-</code></pre></div>
+<pre class="codehilite"><code>.shファイル = 複数のコマンドをまとめた「レシピ」
+</code></pre>
 
 <h3 id="何が嬉しいの">何が嬉しいの？<a class="header-link" href="#何が嬉しいの" title="Permanent link">&para;</a></h3>
 <div class="tip-box">
@@ -248,15 +248,15 @@ $ npm run dev
 </div>
 
 <h3 id="実行方法">実行方法<a class="header-link" href="#実行方法" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="c1"># 方法1: ./ファイル名</span>
+<pre class="codehilite"><code class="language-bash"># 方法1: ./ファイル名
 ./start.sh
 
-<span class="c1"># 方法2: bash ファイル名</span>
-bash<span class="w"> </span>start.sh
+# 方法2: bash ファイル名
+bash start.sh
 
-<span class="c1"># 方法3: sh ファイル名</span>
-sh<span class="w"> </span>start.sh
-</code></pre></div>
+# 方法3: sh ファイル名
+sh start.sh
+</code></pre>
 
 <h3 id="の意味">「./」の意味<a class="header-link" href="#の意味" title="Permanent link">&para;</a></h3>
 <div class="info-box">
@@ -271,14 +271,14 @@ sh<span class="w"> </span>start.sh
 </div>
 
 <h3 id="shファイルの中身">.shファイルの中身<a class="header-link" href="#shファイルの中身" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="ch">#!/bin/bash           ← 「このファイルはbashで実行してね」という宣言</span>
+<pre class="codehilite"><code class="language-bash">#!/bin/bash           ← 「このファイルはbashで実行してね」という宣言
 
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Hello&quot;</span><span class="w">          </span>←<span class="w"> </span>コマンド1
-<span class="nb">cd</span><span class="w"> </span>src/backend<span class="w">            </span>←<span class="w"> </span>コマンド2
-pip<span class="w"> </span>install<span class="w"> </span>...<span class="w">       </span>←<span class="w"> </span>コマンド3
+echo &quot;Hello&quot;          ← コマンド1
+cd src/backend            ← コマンド2
+pip install ...       ← コマンド3
 
-<span class="c1"># 上から順番に実行される</span>
-</code></pre></div>
+# 上から順番に実行される
+</code></pre>
 
 <h3 id="本プロジェクトのshファイル一覧">本プロジェクトの.shファイル一覧<a class="header-link" href="#本プロジェクトのshファイル一覧" title="Permanent link">&para;</a></h3>
 <table>
@@ -308,28 +308,28 @@ pip<span class="w"> </span>install<span class="w"> </span>...<span class="w">   
 </tbody>
 </table>
 <h3 id="イメージ">イメージ<a class="header-link" href="#イメージ" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="na">.shファイル</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="err">料理のレシピ</span>
+<pre class="codehilite"><code>.shファイル = 料理のレシピ
 
-<span class="err">【レシピがない場合】</span>
-<span class="err">1.</span><span class="w"> </span><span class="err">卵を割る</span>
-<span class="err">2.</span><span class="w"> </span><span class="err">塩を入れる</span>
-<span class="err">3.</span><span class="w"> </span><span class="err">かき混ぜる</span>
-<span class="err">4.</span><span class="w"> </span><span class="err">フライパンで焼く</span>
-<span class="na">...を毎回思い出しながら作る</span>
+【レシピがない場合】
+1. 卵を割る
+2. 塩を入れる
+3. かき混ぜる
+4. フライパンで焼く
+...を毎回思い出しながら作る
 
-<span class="err">【レシピがある場合】</span>
-<span class="err">「卵焼きのレシピ</span><span class="na">.sh</span><span class="err">」を見れば誰でも同じように作れる</span>
-<span class="err">しかも「./卵焼きのレシピ</span><span class="na">.sh</span><span class="err">」で自動で作ってくれる！</span>
-</code></pre></div>
+【レシピがある場合】
+「卵焼きのレシピ.sh」を見れば誰でも同じように作れる
+しかも「./卵焼きのレシピ.sh」で自動で作ってくれる！
+</code></pre>
 
 <hr />
 <h2 id="-顧客管理コマンド">👥 顧客管理コマンド<a class="header-link" href="#-顧客管理コマンド" title="Permanent link">&para;</a></h2>
 <p>顧客（会社）とユーザーを管理するコマンドです。<br />
 <strong>src/backend/scripts/manage_customer.py</strong> を使います。</p>
 <h3 id="実行方法_1">実行方法<a class="header-link" href="#実行方法_1" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>src/backend
-python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>&lt;コマンド&gt;<span class="w"> </span><span class="o">[</span>引数...<span class="o">]</span>
-</code></pre></div>
+<pre class="codehilite"><code class="language-bash">cd src/backend
+python scripts/manage_customer.py &lt;コマンド&gt; [引数...]
+</code></pre>
 
 <h3 id="コマンド一覧">コマンド一覧<a class="header-link" href="#コマンド一覧" title="Permanent link">&para;</a></h3>
 <table>
@@ -389,17 +389,17 @@ python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>
 </tbody>
 </table>
 <h3 id="クイックスタート新規顧客の追加">クイックスタート（新規顧客の追加）<a class="header-link" href="#クイックスタート新規顧客の追加" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>src/backend
+<pre class="codehilite"><code class="language-bash">cd src/backend
 
-<span class="c1"># 1. 顧客を作成</span>
-python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>add<span class="w"> </span>acme-corp<span class="w"> </span><span class="s2">&quot;株式会社ACME&quot;</span>
+# 1. 顧客を作成
+python scripts/manage_customer.py add acme-corp &quot;株式会社ACME&quot;
 
-<span class="c1"># 2. メールドメイン（@以降）を登録（社員全員が自動振り分け）</span>
-python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>add-domain<span class="w"> </span>acme-corp<span class="w"> </span>acme.co.jp
+# 2. メールドメイン（@以降）を登録（社員全員が自動振り分け）
+python scripts/manage_customer.py add-domain acme-corp acme.co.jp
 
-<span class="c1"># 3. 確認</span>
-python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>show<span class="w"> </span>acme-corp
-</code></pre></div>
+# 3. 確認
+python scripts/manage_customer.py show acme-corp
+</code></pre>
 
 <p><strong>これだけで @acme.co.jp のユーザーは全員自動で振り分けられます！</strong></p>
 <h3 id="自動振り分けの仕組み">自動振り分けの仕組み<a class="header-link" href="#自動振り分けの仕組み" title="Permanent link">&para;</a></h3>
@@ -420,32 +420,32 @@ python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>
 </div>
 
 <h3 id="出力例">出力例<a class="header-link" href="#出力例" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>show<span class="w"> </span>acme-corp
+<pre class="codehilite"><code class="language-bash">$ python scripts/manage_customer.py show acme-corp
 
-<span class="o">===</span><span class="w"> </span><span class="nv">株式会社ACME</span><span class="w"> </span><span class="o">===</span>
+=== 株式会社ACME ===
 
-<span class="w">  </span>顧客ID:<span class="w"> </span>acme-corp
-<span class="w">  </span>作成日:<span class="w"> </span><span class="m">2024</span>-01-15
+  顧客ID: acme-corp
+  作成日: 2024-01-15
 
-<span class="w">  </span>---<span class="w"> </span>自動振り分け設定<span class="w"> </span>---
-<span class="w">  </span>許可ドメイン:
-<span class="w">    </span>@acme.co.jp
-<span class="w">  </span>許可メール（個別）:
-<span class="w">    </span>tanaka@gmail.com
+  --- 自動振り分け設定 ---
+  許可ドメイン:
+    @acme.co.jp
+  許可メール（個別）:
+    tanaka@gmail.com
 
-<span class="w">  </span>---<span class="w"> </span>所属ユーザー<span class="w"> </span>---
-<span class="w">    </span>yamada@acme.co.jp<span class="w"> </span>（自動）
-<span class="w">    </span>sato@acme.co.jp<span class="w"> </span>（自動）
-<span class="w">    </span>tanaka@gmail.com<span class="w"> </span>（自動）
+  --- 所属ユーザー ---
+    yamada@acme.co.jp （自動）
+    sato@acme.co.jp （自動）
+    tanaka@gmail.com （自動）
 
-<span class="w">  </span>ユーザー数:<span class="w"> </span>3人
-</code></pre></div>
+  ユーザー数: 3人
+</code></pre>
 
 <hr />
 <h2 id="よく使うコマンド">よく使うコマンド<a class="header-link" href="#よく使うコマンド" title="Permanent link">&para;</a></h2>
 <h3 id="cdchange-directory">cd（Change Directory）<a class="header-link" href="#cdchange-directory" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>src/backend
-</code></pre></div>
+<pre class="codehilite"><code class="language-bash">cd src/backend
+</code></pre>
 
 <p><strong>意味</strong>: 「backendフォルダに移動する」</p>
 <div class="info-box">
@@ -461,30 +461,30 @@ python<span class="w"> </span>scripts/manage_customer.py<span class="w"> </span>
 </div>
 
 <p><strong>よく使うパターン</strong>:</p>
-<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>src/backend<span class="w">      </span><span class="c1"># backendフォルダに入る</span>
-<span class="nb">cd</span><span class="w"> </span>..<span class="w">           </span><span class="c1"># 一つ上のフォルダに戻る</span>
-<span class="nb">cd</span><span class="w"> </span>~<span class="w">            </span><span class="c1"># ホームフォルダに戻る</span>
-</code></pre></div>
+<pre class="codehilite"><code class="language-bash">cd src/backend      # backendフォルダに入る
+cd ..           # 一つ上のフォルダに戻る
+cd ~            # ホームフォルダに戻る
+</code></pre>
 
 <hr />
 <h3 id="lslist">ls（List）<a class="header-link" href="#lslist" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code>ls
-</code></pre></div>
+<pre class="codehilite"><code class="language-bash">ls
+</code></pre>
 
 <p><strong>意味</strong>: 「今いるフォルダの中身を表示する」</p>
-<div class="codehilite"><pre><span></span><code>【実行例】
+<pre class="codehilite"><code>【実行例】
 $ ls
 README.md  backend/  frontend/  learning/
-</code></pre></div>
+</code></pre>
 
 <p><strong>オプション</strong>:</p>
-<div class="codehilite"><pre><span></span><code>ls<span class="w"> </span>-la<span class="w">    </span><span class="c1"># 隠しファイルも含めて詳細表示</span>
-</code></pre></div>
+<pre class="codehilite"><code class="language-bash">ls -la    # 隠しファイルも含めて詳細表示
+</code></pre>
 
 <hr />
 <h3 id="pip-install">pip install<a class="header-link" href="#pip-install" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
-</code></pre></div>
+<pre class="codehilite"><code class="language-bash">pip install -r requirements.txt
+</code></pre>
 
 <p><strong>分解して理解</strong>:</p>
 <table>
@@ -514,7 +514,7 @@ README.md  backend/  frontend/  learning/
 </tbody>
 </table>
 <p><strong>何が起きる？</strong></p>
-<div class="codehilite"><pre><span></span><code>requirements.txt の中身:
+<pre class="codehilite"><code>requirements.txt の中身:
   flask==3.0.0
   firebase-admin==6.2.0
   langchain==0.1.0
@@ -522,17 +522,17 @@ README.md  backend/  frontend/  learning/
 
 これらのパッケージがインターネットからダウンロードされて
 あなたのパソコンにインストールされます
-</code></pre></div>
+</code></pre>
 
 <p><strong>イメージ</strong>:</p>
-<div class="codehilite"><pre><span></span><code>pip install = アプリストアからアプリをインストール
+<pre class="codehilite"><code>pip install = アプリストアからアプリをインストール
 requirements.txt = 買い物リスト
-</code></pre></div>
+</code></pre>
 
 <hr />
 <h3 id="npm-install">npm install<a class="header-link" href="#npm-install" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code>npm<span class="w"> </span>install
-</code></pre></div>
+<pre class="codehilite"><code class="language-bash">npm install
+</code></pre>
 
 <p><strong>意味</strong>: 「package.jsonに書かれたパッケージをインストール」</p>
 <table>
@@ -558,14 +558,14 @@ requirements.txt = 買い物リスト
 </tbody>
 </table>
 <p><strong>pip と npm の違い</strong>:</p>
-<div class="codehilite"><pre><span></span><code>pip     → Python用
+<pre class="codehilite"><code>pip     → Python用
 npm     → JavaScript/TypeScript用
-</code></pre></div>
+</code></pre>
 
 <hr />
 <h3 id="functions-framework">functions-framework<a class="header-link" href="#functions-framework" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code>functions-framework<span class="w"> </span>--target<span class="o">=</span>main<span class="w"> </span>--port<span class="o">=</span><span class="m">8080</span>
-</code></pre></div>
+<pre class="codehilite"><code class="language-bash">functions-framework --target=main --port=8080
+</code></pre>
 
 <p><strong>分解して理解</strong>:</p>
 <table>
@@ -591,10 +591,10 @@ npm     → JavaScript/TypeScript用
 </tbody>
 </table>
 <p><strong>何が起きる？</strong></p>
-<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">あなたのPythonコード</span><span class="err">（</span><span class="n">main</span><span class="mf">.</span><span class="n">py</span><span class="err">）</span><span class="n">が読み込まれる</span>
-<span class="mf">2.</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="n">という関数がサーバーとして起動</span>
-<span class="mf">3.</span><span class="w"> </span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">localhost</span><span class="p">:</span><span class="mf">8080</span><span class="w"> </span><span class="n">でアクセス可能になる</span>
-</code></pre></div>
+<pre class="codehilite"><code>1. あなたのPythonコード（main.py）が読み込まれる
+2. main という関数がサーバーとして起動
+3. http://localhost:8080 でアクセス可能になる
+</code></pre>
 
 <div class="info-box">
 <h3>🔌 ポートとは？</h3>
@@ -611,25 +611,25 @@ http://localhost:8080
 
 <hr />
 <h3 id="npm-run-dev">npm run dev<a class="header-link" href="#npm-run-dev" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code>npm<span class="w"> </span>run<span class="w"> </span>dev
-</code></pre></div>
+<pre class="codehilite"><code class="language-bash">npm run dev
+</code></pre>
 
 <p><strong>意味</strong>: 「package.jsonのscripts.devを実行」</p>
-<div class="codehilite"><pre><span></span><code><span class="c1">// package.json の中身（抜粋）</span>
-<span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;scripts&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;dev&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;vite&quot;</span><span class="p">,</span><span class="w">           </span><span class="err">←</span><span class="w"> </span><span class="kc">n</span><span class="err">pm</span><span class="w"> </span><span class="err">ru</span><span class="kc">n</span><span class="w"> </span><span class="err">dev</span><span class="w"> </span><span class="err">で実行される</span>
-<span class="w">    </span><span class="nt">&quot;build&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;vite build&quot;</span><span class="p">,</span><span class="w">   </span><span class="err">←</span><span class="w"> </span><span class="kc">n</span><span class="err">pm</span><span class="w"> </span><span class="err">ru</span><span class="kc">n</span><span class="w"> </span><span class="err">build</span><span class="w"> </span><span class="err">で実行される</span>
-<span class="w">  </span><span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div>
+<pre class="codehilite"><code class="language-json">// package.json の中身（抜粋）
+{
+  &quot;scripts&quot;: {
+    &quot;dev&quot;: &quot;vite&quot;,           ← npm run dev で実行される
+    &quot;build&quot;: &quot;vite build&quot;,   ← npm run build で実行される
+  }
+}
+</code></pre>
 
 <p><strong>何が起きる？</strong></p>
-<div class="codehilite"><pre><span></span><code><span class="mf">1.</span><span class="w"> </span><span class="n">Vite</span><span class="err">（</span><span class="n">開発サーバー</span><span class="err">）</span><span class="n">が起動</span>
-<span class="mf">2.</span><span class="w"> </span><span class="n">Reactアプリがコンパイルされる</span>
-<span class="mf">3.</span><span class="w"> </span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">localhost</span><span class="p">:</span><span class="mf">5173</span><span class="w"> </span><span class="n">でアクセス可能になる</span>
-<span class="mf">4.</span><span class="w"> </span><span class="n">コードを変更すると自動で画面が更新される</span><span class="err">（</span><span class="n">ホットリロード</span><span class="err">）</span>
-</code></pre></div>
+<pre class="codehilite"><code>1. Vite（開発サーバー）が起動
+2. Reactアプリがコンパイルされる
+3. http://localhost:5173 でアクセス可能になる
+4. コードを変更すると自動で画面が更新される（ホットリロード）
+</code></pre>
 
 <hr />
 <h2 id="ローカル開発の全体像">ローカル開発の全体像<a class="header-link" href="#ローカル開発の全体像" title="Permanent link">&para;</a></h2>
@@ -660,42 +660,42 @@ AIが返答
 <hr />
 <h2 id="よくあるエラーと対処">よくあるエラーと対処<a class="header-link" href="#よくあるエラーと対処" title="Permanent link">&para;</a></h2>
 <h3 id="command-not-found">「command not found」<a class="header-link" href="#command-not-found" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>...
-zsh:<span class="w"> </span><span class="nb">command</span><span class="w"> </span>not<span class="w"> </span>found:<span class="w"> </span>pip
-</code></pre></div>
+<pre class="codehilite"><code class="language-bash">$ pip install ...
+zsh: command not found: pip
+</code></pre>
 
 <p><strong>原因</strong>: pipがインストールされていない、またはパスが通っていない</p>
 <p><strong>対処</strong>:</p>
-<div class="codehilite"><pre><span></span><code><span class="c1"># Macの場合</span>
-pip3<span class="w"> </span>install<span class="w"> </span>...<span class="w">    </span><span class="c1"># pip の代わりに pip3 を使う</span>
+<pre class="codehilite"><code class="language-bash"># Macの場合
+pip3 install ...    # pip の代わりに pip3 を使う
 
-<span class="c1"># または Python経由で</span>
-python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>...
-</code></pre></div>
+# または Python経由で
+python3 -m pip install ...
+</code></pre>
 
 <hr />
 <h3 id="eaddrinuse-address-already-in-use">「EADDRINUSE: address already in use」<a class="header-link" href="#eaddrinuse-address-already-in-use" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code>Error:<span class="w"> </span>EADDRINUSE:<span class="w"> </span>address<span class="w"> </span>already<span class="w"> </span><span class="k">in</span><span class="w"> </span>use<span class="w"> </span>:::8080
-</code></pre></div>
+<pre class="codehilite"><code class="language-bash">Error: EADDRINUSE: address already in use :::8080
+</code></pre>
 
 <p><strong>原因</strong>: ポート8080が既に使われている</p>
 <p><strong>対処</strong>:</p>
-<div class="codehilite"><pre><span></span><code><span class="c1"># 使っているプロセスを探す</span>
-lsof<span class="w"> </span>-i<span class="w"> </span>:8080
+<pre class="codehilite"><code class="language-bash"># 使っているプロセスを探す
+lsof -i :8080
 
-<span class="c1"># 見つかったプロセスを終了（PID番号を指定）</span>
-<span class="nb">kill</span><span class="w"> </span>-9<span class="w"> </span><span class="m">12345</span>
-</code></pre></div>
+# 見つかったプロセスを終了（PID番号を指定）
+kill -9 12345
+</code></pre>
 
 <hr />
 <h3 id="modulenotfounderror">「ModuleNotFoundError」<a class="header-link" href="#modulenotfounderror" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code>ModuleNotFoundError:<span class="w"> </span>No<span class="w"> </span>module<span class="w"> </span>named<span class="w"> </span><span class="s1">&#39;flask&#39;</span>
-</code></pre></div>
+<pre class="codehilite"><code class="language-bash">ModuleNotFoundError: No module named 'flask'
+</code></pre>
 
 <p><strong>原因</strong>: パッケージがインストールされていない</p>
 <p><strong>対処</strong>:</p>
-<div class="codehilite"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
-</code></pre></div>
+<pre class="codehilite"><code class="language-bash">pip install -r requirements.txt
+</code></pre>
 
 <hr />
 <h2 id="まとめ">まとめ<a class="header-link" href="#まとめ" title="Permanent link">&para;</a></h2>
