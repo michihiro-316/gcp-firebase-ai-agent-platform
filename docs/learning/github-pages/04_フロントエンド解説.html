@@ -1034,8 +1034,16 @@ useEffect(
 <p>サーバーとの通信は時間がかかるので「あとで結果を教える」仕組みが必要</p>
 </div>
 
+<h3 id="fetch-とは">fetch とは？<a class="header-link" href="#fetch-とは" title="Permanent link">&para;</a></h3>
+<p><code>fetch</code> は <strong>バックエンドAPI にリクエストを送る関数</strong>です。</p>
+<pre class="codehilite"><code class="language-tsx">// このプロジェクトでの使用例
+fetch('/api/chat', { method: 'POST', body: JSON.stringify({ message: 'こんにちは' }) })
+//     ↑ Backend の API      ↑ AIにメッセージを送信
+</code></pre>
+
+<p>フロントエンド（ブラウザ）→ バックエンド（サーバー）への通信に使います。</p>
 <h3 id="promise-の返り値">Promise の返り値<a class="header-link" href="#promise-の返り値" title="Permanent link">&para;</a></h3>
-<p>Promise を返す関数を呼ぶと、<strong>すぐには結果が返ってこない</strong>のがポイントです。</p>
+<p><code>fetch</code> などの通信関数を呼ぶと、<strong>すぐには結果が返ってこない</strong>のがポイントです。</p>
 <pre class="codehilite"><code class="language-tsx">// ❌ こう書いても、result には Promise オブジェクトが入るだけ
 const result = fetch('/api/user');
 console.log(result);  // Promise { &lt;pending&gt; } ← まだ結果がない！
