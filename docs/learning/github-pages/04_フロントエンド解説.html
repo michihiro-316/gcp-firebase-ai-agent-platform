@@ -239,6 +239,17 @@ return () =&gt; {
 
 
 
+**パターン4: 別の関数の引数として渡す（コールバック）**
+
+<pre class="codehilite"><code class="language-javascript">// 関数を引数として渡すパターン
+onAuthStateChanged(auth, (user) =&gt; {
+  setUser(user);
+});
+</code></pre>
+
+
+→ **詳しくは「[6. useAuth.ts - 認証フックの完全解説](#6-useauthts---認証フックの完全解説)」で図解付きで説明しています！**
+
 </div>
 
 <div class="warning-box">
