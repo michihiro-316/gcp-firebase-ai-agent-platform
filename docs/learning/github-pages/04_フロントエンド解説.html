@@ -2019,6 +2019,57 @@ export function useAuth() {
 }
 </code></pre>
 
+<h3 id="-useauth-の使い方分割代入">💡 useAuth() の使い方（分割代入）<a class="header-link" href="#-useauth-の使い方分割代入" title="Permanent link">&para;</a></h3>
+<p>useAuth() を使う側（App.tsx）のコードを見てみましょう：</p>
+<pre class="codehilite"><code class="language-tsx">const { user, loading, error: authError, loginWithGoogle, logout } = useAuth()
+</code></pre>
+
+<div class="warning-box">
+<h3>⚠️ これは何をしている？</h3>
+
+**「分割代入（Destructuring）」** という書き方です。
+useAuth() が返すオブジェクトから、必要な値だけを取り出しています。
+
+</div>
+
+<div class="info-box">
+<h3>📝 分割代入を理解しよう</h3>
+
+
+<pre class="codehilite"><code class="language-tsx">// useAuth() が返すオブジェクト（上のコードの return 部分）
+return {
+  user,           // ← これを
+  loading,        // ← これを
+  error,          // ← これを
+  loginWithGoogle,// ← これを
+  logout,         // ← これを取り出す
+}
+
+// 使う側（分割代入で取り出す）
+const { user, loading, error: authError, loginWithGoogle, logout } = useAuth()
+//      ↑     ↑       ↑                  ↑               ↑
+//      それぞれ対応する値を変数として使える
+</code></pre>
+
+
+
+**`error: authError`** は「`error` を取り出して `authError` という別名で使う」という意味です。
+
+**Pythonで書くと:**
+
+<pre class="codehilite"><code class="language-python"># Pythonの辞書から値を取り出すイメージ
+result = use_auth()  # {'user': ..., 'loading': ..., 'error': ...}
+user = result['user']
+loading = result['loading']
+auth_error = result['error']  # 別名で使う
+</code></pre>
+
+
+
+**JavaScriptの分割代入は、これを1行で書ける便利な書き方です！**
+
+</div>
+
 <h3 id="-コールバック関数を引数として渡すパターン">💡 コールバック関数を引数として渡すパターン<a class="header-link" href="#-コールバック関数を引数として渡すパターン" title="Permanent link">&para;</a></h3>
 <p>この useAuth.ts で最もわかりづらいのが、以下の書き方です：</p>
 <pre class="codehilite"><code class="language-tsx">onAuthStateChanged(auth, (user) =&gt; {
