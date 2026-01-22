@@ -2088,7 +2088,49 @@ auth_error = result['error']  # 別名で使う
 </div>
 
 <div class="info-box">
-<h3>📝 わかりやすく書き直すと</h3>
+<h3>📝 構造を分解して理解しよう</h3>
+
+**まず、どこが何なのかを色分けして見てみましょう：**
+
+
+<pre class="codehilite"><code class="language-tsx">onAuthStateChanged(auth, (user) =&gt; { setUser(user); setLoading(false); });
+//                 ----  ------------------------------------------------
+//                  ↑                        ↑
+//               第1引数                   第2引数（これ全体が1つの関数！）
+</code></pre>
+
+
+
+**第2引数をさらに分解：**
+
+
+<pre class="codehilite"><code class="language-tsx">(user) =&gt; { setUser(user); setLoading(false); }
+// ↑    ↑   ↑                                ↑
+// │    │   └──────────── 関数の中身 ─────────┘
+// │    └── アロー（「関数ですよ」の印）
+// └── 引数（Firebaseから渡されるユーザー情報）
+</code></pre>
+
+
+
+**つまり、こういう構造：**
+
+
+<pre class="codehilite"><code class="language-tsx">onAuthStateChanged(
+  auth,                    // 第1引数: 認証オブジェクト
+  (user) =&gt; {              // 第2引数: 関数（←ここから
+    setUser(user);         //   関数の中身
+    setLoading(false);     //   関数の中身
+  }                        // ←ここまでが1つの関数）
+);
+</code></pre>
+
+
+
+</div>
+
+<div class="tip-box">
+<h3>💡 名前付き関数で書き直すと？</h3>
 
 
 <pre class="codehilite"><code class="language-tsx">// パターンA: アロー関数を直接渡す（実際のコード）
