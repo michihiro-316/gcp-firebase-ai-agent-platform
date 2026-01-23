@@ -2677,6 +2677,20 @@ const message: Message = {
   content: "こんにちは！"       // 実際のメッセージ内容
 }
 </pre>
+
+<h4>🔍 変数名と型の見分け方</h4>
+<pre>
+const message: Message = { ... }
+      ↑         ↑
+      変数名    型（interface）
+</pre>
+<p>コロン <code>:</code> の<strong>左が変数名</strong>、<strong>右が型</strong>です。</p>
+<table>
+<tr><th>書き方</th><th>変数名</th><th>型</th></tr>
+<tr><td><code>const message: Message</code></td><td>message</td><td>Message</td></tr>
+<tr><td><code>const id: string</code></td><td>id</td><td>string</td></tr>
+<tr><td><code>const count: number</code></td><td>count</td><td>number</td></tr>
+</table>
 </div>
 
 <div class="info-box">
