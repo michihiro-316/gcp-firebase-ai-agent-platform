@@ -134,11 +134,13 @@ Python + Flask「中身」を作る
 <div class="box-title">💡 なぜGatewayがあるの？</div>
 <div class="box-content">
 
-**会社ごとにバックエンドを分ける**ことで、以下のメリットがあります：
+<strong>会社ごとにバックエンドを分ける</strong>ことで、以下のメリットがあります：
 
-- 🏢 **A社だけの特殊カスタマイズ**が可能
-- 🔒 **他社への影響ゼロ**で安全に更新
-- 📦 **会社ごとに独立した環境**を提供
+<ul>
+<li><strong>🏢 A社だけの特殊カスタマイズ</strong>が可能</li>
+<li><strong>🔒 他社への影響ゼロ</strong>で安全に更新</li>
+<li><strong>📦 会社ごとに独立した環境</strong>を提供</li>
+</ul>
 
 Gatewayは「受付」として、ログインしたユーザーを正しい会社のバックエンドに案内します。
 
@@ -170,13 +172,12 @@ Gatewayは「受付」として、ログインしたユーザーを正しい会�
 <div class="box-title">🔐 ログインの流れ</div>
 <div class="box-content">
 
-1️⃣ ユーザーが「Googleでログイン」をクリック
-↓
-2️⃣ Googleの画面が出る（おなじみのやつ！）
-↓
-3️⃣ ログイン成功 → 「IDトークン」をもらう（これが「私は〇〇です」の証明書）
-↓
-4️⃣ このトークンを使ってAPIを呼び出す
+<ol>
+<li>ユーザーが「Googleでログイン」をクリック</li>
+<li>Googleの画面が出る（おなじみのやつ！）</li>
+<li>ログイン成功 → 「IDトークン」をもらう（これが「私は〇〇です」の証明書）</li>
+<li>このトークンを使ってAPIを呼び出す</li>
+</ol>
 
 </div>
 </div>
@@ -186,21 +187,19 @@ Gatewayは「受付」として、ログインしたユーザーを正しい会�
 <div class="box-title">📜 IDトークン = デジタル身分証明書</div>
 <div class="box-content">
 
-中身（イメージ）:
+<p>中身（イメージ）:</p>
+<pre><code>{
+  "name": "山田太郎",
+  "email": "yamada@acme.co.jp",
+  "会社": "株式会社ACME",
+  "有効期限": "2024-01-16 15:00",
+  "署名": "Google公式のお墨付き ✅"
+}</code></pre>
 
-<pre class="codehilite"><code class="language-json">{
-  &quot;name&quot;: &quot;山田太郎&quot;,
-  &quot;email&quot;: &quot;yamada@acme.co.jp&quot;,
-  &quot;会社&quot;: &quot;株式会社ACME&quot;,
-  &quot;有効期限&quot;: &quot;2024-01-16 15:00&quot;,
-  &quot;署名&quot;: &quot;Google公式のお墨付き ✅&quot;
-}
-</code></pre>
-
-
-
-✅ Googleが「この人は本物」と保証
-✅ 改ざんすると署名が壊れる → 偽造不可能
+<ul>
+<li>✅ Googleが「この人は本物」と保証</li>
+<li>✅ 改ざんすると署名が壊れる → 偽造不可能</li>
+</ul>
 
 </div>
 </div>
@@ -211,22 +210,135 @@ Gatewayは「受付」として、ログインしたユーザーを正しい会�
 <div class="box-title">💬 チャット送信の流れ</div>
 <div class="box-content">
 
-1️⃣ ユーザーが「こんにちは」と入力して送信
-↓
-2️⃣ フロントエンド → **Gateway**にリクエスト（IDトークン付き）
-↓
-3️⃣ **Gateway**でトークン検証
-　「この人、本物？」→ ✅ OK!
-　「どの会社の人？」→ A社！
-↓
-4️⃣ **Gateway** → A社のバックエンドに転送
-↓
-5️⃣ バックエンドでAI処理
-　Vertex AI (Gemini) に質問 → AIが回答を生成
-↓
-6️⃣ ストリーミングで少しずつ返す（「こん」→「にち」→「は！」）
-↓
-7️⃣ 画面にリアルタイム表示（かっこいい！）
+<ol>
+<li>ユーザーが「こんにちは」と入力して送信</li>
+<li>フロントエンド → <strong>Gateway</strong>にリクエスト（IDトークン付き）</li>
+<li><strong>Gateway</strong>でトークン検証<br>
+　「この人、本物？」→ ✅ OK!<br>
+　「どの会社の人？」→ A社！</li>
+<li><strong>Gateway</strong> → A社のバックエンドに転送</li>
+<li>バックエンドでAI処理<br>
+　Vertex AI (Gemini) に質問 → AIが回答を生成</li>
+<li>ストリーミングで少しずつ返す（「こん」→「にち」→「は！」）</li>
+<li>画面にリアルタイム表示（かっこいい！）</li>
+</ol>
+
+</div>
+</div>
+
+<hr />
+<h2 id="gcp配置設計マルチテナント">GCP配置設計（マルチテナント）<a class="header-link" href="#gcp配置設計マルチテナント" title="Permanent link">&para;</a></h2>
+<div class="architecture-box">
+<div class="box-title">☁️ Cloud Run Functions の配置</div>
+<div class="box-content">
+
+
+<pre class="codehilite"><code>┌─────────────────────────────────────────────────────────────────────────┐
+│                        顧客（ブラウザ）                                   │
+│     A社社員         B社社員         C社社員                              │
+│        │              │              │                                  │
+└────────┼──────────────┼──────────────┼──────────────────────────────────┘
+         │              │              │
+         ▼              ▼              ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                  Cloud Run Functions【共通：1つだけ】                     │
+│  ┌───────────────────────────────────────────────────────────────────┐  │
+│  │                         Gateway                                   │  │
+│  │                                                                   │  │
+│  │  1. Firebase トークン検証（本人確認）                              │  │
+│  │  2. customer_id から転送先 URL を Firestore で取得                │  │
+│  │  3. 適切な Backend に転送                                         │  │
+│  └───────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────┘
+                         │              │              │
+                         ▼              ▼              ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                 Cloud Run Functions【顧客別：会社数ぶん】                 │
+│                                                                         │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                      │
+│  │ Backend A   │  │ Backend B   │  │ Backend C   │  ...                 │
+│  │ (A社専用)   │  │ (B社専用)   │  │ (C社専用)   │                      │
+│  │             │  │             │  │             │                      │
+│  │ AI Agent    │  │ AI Agent    │  │ AI Agent    │                      │
+│  │ カスタム可  │  │ カスタム可  │  │ カスタム可  │                      │
+│  └─────────────┘  └─────────────┘  └─────────────┘                      │
+└─────────────────────────────────────────────────────────────────────────┘
+                         │              │              │
+                         ▼              ▼              ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      Firestore【共通：1つだけ】                          │
+│                                                                         │
+│  customers/                                                             │
+│  ├── acme-corp/     → cloud_functions_url で Backend A を指定          │
+│  ├── beta-inc/      → cloud_functions_url で Backend B を指定          │
+│  └── gamma-llc/     → cloud_functions_url で Backend C を指定          │
+│                                                                         │
+│  ※ 会話履歴は customers/{customer_id}/checkpoints/ に保存              │
+│  ※ customer_id でデータを完全分離                                       │
+└─────────────────────────────────────────────────────────────────────────┘
+</code></pre>
+
+
+
+</div>
+</div>
+
+<div class="info-box">
+<div class="box-title">📊 デプロイ構成まとめ</div>
+<div class="box-content">
+
+<table>
+<tr><th>コンポーネント</th><th>数</th><th>役割</th></tr>
+<tr><td><strong>Gateway</strong></td><td>1つ</td><td>認証・ルーティングのみ</td></tr>
+<tr><td><strong>Backend</strong></td><td>顧客数ぶん</td><td>AI エージェント実行（会社ごとにカスタマイズ可能）</td></tr>
+<tr><td><strong>Firestore</strong></td><td>1つ</td><td>全顧客のデータを保存（customer_id で分離）</td></tr>
+<tr><td><strong>Firebase Auth</strong></td><td>1つ</td><td>全顧客の認証を管理</td></tr>
+<tr><td><strong>フロントエンド</strong></td><td>下記参照</td><td>チャット画面（React）の配信</td></tr>
+</table>
+
+</div>
+</div>
+
+<div class="info-box">
+<div class="box-title">🖥️ フロントエンド配信方法</div>
+<div class="box-content">
+
+フロントエンド（React アプリ）の配信方法は2つから選べます：
+
+<table>
+<tr><th>方法</th><th>URL例</th><th>特徴</th></tr>
+<tr><td><strong>Firebase Hosting</strong>（シンプル）</td><td><code>https://PROJECT_ID.web.app</code></td><td>全顧客で同じUI、カスタムドメイン設定可能</td></tr>
+<tr><td><strong>GCS + Load Balancer</strong>（顧客別）</td><td><code>https://chat.acme.co.jp</code></td><td>顧客ごとに別URL・別デザインが可能</td></tr>
+</table>
+
+<strong>カスタムドメインの設定:</strong>
+<ul>
+<li>Firebase Hosting → Firebase Console で「カスタムドメインを追加」</li>
+<li>GCS → Load Balancer でドメインルーティングを設定</li>
+</ul>
+
+💡 <strong>初めは Firebase Hosting（シンプル）から始めて</strong>、顧客別カスタマイズが必要になったら GCS に移行するのがおすすめです。
+
+</div>
+</div>
+
+<div class="tip-box">
+<div class="box-title">💡 なぜ Backend を会社ごとに分けるの？</div>
+<div class="box-content">
+
+<strong>メリット:</strong>
+<ul>
+<li><strong>🔧 A社だけ特殊なAIプロンプト</strong>を設定できる</li>
+<li><strong>🚀 B社だけ先行リリース</strong>してテストできる</li>
+<li><strong>🛡️ C社のバグがA社に影響しない</strong></li>
+<li><strong>📦 会社ごとに独立したバージョン管理</strong>が可能</li>
+</ul>
+
+<strong>共通の Gateway を通すことで:</strong>
+<ul>
+<li>認証処理を一元管理</li>
+<li>フロントエンドは1つのURLだけ知っていればOK</li>
+</ul>
 
 </div>
 </div>
@@ -237,37 +349,36 @@ Gatewayは「受付」として、ログインしたユーザーを正しい会�
 <div class="box-title">🏢 会社ごとにデータとバックエンドを分離</div>
 <div class="box-content">
 
-**Firestore（データベース）**
+<strong>Firestore（データベース）</strong>
 
-
-<pre class="codehilite"><code>customers/
+<pre><code>customers/
 ├── 🏢 acme-corp/          ← A社のデータ
-│   ├── name: &quot;株式会社ACME&quot;
-│   ├── allowed_domains: [&quot;acme.co.jp&quot;]
-│   ├── cloud_functions_url: &quot;https://acme-backend-xxx.run.app&quot;  ← A社専用のバックエンドURL
+│   ├── name: "株式会社ACME"
+│   ├── allowed_domains: ["acme.co.jp"]
+│   ├── cloud_functions_url: "https://acme-backend-xxx.run.app"  ← A社専用のバックエンドURL
 │   ├── enabled: true
 │   └── checkpoints/       ← A社の会話履歴
 │       ├── user1_abc/
 │       └── user2_def/
 │
 ├── 🏢 beta-inc/           ← B社のデータ
-│   ├── name: &quot;ベータ株式会社&quot;
-│   ├── allowed_domains: [&quot;beta-inc.co.jp&quot;]
-│   ├── cloud_functions_url: &quot;https://beta-backend-xxx.run.app&quot;  ← B社専用のバックエンドURL
+│   ├── name: "ベータ株式会社"
+│   ├── allowed_domains: ["beta-inc.co.jp"]
+│   ├── cloud_functions_url: "https://beta-backend-xxx.run.app"  ← B社専用のバックエンドURL
 │   ├── enabled: true
 │   └── checkpoints/       ← B社の会話履歴
 │
 └── 🏢 gamma-llc/          ← C社のデータ
 </code></pre>
 
+💡 <strong>A社の人はB社のデータを見れない！</strong>（セキュリティ確保）
 
-
-💡 **A社の人はB社のデータを見れない！**（セキュリティ確保）
-
-**3層のセキュリティで保護:**
-1. **Firestore セキュリティルール** - 自社のデータのみアクセス可能
-2. **会社別バックエンド** - 物理的に別のCloud Run Functionsにデプロイ
-3. **Gatewayでの認証** - `customer_id` で正しいバックエンドに振り分け
+<strong>3層のセキュリティで保護:</strong>
+<ol>
+<li><strong>Firestore セキュリティルール</strong> - 自社のデータのみアクセス可能</li>
+<li><strong>会社別バックエンド</strong> - 物理的に別のCloud Run Functionsにデプロイ</li>
+<li><strong>Gatewayでの認証</strong> - <code>customer_id</code> で正しいバックエンドに振り分け</li>
+</ol>
 
 </div>
 </div>

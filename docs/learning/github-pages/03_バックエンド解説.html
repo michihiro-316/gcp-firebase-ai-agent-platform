@@ -108,7 +108,7 @@
 <li>会話を覚えておく → 履歴保存</li>
 </ul>
 
-💡 GASで言うと: doGet() や doPost() の中身を作るイメージ
+<p>💡 GASで言うと: doGet() や doPost() の中身を作るイメージ</p>
 
 </div>
 </div>
@@ -137,21 +137,174 @@ src/backend/scripts/
 </code></pre>
 
 <div class="tip-box">
+<div class="box-title">📁 なぜファイルを分けるの？</div>
+<div class="box-content">
+
+<strong>1つのファイルに全部書くと1000行超えで読みにくい！</strong>
+
+<table>
+<tr><th>ファイル</th><th>役割</th><th>行数目安</th></tr>
+<tr><td>main.py</td><td>「何をするか」エンドポイント定義</td><td>200行</td></tr>
+<tr><td>cors.py</td><td>「どこからのアクセスを許可するか」</td><td>30行</td></tr>
+<tr><td>auth.py</td><td>「誰がアクセスできるか」認証</td><td>150行</td></tr>
+<tr><td>rate_limiter.py</td><td>「使いすぎを防ぐ」制限</td><td>50行</td></tr>
+</table>
+
+<p>main.py で全部を組み合わせる:</p>
+<pre><code class="python">from common.cors import setup_cors
+from common.auth import authenticate_request
+from common.rate_limiter import check_rate_limit
+
+app = Flask(__name__)
+setup_cors(app)  # ← CORS設定を適用
+</code></pre>
+
+</div>
+</div>
+
+<hr />
+<h2 id="フロントエンド--バックエンド-連携の全体図">フロントエンド ↔ バックエンド 連携の全体図<a class="header-link" href="#フロントエンド--バックエンド-連携の全体図" title="Permanent link">&para;</a></h2>
+<div class="architecture-box">
+<div class="box-title">🔄 リクエストの流れとセキュリティ</div>
+<div class="box-content">
+
+<pre><code>┌──────────────────────────────────────────────────────────────────────────┐
+│ 【フロントエンド】src/frontend/src/                                       │
+│                                                                          │
+│  services/api.ts                                                         │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │ // リクエストヘッダーを作成                                         │  │
+│  │ {                                                                  │  │
+│  │   'Content-Type': 'application/json',  ← 送信形式はJSON            │  │
+│  │   'Authorization': `Bearer ${token}`,  ← Firebase IDトークン       │  │
+│  │ }                                                                  │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    │ POST /chat
+                                    │ {"message": "こんにちは"}
+                                    ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│ 【Gateway】src/gateway/src/main.py                                        │
+│                                                                          │
+│  ┌─────────────────────────────────────────────────────────────────┐     │
+│  │ 🔒 セキュリティ① CORS チェック                                   │     │
+│  │    → 許可されたオリジン（https://example.com）からか？           │     │
+│  │    → ブラウザからの不正オリジンをブロック                        │     │
+│  └─────────────────────────────────────────────────────────────────┘     │
+│                          ↓                                               │
+│  ┌─────────────────────────────────────────────────────────────────┐     │
+│  │ 🔒 セキュリティ② Firebase トークン検証                          │     │
+│  │    → Authorization ヘッダーのトークンは本物か？                  │     │
+│  │    → 署名検証、有効期限チェック、失効チェック                    │     │
+│  └─────────────────────────────────────────────────────────────────┘     │
+│                          ↓                                               │
+│  ┌─────────────────────────────────────────────────────────────────┐     │
+│  │ 🔒 セキュリティ③ 顧客ID取得                                      │     │
+│  │    → Custom Claims から customer_id を取得                       │     │
+│  │    → Firestore から転送先 URL を取得                             │     │
+│  └─────────────────────────────────────────────────────────────────┘     │
+│                          ↓                                               │
+│  ┌─────────────────────────────────────────────────────────────────┐     │
+│  │ 📤 内部ヘッダーを付けて転送                                      │     │
+│  │    X-Gateway-Verified: true    ← Gateway認証済みの印             │     │
+│  │    X-User-Id: firebase_uid     ← ユーザーID                      │     │
+│  │    X-Customer-Id: acme-corp    ← 顧客ID                          │     │
+│  └─────────────────────────────────────────────────────────────────┘     │
+└──────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│ 【Backend】src/backend/src/                                               │
+│                                                                          │
+│  main.py                                                                 │
+│  ┌─────────────────────────────────────────────────────────────────┐     │
+│  │ 🔒 セキュリティ④ Gateway経由か確認                               │     │
+│  │    → X-Gateway-Verified == "true" なら内部ヘッダーを信頼         │     │
+│  │    → そうでなければ従来のトークン検証を実行                      │     │
+│  └─────────────────────────────────────────────────────────────────┘     │
+│                          ↓                                               │
+│  common/rate_limiter.py                                                  │
+│  ┌─────────────────────────────────────────────────────────────────┐     │
+│  │ 🔒 セキュリティ⑤ レート制限                                      │     │
+│  │    → 1分間に10回まで（DoS攻撃・課金攻撃対策）                    │     │
+│  └─────────────────────────────────────────────────────────────────┘     │
+│                          ↓                                               │
+│  main.py                                                                 │
+│  ┌─────────────────────────────────────────────────────────────────┐     │
+│  │ 🔒 セキュリティ⑥ 入力値検証                                      │     │
+│  │    → メッセージ長制限（10,000文字）                              │     │
+│  │    → thread_id 形式チェック（インジェクション対策）              │     │
+│  └─────────────────────────────────────────────────────────────────┘     │
+│                          ↓                                               │
+│  agents/_template/agent.py                                               │
+│  ┌─────────────────────────────────────────────────────────────────┐     │
+│  │ 🤖 AI処理                                                        │     │
+│  │    → Vertex AI (Gemini) に問い合わせ                             │     │
+│  │    → ストリーミングで回答を生成                                  │     │
+│  └─────────────────────────────────────────────────────────────────┘     │
+└──────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    │ レスポンスヘッダー:
+                                    │   Content-Type: text/event-stream
+                                    │   Cache-Control: no-cache
+                                    │   X-Thread-Id: user1_abc123
+                                    ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│ 【フロントエンド】                                                        │
+│                                                                          │
+│  services/api.ts                                                         │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │ // ストリーミングレスポンスを処理                                  │  │
+│  │ const reader = response.body.getReader()                           │  │
+│  │ // X-Thread-Id を取得して保存                                      │  │
+│  │ const threadId = response.headers.get('X-Thread-Id')               │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
+│                          ↓                                               │
+│  components/ChatScreen.tsx                                               │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │ // 画面にリアルタイム表示                                          │  │
+│  │ 「こん」→「にち」→「は！」                                       │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────┘
+</code></pre>
+
+</div>
+</div>
+
+<div class="info-box">
+<div class="box-title">🔐 セキュリティまとめ</div>
+<div class="box-content">
+
+<table>
+<tr><th>#</th><th>チェック</th><th>場所</th><th>何を防ぐ？</th></tr>
+<tr><td>①</td><td>CORS</td><td>Gateway</td><td>ブラウザからの不正オリジン</td></tr>
+<tr><td>②</td><td>トークン検証</td><td>Gateway</td><td>なりすまし、偽造トークン</td></tr>
+<tr><td>③</td><td>顧客ID確認</td><td>Gateway</td><td>未登録ユーザーのアクセス</td></tr>
+<tr><td>④</td><td>Gateway経由確認</td><td>Backend</td><td>内部ヘッダー偽装（※IAM併用推奨）</td></tr>
+<tr><td>⑤</td><td>レート制限</td><td>Backend</td><td>DoS攻撃、課金攻撃</td></tr>
+<tr><td>⑥</td><td>入力値検証</td><td>Backend</td><td>インジェクション、巨大データ</td></tr>
+</table>
+
+<strong>重要</strong>: ①〜⑥ すべてを通過しないと AI は応答しません。
+
+</div>
+</div>
+
+<hr />
+<div class="tip-box">
 <div class="box-title">💡 Gateway と Backend の関係</div>
 <div class="box-content">
 
-
-<pre class="codehilite"><code>フロントエンド → Gateway（1つ）→ Backend（会社ごとに1つ）
+<pre><code>フロントエンド → Gateway（1つ）→ Backend（会社ごとに1つ）
                     ↓
          ・認証（トークン検証）
          ・customer_id から転送先URL取得
          ・リクエストをそのまま転送
 </code></pre>
 
-
-
-Gatewayは「認証して転送するだけ」のシンプルな役割です。
-AI処理やビジネスロジックは各会社のBackendで行います。
+<p>Gatewayは「認証して転送するだけ」のシンプルな役割です。
+AI処理やビジネスロジックは各会社のBackendで行います。</p>
 
 </div>
 </div>
@@ -165,12 +318,13 @@ AI処理やビジネスロジックは各会社のBackendで行います。
 
 <strong>【Gatewayの仕事】</strong>
 
-1. **Firebase 認証チェック** - トークンは本物？
-2. **customer_id から URL を取得** - この人はどの会社？
-3. **リクエストをそのまま転送** - その会社のバックエンドへ
+<ol>
+<li><strong>Firebase 認証チェック</strong> - トークンは本物？</li>
+<li><strong>customer_id から URL を取得</strong> - この人はどの会社？</li>
+<li><strong>リクエストをそのまま転送</strong> - その会社のバックエンドへ</li>
+</ol>
 
-
-<pre class="codehilite"><code class="language-python"># Gateway の処理（簡略版）
+<pre><code class="python"># Gateway の処理（簡略版）
 def chat():
     # 1. 認証
     uid, customer_id = verify_request()
@@ -182,9 +336,7 @@ def chat():
     return proxy_request(target_url, uid, customer_id)
 </code></pre>
 
-
-
-Gatewayは「認証して転送するだけ」。AI処理は行いません。
+<p>Gatewayは「認証して転送するだけ」。AI処理は行いません。</p>
 
 </div>
 </div>
@@ -196,9 +348,11 @@ Gatewayは「認証して転送するだけ」。AI処理は行いません。
 <div class="box-title">🏢 会社別バックエンドのメリット</div>
 <div class="box-content">
 
-- **A社だけ特殊なカスタマイズ**が可能
-- **他社への影響ゼロ**で安全に更新
-- **障害が他社に波及しない**
+<ul>
+<li><strong>A社だけ特殊なカスタマイズ</strong>が可能</li>
+<li><strong>他社への影響ゼロ</strong>で安全に更新</li>
+<li><strong>障害が他社に波及しない</strong></li>
+</ul>
 
 <strong>【main.py の仕事】</strong>
 
@@ -223,8 +377,8 @@ main.py:「確認できました。こちらがAIの回答です」
 <tr><td>/agents</td><td>GET</td><td>使えるAIエージェント一覧</td></tr>
 </table>
 
-💡 エンドポイントとは:
-「このURLにこのメソッドでリクエストすると、この処理が実行されますよ」という窓口のこと
+<p>💡 エンドポイントとは:
+「このURLにこのメソッドでリクエストすると、この処理が実行されますよ」という窓口のこと</p>
 
 </div>
 </div>
@@ -234,25 +388,22 @@ main.py:「確認できました。こちらがAIの回答です」
 <div class="box-title">💬 /chat の処理フロー（完全版）</div>
 <div class="box-content">
 
-<strong>POST /chat</strong> → `{ "message": "こんにちは", "thread_id": "abc123" }`
+<strong>POST /chat</strong> → <code>{ "message": "こんにちは", "thread_id": "abc123" }</code>
 
 <strong>ステップ1: 認証チェック（Gateway経由かどうかで分岐）</strong>
 <ul>
-<li>**Gateway経由の場合**: 内部ヘッダー（X-Gateway-Verified, X-User-Id, X-Customer-Id）を信頼</li>
-<li>**直接アクセスの場合**: 従来のトークン検証を実行</li>
+<li><strong>Gateway経由の場合</strong>: 内部ヘッダー（X-Gateway-Verified, X-User-Id, X-Customer-Id）を信頼</li>
+<li><strong>直接アクセスの場合</strong>: 従来のトークン検証を実行</li>
 </ul>
 
-
-<pre class="codehilite"><code class="language-python">if request.headers.get(&quot;X-Gateway-Verified&quot;) == &quot;true&quot;:
+<pre><code class="python">if request.headers.get("X-Gateway-Verified") == "true":
     # Gateway が認証済み → 内部ヘッダーを信頼
-    user_id = request.headers.get(&quot;X-User-Id&quot;)
-    customer_id = request.headers.get(&quot;X-Customer-Id&quot;)
+    user_id = request.headers.get("X-User-Id")
+    customer_id = request.headers.get("X-Customer-Id")
 else:
     # 従来の認証
     user_info = authenticate_request(request)
 </code></pre>
-
-
 
 <strong>ステップ2: レート制限チェック</strong>
 <ul>
@@ -277,8 +428,8 @@ else:
 <strong>ステップ5: AIを呼び出してストリーミング返却</strong>
 <ul>
 <li>Server-Sent Events (SSE) 形式で返す</li>
-<li>`data: 内容` の形で送ると、ブラウザが自動で受け取る</li>
-<li>`[DONE]` は「もう終わりだよ」の合図</li>
+<li><code>data: 内容</code> の形で送ると、ブラウザが自動で受け取る</li>
+<li><code>[DONE]</code> は「もう終わりだよ」の合図</li>
 </ul>
 
 </div>
@@ -401,11 +552,11 @@ def is_valid_thread_id(thread_id: str) -&gt; bool:
 <div class="box-title">🚨 認証の4つの関門</div>
 <div class="box-content">
 
-<strong>リクエスト到着</strong> → Headers: `{ "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6..." }`
+<strong>リクエスト到着</strong> → Headers: <code>{ "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6..." }</code>
 
 <strong>関門1: トークンがあるか？</strong>
 <ul>
-<li>`auth_header = request.headers.get("Authorization")`</li>
+<li><code>auth_header = request.headers.get("Authorization")</code></li>
 <li>ない → エラー「認証トークンがありません」</li>
 <li>"Bearer "で始まらない → エラー「認証ヘッダーの形式が不正です」</li>
 <li>💡 "Bearer" = 「持ち主」の意味。「このトークンを持ってる人に権限を与える」形式</li>
@@ -437,7 +588,7 @@ def is_valid_thread_id(thread_id: str) -&gt; bool:
 <li>💡 Custom Claims = IDトークンに追加できる属性。サーバーでしか設定できない（改ざん不可能）</li>
 </ul>
 
-<strong>✅ 認証成功！</strong> `{ "uid": "abc123", "email": "yamada@acme.co.jp", "name": "山田太郎", "customer_id": "acme-corp" }`
+<strong>✅ 認証成功！</strong> <code>{ "uid": "abc123", "email": "yamada@acme.co.jp", "name": "山田太郎", "customer_id": "acme-corp" }</code>
 
 </div>
 </div>
@@ -623,9 +774,9 @@ def _set_customer_id_claim(uid: str, customer_id: str):
 
 <strong>【エージェントを使う場合】</strong>
 
-`agent.run("質問", thread_id)`
+<code>agent.run("質問", thread_id)</code>
 ↑
-これだけ！中身は全部エージェントがやってくれる 😊
+これだけ！中身は全部エージェントがやってくれる
 
 </div>
 </div>
@@ -635,8 +786,7 @@ def _set_customer_id_claim(uid: str, customer_id: str):
 <div class="box-title">🏗️ エージェントの構造</div>
 <div class="box-content">
 
-
-<pre class="codehilite"><code>TemplateAgent（実際に使うやつ）
+<pre><code>TemplateAgent（実際に使うやつ）
     ↓ 継承
 BaseAgent（共通機能を持つ）
   - LLM初期化
@@ -646,9 +796,7 @@ BaseAgent（共通機能を持つ）
 FirestoreCheckpointer（会話履歴を保存）
 </code></pre>
 
-
-
-💡 なぜこんな構造？ 共通処理は BaseAgent に、個別の性格は TemplateAgent にすると、新しいエージェントを追加するのが楽！
+<p>💡 なぜこんな構造？ 共通処理は BaseAgent に、個別の性格は TemplateAgent にすると、新しいエージェントを追加するのが楽！</p>
 
 </div>
 </div>
@@ -659,24 +807,18 @@ FirestoreCheckpointer（会話履歴を保存）
 <div class="box-content">
 
 <strong>【デフォルト】</strong>
-
-<pre class="codehilite"><code>あなたは親切で丁寧なAIアシスタントです。
+<pre><code>あなたは親切で丁寧なAIアシスタントです。
 ユーザーの質問に対して、わかりやすく簡潔に回答してください。
 日本語で回答してください。
 </code></pre>
 
-
-
 <strong>【関西弁に変えると...】</strong>
-
-<pre class="codehilite"><code>あなたは関西弁で話すAIアシスタントやで。
+<pre><code>あなたは関西弁で話すAIアシスタントやで。
 ユーザーの質問にフレンドリーに答えてな。
 「やで」「やん」「なんでやねん」を使ってな。
 </code></pre>
 
-
-
-→ 同じ質問でも、返答のスタイルが変わる！
+<p>→ 同じ質問でも、返答のスタイルが変わる！</p>
 
 </div>
 </div>
@@ -863,12 +1005,11 @@ AI: 「山田さんですね！」 ← 覚えてる！😊
 <div class="box-title">📁 Firestore のデータ構造</div>
 <div class="box-content">
 
-
-<pre class="codehilite"><code>Firestore
+<pre><code>Firestore
 └── customers/                    ← 顧客コレクション
     ├── acme-corp/                ← 顧客ドキュメント
-    │   ├── name: &quot;株式会社ACME&quot;
-    │   ├── allowed_domains: [&quot;acme.co.jp&quot;]
+    │   ├── name: "株式会社ACME"
+    │   ├── allowed_domains: ["acme.co.jp"]
     │   └── checkpoints/          ← 会話履歴コレクション
     │       ├── user1_abc123/     ← 会話1のドキュメント
     │       │   └── checkpoints/  ← チェックポイントサブコレクション
@@ -880,9 +1021,114 @@ AI: 「山田さんですね！」 ← 覚えてる！😊
         └── ...
 </code></pre>
 
+<p>💡 customer_id でパスを分けることで、A社がB社のデータにアクセスすることを防ぐ</p>
 
+</div>
+</div>
 
-💡 customer_id でパスを分けることで、A社がB社のデータにアクセスすることを防ぐ
+<hr />
+<h2 id="用語解説">用語解説<a class="header-link" href="#用語解説" title="Permanent link">&para;</a></h2>
+<div class="info-box">
+<div class="box-title">📖 このドキュメントで使われる用語</div>
+<div class="box-content">
+
+<table>
+<tr><th>用語</th><th>意味</th></tr>
+<tr><td><strong>CORS</strong></td><td>Cross-Origin Resource Sharing。異なるドメイン間でのリソース共有を制御する仕組み。下記で詳しく説明</td></tr>
+<tr><td><strong>Custom Claims</strong></td><td>Firebase IDトークンに追加できるカスタム属性。サーバー側でのみ設定可能で改ざん不可能。customer_id などを格納</td></tr>
+<tr><td><strong>SSE</strong></td><td>Server-Sent Events。サーバーからクライアントへ一方向にデータをストリーミング送信する仕組み</td></tr>
+<tr><td><strong>DoS攻撃</strong></td><td>Denial of Service。サービス妨害攻撃。大量リクエストでサーバーをダウンさせる攻撃</td></tr>
+<tr><td><strong>インジェクション</strong></td><td>不正なコードやデータを挿入して、意図しない動作をさせる攻撃。SQLインジェクション、コマンドインジェクションなど</td></tr>
+<tr><td><strong>レート制限</strong></td><td>一定時間内のリクエスト数を制限する仕組み。DoS攻撃や課金攻撃を防ぐ</td></tr>
+<tr><td><strong>LangGraph</strong></td><td>AIエージェントの処理フローを「グラフ」として定義するライブラリ。ノード（処理）とエッジ（遷移）で構成</td></tr>
+<tr><td><strong>チェックポイント</strong></td><td>会話の状態を保存するポイント。これにより会話履歴の保持や再開が可能</td></tr>
+</table>
+
+</div>
+</div>
+
+<hr />
+<h2 id="corsとはブラウザセキュリティの基本">CORSとは？（ブラウザセキュリティの基本）<a class="header-link" href="#corsとはブラウザセキュリティの基本" title="Permanent link">&para;</a></h2>
+<div class="info-box">
+<div class="box-title">🌐 CORSを完全理解</div>
+<div class="box-content">
+
+<strong>CORS = Cross-Origin Resource Sharing（異なるオリジン間のリソース共有）</strong>
+
+<strong>【なぜ必要？】</strong>
+
+ブラウザには「同一オリジンポリシー」というセキュリティ機能があります:
+<ul>
+<li><code>https://chat.example.com</code> のページから</li>
+<li><code>https://api.example.com</code> にアクセスすると</li>
+<li><strong>ブラウザがブロック</strong>します（オリジンが違うため）</li>
+</ul>
+
+でも、フロントエンドとAPIが別ドメインなのは普通。そこでCORSの出番！
+
+<strong>【CORSの仕組み】</strong>
+
+<pre><code>ブラウザ → API: 「https://chat.example.com からアクセスしていい？」
+                （Originヘッダー）
+
+API → ブラウザ: 「OK、許可するよ」
+                （Access-Control-Allow-Origin: https://chat.example.com）
+
+ブラウザ: 「許可されてる！レスポンスを使っていいね」
+</code></pre>
+
+<strong>【重要な注意点】</strong>
+
+⚠️ <strong>CORSはブラウザだけのセキュリティです</strong>
+
+<table>
+<tr><th>アクセス元</th><th>CORSチェック</th></tr>
+<tr><td>ブラウザ（Chrome, Firefox等）</td><td>✅ あり</td></tr>
+<tr><td>curl（コマンドライン）</td><td>❌ なし</td></tr>
+<tr><td>Postman（APIテストツール）</td><td>❌ なし</td></tr>
+<tr><td>サーバーからのリクエスト</td><td>❌ なし</td></tr>
+</table>
+
+→ curl や Postman では CORS を無視してAPIを直接叩けます！<br>
+→ だから <strong>認証（トークン検証）が必須</strong> なのです
+
+</div>
+</div>
+
+<div class="tip-box">
+<div class="box-title">💡 CORS設定の場所</div>
+<div class="box-content">
+
+このプロジェクトでは2箇所でCORS設定があります:
+
+<table>
+<tr><th>ファイル</th><th>方法</th><th>用途</th></tr>
+<tr><td><code>src/gateway/src/main.py</code></td><td>手動実装</td><td>プリフライトリクエスト対応</td></tr>
+<tr><td><code>src/backend/src/common/cors.py</code></td><td>flask-cors</td><td>シンプルなCORS設定</td></tr>
+</table>
+
+<strong>Gateway（main.py）の例:</strong>
+<pre><code class="python"># プリフライトリクエスト（OPTIONS）への対応
+if request.method == 'OPTIONS':
+    response = Response()
+    response.headers['Access-Control-Allow-Origin'] = allowed_origin
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    return response
+</code></pre>
+
+<strong>Backend（cors.py）の例:</strong>
+<pre><code class="python">from flask_cors import CORS
+
+def setup_cors(app):
+    CORS(app, resources={
+        r"/*": {
+            "origins": ["https://your-project.web.app"],
+            "methods": ["GET", "POST", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"]
+        }
+    })
+</code></pre>
 
 </div>
 </div>
@@ -895,27 +1141,21 @@ AI: 「山田さんですね！」 ← 覚えてる！😊
 <div class="box-content">
 
 <strong>【GASの場合（同期処理）】</strong>
-
-<pre class="codehilite"><code class="language-javascript">function fetchData() {
+<pre><code class="javascript">function fetchData() {
   var response = UrlFetchApp.fetch(url);  // ここで止まる
   var data = response.getContentText();   // 終わるまで待つ
   return data;
 }
 </code></pre>
-
-
-→ 処理Aを待っている間、処理Bができない
+<p>→ 処理Aを待っている間、処理Bができない</p>
 
 <strong>【Python/TypeScriptの場合（非同期処理）】</strong>
-
-<pre class="codehilite"><code class="language-python">async def fetch_data():
+<pre><code class="python">async def fetch_data():
     response = await aiohttp.get(url)  # 待つけど他の処理可
     data = await response.text()
     return data
 </code></pre>
-
-
-→ 処理Aを待っている間に、処理Bを進められる
+<p>→ 処理Aを待っている間に、処理Bを進められる</p>
 
 <strong>【イメージ】</strong>
 <ul>
@@ -923,7 +1163,7 @@ AI: 「山田さんですね！」 ← 覚えてる！😊
 <li>非同期 : 料理の注文 → 次の注文 → 次の注文 → 最初の料理受け取り</li>
 </ul>
 
-💡 AIの回答を待つ間、他のユーザーのリクエストを処理できる
+<p>💡 AIの回答を待つ間、他のユーザーのリクエストを処理できる</p>
 
 </div>
 </div>
@@ -934,18 +1174,14 @@ AI: 「山田さんですね！」 ← 覚えてる！😊
 <div class="box-content">
 
 <strong>【普通の関数】</strong>
-
-<pre class="codehilite"><code class="language-python">def get_numbers():
+<pre><code class="python">def get_numbers():
     return [1, 2, 3, 4, 5]  # 全部まとめて返す
 
 result = get_numbers()  # [1, 2, 3, 4, 5] が一度に来る
 </code></pre>
 
-
-
 <strong>【ジェネレーター（yield使用）】</strong>
-
-<pre class="codehilite"><code class="language-python">def get_numbers():
+<pre><code class="python">def get_numbers():
     yield 1  # 1を返して、ここで一時停止
     yield 2  # 次に呼ばれたら2を返して、また一時停止
     yield 3
@@ -956,18 +1192,13 @@ for num in get_numbers():
     print(num)  # 1, 2, 3, 4, 5 が順番に来る
 </code></pre>
 
-
-
 <strong>【ストリーミングでの活用】</strong>
-
-<pre class="codehilite"><code class="language-python">def stream_response():
-    yield &quot;こん&quot;    # ブラウザに「こん」が表示
-    yield &quot;にち&quot;    # ブラウザに「にち」が追加表示
-    yield &quot;は&quot;      # ブラウザに「は」が追加表示
+<pre><code class="python">def stream_response():
+    yield "こん"    # ブラウザに「こん」が表示
+    yield "にち"    # ブラウザに「にち」が追加表示
+    yield "は"      # ブラウザに「は」が追加表示
 </code></pre>
-
-
-→ 全部できるのを待たずに、できた分から表示！
+<p>→ 全部できるのを待たずに、できた分から表示！</p>
 
 </div>
 </div>
@@ -978,34 +1209,29 @@ for num in get_numbers():
 <div class="box-content">
 
 <strong>【デコレーターって何？】</strong>
-関数に「追加機能」をつける仕組み。`@something` を関数の前に書く
+<p>関数に「追加機能」をつける仕組み。<code>@something</code> を関数の前に書く</p>
 
 <strong>【よく見るパターン】</strong>
-
-<pre class="codehilite"><code class="language-python">@app.route(&quot;/chat&quot;, methods=[&quot;POST&quot;])
+<pre><code class="python">@app.route("/chat", methods=["POST"])
 def chat():
     ...
 </code></pre>
 
-
-
-↑ これは以下と同じ意味:
-
-<pre class="codehilite"><code class="language-python">def chat():
+<p>↑ これは以下と同じ意味:</p>
+<pre><code class="python">def chat():
     ...
-chat = app.route(&quot;/chat&quot;, methods=[&quot;POST&quot;])(chat)
+chat = app.route("/chat", methods=["POST"])(chat)
 </code></pre>
 
-
-
 <strong>【イメージ】</strong>
-プレゼントに リボン をつける
+<pre><code>プレゼントに リボン をつける
    ↑           ↑
  関数     デコレーター
+</code></pre>
 
-中身（関数）は同じだけど、見た目（機能）が変わる
+<p>中身（関数）は同じだけど、見た目（機能）が変わる</p>
 
-`@app.route(...)` → 「この関数をURLに紐づける」機能を追加
+<p><code>@app.route(...)</code> → 「この関数をURLに紐づける」機能を追加</p>
 
 </div>
 </div>
@@ -1114,7 +1340,7 @@ chat = app.route(&quot;/chat&quot;, methods=[&quot;POST&quot;])(chat)
 
 <strong>→ 次は 04_フロントエンド解説.md で画面側を学ぼう！</strong>
 
-💡 バックエンドがわかると、フロントエンドも理解しやすくなる！
+<p>💡 バックエンドがわかると、フロントエンドも理解しやすくなる！</p>
 
 </div>
 </div>

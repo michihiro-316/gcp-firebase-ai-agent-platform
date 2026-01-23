@@ -142,7 +142,7 @@
 <div class="info-box">
 <h3>📝 アロー関数 = Pythonの lambda（無名関数）の進化版</h3>
 
-**基本構文:**
+<strong>基本構文:</strong>
 
 <pre>
 () => { ... }
@@ -154,121 +154,94 @@
 ③ { } = 関数の中身
 </pre>
 
-**Pythonとの比較:**
+<strong>Pythonとの比較:</strong>
 
-
-<pre class="codehilite"><code class="language-python"># Python の関数定義
+<pre><code class="python"># Python の関数定義
 def say_hello():
-    print(&quot;Hello&quot;)
+    print("Hello")
 
 # Python の lambda（1行のみ）
-say_hello = lambda: print(&quot;Hello&quot;)
+say_hello = lambda: print("Hello")
 </code></pre>
 
-
-
-
-<pre class="codehilite"><code class="language-javascript">// JavaScript の関数定義（従来）
+<pre><code class="javascript">// JavaScript の関数定義（従来）
 function sayHello() {
-  console.log(&quot;Hello&quot;);
+  console.log("Hello");
 }
 
 // JavaScript のアロー関数（現代的）
-const sayHello = () =&gt; {
-  console.log(&quot;Hello&quot;);
+const sayHello = () => {
+  console.log("Hello");
 };
 </code></pre>
 
+<strong>引数がある場合:</strong>
 
-
-**引数がある場合:**
-
-
-<pre class="codehilite"><code class="language-python"># Python
+<pre><code class="python"># Python
 def add(a, b):
     return a + b
 
 add_lambda = lambda a, b: a + b
 </code></pre>
 
-
-
-
-<pre class="codehilite"><code class="language-javascript">// JavaScript（アロー関数）
-const add = (a, b) =&gt; {
+<pre><code class="javascript">// JavaScript（アロー関数）
+const add = (a, b) => {
   return a + b;
 };
 
 // 1行なら省略可能
-const add = (a, b) =&gt; a + b;
+const add = (a, b) => a + b;
 </code></pre>
-
-
 
 </div>
 
 <div class="tip-box">
 <h3>💡 よく見るパターン</h3>
 
-**パターン1: イベントハンドラ**
-
-<pre class="codehilite"><code class="language-tsx">&lt;button onClick={() =&gt; { console.log(&quot;クリック！&quot;); }}&gt;
+<strong>パターン1: イベントハンドラ</strong>
+<pre><code class="tsx">&lt;button onClick={() =&gt; { console.log("クリック！"); }}&gt;
   ボタン
 &lt;/button&gt;
 </code></pre>
 
-
-
-**パターン2: 配列の処理**
-
-<pre class="codehilite"><code class="language-javascript">// Python: [x * 2 for x in numbers]
+<strong>パターン2: 配列の処理</strong>
+<pre><code class="javascript">// Python: [x * 2 for x in numbers]
 // JavaScript:
-numbers.map((x) =&gt; x * 2)
+numbers.map((x) => x * 2)
 </code></pre>
 
-
-
-**パターン3: 関数を返す関数**
-
-<pre class="codehilite"><code class="language-javascript">// アロー関数を return で返す
-return () =&gt; {
+<strong>パターン3: 関数を返す関数</strong>
+<pre><code class="javascript">// アロー関数を return で返す
+return () => {
   // この中身は「今」実行されない
   // 後で誰かが呼び出すと実行される
 };
 </code></pre>
 
-
-
-**パターン4: 別の関数の引数として渡す（コールバック）**
-
-<pre class="codehilite"><code class="language-javascript">// 関数を引数として渡すパターン
-onAuthStateChanged(auth, (user) =&gt; {
+<strong>パターン4: 別の関数の引数として渡す（コールバック）</strong>
+<pre><code class="javascript">// 関数を引数として渡すパターン
+onAuthStateChanged(auth, (user) => {
   setUser(user);
 });
 </code></pre>
-
-
-→ **詳しくは「[6. useAuth.ts - 認証フックの完全解説](#6-useauthts---認証フックの完全解説)」で図解付きで説明しています！**
+→ <strong>詳しくは「<a href="#6-useauthts---認証フックの完全解説">6. useAuth.ts - 認証フックの完全解説</a>」で図解付きで説明しています！</strong>
 
 </div>
 
 <div class="warning-box">
-<h3>⚠️ 超重要: `inner` と `inner()` の違い</h3>
+<h3>⚠️ 超重要: <code>inner</code> と <code>inner()</code> の違い</h3>
 
-**これ、初心者がつまずく最大のポイントです！**
+<strong>これ、初心者がつまずく最大のポイントです！</strong>
 
-
-<pre class="codehilite"><code class="language-python">def outer():
+<pre><code class="python">def outer():
     def inner():
-        print(&quot;後で実行&quot;)
+        print("後で実行")
 
     return inner    # ← カッコなし = 関数そのものを返す
     # return inner()  ← カッコあり = 関数を実行して、その結果を返す
 </code></pre>
 
-
-
-**図で理解:**
+<strong>図で理解:</strong>
 
 <pre>
 inner   ← 関数そのもの（まだ実行されていない）
@@ -279,7 +252,7 @@ inner() ← 関数を実行した結果
          返り値は None（print は何も返さないから）
 </pre>
 
-**具体例で比較:**
+<strong>具体例で比較:</strong>
 
 
 <pre class="codehilite"><code class="language-python">def outer():
@@ -312,7 +285,7 @@ print(result)      # → 42（inner() の戻り値）
 
 
 
-**JavaScript でも同じ:**
+<strong>JavaScript でも同じ:</strong>
 
 
 <pre class="codehilite"><code class="language-javascript">// カッコなし = 関数を返す（useEffectではこれが正解）
@@ -586,6 +559,71 @@ return &lt;h1&gt;こんにちは、{name}さん！&lt;/h1&gt;;
 
 <hr />
 <h2 id="2-usestate---状態管理の基本">2. useState - 状態管理の基本<a class="header-link" href="#2-usestate---状態管理の基本" title="Permanent link">&para;</a></h2>
+<h3 id="なぜ-state-が必要なのか">なぜ state が必要なのか？<a class="header-link" href="#なぜ-state-が必要なのか" title="Permanent link">&para;</a></h3>
+<div class="warning-box">
+<h3>普通の変数では画面が更新されない</h3>
+<div class="box-content">
+
+Reactで最初につまずくポイントがここです。
+普通のプログラミングでは変数を更新すれば値が変わりますが、**Reactでは画面が更新されません**。
+
+<strong>問題のあるコード:</strong>
+
+<pre class="codehilite"><code class="language-tsx">function Counter() {
+  let count = 0;  // 普通の変数
+
+  return (
+    &lt;div&gt;
+      &lt;p&gt;カウント: {count}&lt;/p&gt;
+      &lt;button onClick={() =&gt; { count = count + 1; }}&gt;
+        +1
+      &lt;/button&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+
+
+
+<strong>何が起きる？</strong>
+<pre>
+ボタンをクリック
+    ↓
+count = 1 になる（変数は更新される）
+    ↓
+でも画面は「カウント: 0」のまま！ ← なぜ？
+</pre>
+
+<strong>理由: Reactは「値が変わった」ことを知らない</strong>
+
+普通の変数を変えても、Reactには何も通知されません。
+Reactが画面を更新するには「今から値が変わるよ！」と教える必要があります。
+
+</div>
+</div>
+
+<div class="info-box">
+<h3>state = 「Reactに監視されている特別な変数」</h3>
+
+<pre>
+【普通の変数】
+let count = 0;
+count = 1;        ← Reactは気づかない → 画面そのまま
+
+【state（useState）】
+const [count, setCount] = useState(0);
+setCount(1);      ← Reactに通知される → 画面が更新される！
+</pre>
+
+<p><strong>state を使う理由:</strong></p>
+<ol>
+<li><strong>画面を自動更新</strong>: state が変わると React が画面を再描画</li>
+<li><strong>値を保持</strong>: 再描画されても値が消えない（普通の変数は毎回初期化される）</li>
+<li><strong>React が追跡</strong>: いつ・どこで値が変わったかを React が把握できる</li>
+</ol>
+
+</div>
+
 <h3 id="usestate-とは">useState とは？<a class="header-link" href="#usestate-とは" title="Permanent link">&para;</a></h3>
 <p>コンポーネント内で「状態（データ）」を持つための仕組み。<br />
 状態が変わると、画面が自動で再描画される！</p>
@@ -693,23 +731,35 @@ const { error: chatError } = useChat(...)
 </table>
 </div>
 
-<h3 id="配列-vs-オブジェクトの分割代入">配列 vs オブジェクトの分割代入<a class="header-link" href="#配列-vs-オブジェクトの分割代入" title="Permanent link">&para;</a></h3>
+<h3 id="usestateからカスタムフックへ---分割代入の発展">useStateからカスタムフックへ - 分割代入の発展<a class="header-link" href="#usestateからカスタムフックへ---分割代入の発展" title="Permanent link">&para;</a></h3>
 <div class="info-box">
-<h3>🔑 どっちを使う？</h3>
+<h3>🔑 useStateを組み合わせてカスタムフックを作る</h3>
+
+<p><code>useState</code> は配列を返し、カスタムフックは複数の <code>useState</code> をまとめてオブジェクトで返します。</p>
+
 <table>
 <tr><th>種類</th><th>取り出し方</th><th>使う場面</th></tr>
 <tr><td><strong>配列</strong></td><td>順番で決まる</td><td>useState（[値, 更新関数]）</td></tr>
 <tr><td><strong>オブジェクト</strong></td><td>名前で決まる</td><td>カスタムフック（useAuth, useChat など）</td></tr>
 </table>
-<pre>
-// 配列: 順番で取り出す（名前は自由に付けられる）
-const [count, setCount] = useState(0)
-//     [0]    [1]
 
-// オブジェクト: キー名で取り出す（順番は関係ない）
-const { messages, isLoading } = useChat(...)
-const { isLoading, messages } = useChat(...)  // 順番入れ替えてもOK
+<pre>
+// useAuth の内部（イメージ）
+function useAuth() {
+  const [user, setUser] = useState(null)       // ← useState（配列）
+  const [loading, setLoading] = useState(true) // ← useState（配列）
+  const [error, setError] = useState(null)     // ← useState（配列）
+
+  // これらをまとめてオブジェクトで返す
+  return { user, loading, error, loginWithGoogle, logout }
+}
+
+// 使う側: オブジェクトの分割代入
+const { user, loading } = useAuth()
 </pre>
+
+<p>💡 カスタムフックは「複数のuseStateをまとめて使いやすくしたもの」と考えるとわかりやすい！</p>
+
 </div>
 
 <h3 id="setcountはどこで定義した超よくある質問">「setCount」はどこで定義した？（超よくある質問）<a class="header-link" href="#setcountはどこで定義した超よくある質問" title="Permanent link">&para;</a></h3>
@@ -717,7 +767,7 @@ const { isLoading, messages } = useChat(...)  // 順番入れ替えてもOK
 <h3>❓ 「setCount って自分で作ってないのに、なぜ使える？」</h3>
 <div class="box-content">
 
-**答え: `useState` が内部で作って返してくれる**
+<strong>答え: <code>useState</code> が内部で作って返してくれる</strong>
 
 
 <pre class="codehilite"><code class="language-tsx">const [count, setCount] = useState(0);
@@ -729,8 +779,10 @@ const { isLoading, messages } = useChat(...)  // 順番入れ替えてもOK
 自分で `function setCount() {...}` と書いたわけではない！
 `useState` を呼ぶと、React が以下を返してくれる：
 
-1. **現在の値**（`count`）
-2. **その値を更新する関数**（`setCount`）
+<ol>
+<li><strong>現在の値</strong>（<code>count</code>）</li>
+<li><strong>その値を更新する関数</strong>（<code>setCount</code>）</li>
+</ol>
 
 <pre>
 useState(0) が返すもの:
@@ -740,7 +792,7 @@ useState(0) が返すもの:
 └─────────────────────────────────────────┘
 </pre>
 
-**ポイント**: `setCount` を呼ぶと、Reactは：
+<strong>ポイント</strong>: <code>setCount</code> を呼ぶと、Reactは：
 1. 新しい値を内部に保存
 2. コンポーネントを再レンダリング（画面更新）
 
@@ -780,7 +832,7 @@ setUser(null);         // null をセット
 
 
 
-**Python との比較:**
+<strong>Python との比較:</strong>
 
 <pre class="codehilite"><code class="language-python"># Python（普通の変数）
 user = new_user       # 代入で更新
@@ -791,9 +843,9 @@ setUser(new_user)     # セッター関数で更新
 
 
 
-**なぜ普通の代入 `user = xxx` じゃダメ？**
+<strong>なぜ普通の代入 <code>user = xxx</code> じゃダメ？</strong>
 
-普通の代入だと React が変更に気づけない。`setUser()` を使うことで「値が変わった！」と React に通知され、画面が再描画される。
+普通の代入だと React が変更に気づけない。<code>setUser()</code> を使うことで「値が変わった！」と React に通知され、画面が再描画される。
 
 </div>
 </div>
@@ -812,7 +864,7 @@ setUser(new_user)     # セッター関数で更新
 <h3>⚠️ 連続で setState すると、期待通りに動かない？</h3>
 <div class="box-content">
 
-**問題のあるコード:**
+<strong>問題のあるコード:</strong>
 
 <pre class="codehilite"><code class="language-tsx">const [count, setCount] = useState(0);
 
@@ -826,9 +878,9 @@ function handleClick() {
 
 
 
-**なぜ？** `setCount` は非同期で、`count` はまだ古い値のまま
+<strong>なぜ？</strong> <code>setCount</code> は非同期で、<code>count</code> はまだ古い値のまま
 
-**解決: 関数型更新（prev）を使う**
+<strong>解決: 関数型更新（prev）を使う</strong>
 
 <pre class="codehilite"><code class="language-tsx">function handleClick() {
   setCount(prev =&gt; prev + 1);  // prev=0 → 1
@@ -870,7 +922,7 @@ setCount(prev => prev + 1)
 <div class="architecture-box">
 <h3>📦 配列 state の更新テンプレート</h3>
 
-**セットアップ:**
+<strong>セットアップ:</strong>
 
 <pre class="codehilite"><code class="language-tsx">const [items, setItems] = useState([
   { id: 1, name: &quot;りんご&quot; },
@@ -880,7 +932,7 @@ setCount(prev => prev + 1)
 
 
 
-**① 追加（末尾に追加）**
+<strong>① 追加（末尾に追加）</strong>
 
 <pre class="codehilite"><code class="language-tsx">const newItem = { id: 3, name: &quot;みかん&quot; };
 setItems(prev =&gt; [...prev, newItem]);
@@ -889,7 +941,7 @@ setItems(prev =&gt; [...prev, newItem]);
 
 
 
-**② 削除（特定のIDを削除）**
+<strong>② 削除（特定のIDを削除）</strong>
 
 <pre class="codehilite"><code class="language-tsx">setItems(prev =&gt; prev.filter(item =&gt; item.id !== 2));
 // 結果: [りんご, みかん]  ← id:2 のバナナが消えた
@@ -897,7 +949,7 @@ setItems(prev =&gt; [...prev, newItem]);
 
 
 
-**③ 更新（特定のアイテムを変更）**
+<strong>③ 更新（特定のアイテムを変更）</strong>
 
 <pre class="codehilite"><code class="language-tsx">setItems(prev =&gt; prev.map(item =&gt;
   item.id === 1
@@ -927,11 +979,11 @@ setItems(items);  // 同じく再描画されない
 
 
 
-**なぜNG？**
+<strong>なぜNG？</strong>
 Reactは「配列の参照（アドレス）」が変わったかで再描画を判断する。
-`push` や直接代入は参照が同じままなので、Reactは変化に気づかない。
+<code>push</code> や直接代入は参照が同じままなので、Reactは変化に気づかない。
 
-**✅ 正解: スプレッド構文で新しい配列を作る**
+<strong>✅ 正解: スプレッド構文で新しい配列を作る</strong>
 
 <pre class="codehilite"><code class="language-tsx">setItems(prev =&gt; [...prev, newItem]);  // 新しい配列を作成
 </code></pre>
@@ -946,7 +998,7 @@ Reactは「配列の参照（アドレス）」が変わったかで再描画を
 <div class="architecture-box">
 <h3>🔧 オブジェクト state の更新テンプレート</h3>
 
-**セットアップ:**
+<strong>セットアップ:</strong>
 
 <pre class="codehilite"><code class="language-tsx">const [user, setUser] = useState({
   name: &quot;太郎&quot;,
@@ -957,7 +1009,7 @@ Reactは「配列の参照（アドレス）」が変わったかで再描画を
 
 
 
-**① 一部だけ更新**
+<strong>① 一部だけ更新</strong>
 
 <pre class="codehilite"><code class="language-tsx">setUser(prev =&gt; ({
   ...prev,           // 既存のプロパティをコピー
@@ -968,7 +1020,7 @@ Reactは「配列の参照（アドレス）」が変わったかで再描画を
 
 
 
-**② ネストしたオブジェクトの更新**
+<strong>② ネストしたオブジェクトの更新</strong>
 
 <pre class="codehilite"><code class="language-tsx">const [user, setUser] = useState({
   name: &quot;太郎&quot;,
@@ -1125,7 +1177,7 @@ function UserProfile() {
 
 
 
-**何が起きる？**
+<strong>何が起きる？</strong>
 <pre>
 ① コンポーネント実行 → fetch() 呼ばれる
 ② setUser() で state 更新 → 再レンダリング発生
@@ -1134,7 +1186,7 @@ function UserProfile() {
 ⑤ 無限ループ！！！💥
 </pre>
 
-**useEffect を使う理由:**
+<strong>useEffect を使う理由:</strong>
 「画面が表示されたときに1回だけ」実行したいから
 
 </div>
@@ -1321,6 +1373,32 @@ return <div>{user?.name}</div>;
 </pre>
 </div>
 
+<h3 id="usestate-と-useeffect-はセットで使う">useState と useEffect はセットで使う<a class="header-link" href="#usestate-と-useeffect-はセットで使う" title="Permanent link">&para;</a></h3>
+<div class="architecture-box">
+<h3>ここまでのまとめ: 2つのフックは基本セットで使う</h3>
+<div class="box-content">
+
+<p>ここまで見てきたように、<strong>useState と useEffect は基本的にセットで使います。</strong><br>
+単独で使うケースは少なく、「データを保持する useState」と「処理を実行する useEffect」を組み合わせることで初めて意味のある機能になります。</p>
+
+<p><strong>【なぜセットで使う？】</strong></p>
+<table>
+<tr><th>useState だけ</th><th>useEffect だけ</th><th>両方組み合わせ</th></tr>
+<tr><td>データを持てるが、<br>いつ取得するか決められない</td><td>処理を実行できるが、<br>結果を保存できない</td><td>「いつ」「何を」「どこに保存」<br>すべてコントロール可能！</td></tr>
+</table>
+
+<p><strong>【よくあるパターン】</strong></p>
+<ol>
+<li><strong>画面表示時にデータ取得</strong>: useEffect で API 呼び出し → useState で保存 → 画面に表示</li>
+<li><strong>state 変更で別処理を実行</strong>: useState の値が変わったら → useEffect で別の API を呼ぶ</li>
+<li><strong>画面が消えたら後片付け</strong>: useEffect のクリーンアップでタイマー停止など</li>
+</ol>
+
+<p>💡 この「useState + useEffect のセット」を再利用しやすくまとめたものが、次に学ぶ「カスタムフック」です！</p>
+
+</div>
+</div>
+
 <h3 id="username-の意味オプショナルチェーン">user?.name の意味（オプショナルチェーン）<a class="header-link" href="#username-の意味オプショナルチェーン" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-tsx">// user?.name は以下と同じ意味
 user ? user.name : undefined
@@ -1387,9 +1465,14 @@ useEffect(() =&gt; {
 </code></pre>
 
 <hr />
-<h3 id="-ブレイクタイム-パターン4を徹底解説">☕ ブレイクタイム: パターン4を徹底解説<a class="header-link" href="#-ブレイクタイム-パターン4を徹底解説" title="Permanent link">&para;</a></h3>
-<p>パターン4が難しいと感じる人が多いので、ここで丁寧に解説します。</p>
-<p><strong>まず、コードの構造を分解してみましょう:</strong></p>
+<details>
+<summary><strong>☕ ブレイクタイム: パターン4を徹底解説</strong>（クリックで展開）</summary>
+
+パターン4が難しいと感じる人が多いので、ここで丁寧に解説します。
+
+**まず、コードの構造を分解してみましょう:**
+
+
 <pre class="codehilite"><code class="language-tsx">useEffect(           // ← useEffect を呼び出す
   () =&gt; {            // ← 第1引数: 関数（エフェクト本体）
     // ここが「画面表示時」に実行される部分
@@ -1402,7 +1485,10 @@ useEffect(() =&gt; {
 );
 </code></pre>
 
-<p><strong>図で見ると:</strong></p>
+
+
+**図で見ると:**
+
 <div style="background: #1e293b; border-radius: 8px; padding: 20px; font-family: monospace; color: #e2e8f0; display: flex; align-items: flex-start; gap: 8px;">
   <div style="color: #94a3b8;">useEffect(</div>
   <div style="border: 2px solid #64748b; border-radius: 6px; padding: 12px; flex: 1;">
@@ -1431,9 +1517,9 @@ useEffect(() =&gt; {
 <div class="warning-box">
 <h3>⚠️ 「() => {}」が紛らわしい理由</h3>
 
-**Q: `() => { clearInterval(timer); }` って、実行してるんじゃないの？**
+<strong>Q: <code>() =&gt; { clearInterval(timer); }</code> って、実行してるんじゃないの？</strong>
 
-A: **いいえ！これは「関数を定義している」だけです。**
+A: <strong>いいえ！これは「関数を定義している」だけです。</strong>
 
 `() => {}` は「実行している」ように見えますが、実は「関数を作っている」だけ。
 関数を実行するには、関数自体の後ろに `()` をつける必要があります。
@@ -1454,16 +1540,16 @@ clearInterval(timer);    ← ✅ 実行される（引数付きで呼び出し�
    （わざわざ関数で包んで即実行 = 直接実行と等価）
 </pre>
 
-**つまり:**
+<strong>つまり:</strong>
 
 <table>
 <tr><th>書き方</th><th>何をしている？</th><th>実行タイミング</th></tr>
 <tr><td><code>clearInterval(timer)</code></td><td>関数を呼び出す</td><td><strong>今すぐ</strong>実行</td></tr>
-<tr><td><code>() => { clearInterval(timer); }</code></td><td>関数を作る</td><td><strong>まだ</strong>実行されない</td></tr>
-<tr><td><code>return () => { ... }</code></td><td>関数を作って返す</td><td><strong>後で</strong>誰かが呼ぶと実行</td></tr>
+<tr><td><code>() =&gt; { clearInterval(timer); }</code></td><td>関数を作る</td><td><strong>まだ</strong>実行されない</td></tr>
+<tr><td><code>return () =&gt; { ... }</code></td><td>関数を作って返す</td><td><strong>後で</strong>誰かが呼ぶと実行</td></tr>
 </table>
 
-**だから useEffect の return は:**
+<strong>だから useEffect の return は:</strong>
 
 
 <pre class="codehilite"><code class="language-javascript">return () =&gt; { clearInterval(timer); };
@@ -1476,12 +1562,15 @@ clearInterval(timer);    ← ✅ 実行される（引数付きで呼び出し�
 
 Reactはこの「実行の仕方」を受け取って保存し、画面が消えるときに呼び出します。
 
-💡 **詳しくは上の「[アロー関数の基礎](#-pythonエンジニア向け-アロー関数の基礎)」を参照！**
+💡 <strong>詳しくは上の「<a href="#-pythonエンジニア向け-アロー関数の基礎">アロー関数の基礎</a>」を参照！</strong>
 
 </div>
 
-<hr />
-<p><strong>実際のタイマーの例:</strong></p>
+---
+
+**実際のタイマーの例:**
+
+
 <pre class="codehilite"><code class="language-tsx">useEffect(() =&gt; {
   // ① 画面表示時: タイマー開始
   const timer = setInterval(() =&gt; {
@@ -1495,12 +1584,14 @@ Reactはこの「実行の仕方」を受け取って保存し、画面が消え
 }, []);
 </code></pre>
 
+
+
 <div class="warning-box">
 <h3>⚠️ よくある疑問: setInterval は「完了」しないの？</h3>
 
-**Q: setInterval が動き続けるなら、次の行（return）に到達しないのでは？**
+<strong>Q: setInterval が動き続けるなら、次の行（return）に到達しないのでは？</strong>
 
-A: **いいえ、到達します！** setInterval は **非同期** だからです。
+A: <strong>いいえ、到達します！</strong> setInterval は <strong>非同期</strong> だからです。
 
 <pre>
 【誤解しやすいイメージ】（❌ 間違い）
@@ -1516,7 +1607,7 @@ const timer = setInterval(...);  ← 「予約だけ」して即座に次へ進�
 return () => { ... };            ← すぐにここに到達する！
 </pre>
 
-**setInterval は「内部でwhileループで待機」しているわけではありません。**
+<strong>setInterval は「内部でwhileループで待機」しているわけではありません。</strong>
 
 <table>
 <tr><th>イメージ</th><th>実際の動作</th></tr>
@@ -1524,9 +1615,9 @@ return () => { ... };            ← すぐにここに到達する！
 <tr><td>❌ setInterval完了まで待機</td><td>✅ ブラウザのタイマーに「後で呼んで」と依頼するだけ</td></tr>
 </table>
 
-**🐍 Pythonで例えると:**
+<strong>🐍 Pythonで例えると:</strong>
 
-setInterval は **Python の `async`/`await`** に近い概念です。
+setInterval は <strong>Python の <code>async</code>/<code>await</code></strong> に近い概念です。
 
 
 <pre class="codehilite"><code class="language-python"># Python の async（ブロックしない）
@@ -1545,7 +1636,8 @@ setInterval(() =&gt; console.log(&quot;tick&quot;), 1000);  // ← 登録後、�
 
 </div>
 
-<p><strong>時系列で見ると:</strong></p>
+**時系列で見ると:**
+
 <pre>
 ユーザーがチャット画面を開く
     ↓
@@ -1575,6 +1667,7 @@ clearInterval(timer) でタイマー停止
 もう fetchNewMessages() は呼ばれない ✅
 </pre>
 
+
 <div class="info-box">
 <h3>🎯 useEffect のライフサイクル</h3>
 <p>コンポーネントの一生:</p>
@@ -1591,6 +1684,8 @@ useEffect        依存配列の     依存配列の      クリーンアップ
 <li><strong>クリーンアップ</strong> = タイマー停止、イベント解除など後片付け</li>
 </ul>
 </div>
+
+</details>
 
 <h3 id="実践例-ローディング状態の管理">実践例: ローディング状態の管理<a class="header-link" href="#実践例-ローディング状態の管理" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-tsx">function UserProfile() {
@@ -1627,34 +1722,63 @@ useEffect        依存配列の     依存配列の      クリーンアップ
 <div class="tip-box">
 <h3>💡 loading = true は「読み込み中」という意味</h3>
 
-**Q: 「ローディング中をtrueにする」って変じゃない？**
+<strong>Q: 「ローディング中をtrueにする」って変じゃない？</strong>
 
-A: これは**フラグ（旗）**の考え方です。
+A: これは<strong>フラグ（旗）</strong>の考え方です。
 
-
-<pre class="codehilite"><code>loading = true   → 「ローディング中フラグが立っている」→ 読み込み中
+<pre>
+loading = true   → 「ローディング中フラグが立っている」→ 読み込み中
 loading = false  → 「ローディング中フラグが下りている」→ 読み込み完了
-</code></pre>
+</pre>
 
+<strong>実際の開発でもこの書き方が標準です：</strong>
+<ul>
+<li><code>isLoading</code> や <code>loading</code> という名前で「〜中かどうか」を表す</li>
+<li><code>true</code> = その状態である、<code>false</code> = その状態ではない</li>
+</ul>
 
-
-**実際の開発でもこの書き方が標準です：**
-- `isLoading` や `loading` という名前で「〜中かどうか」を表す
-- `true` = その状態である、`false` = その状態ではない
-
-
-<pre class="codehilite"><code class="language-tsx">// よく見るパターン
+<pre><code class="tsx">// よく見るパターン
 const [isLoading, setIsLoading] = useState(true);   // 読み込み中？
 const [isOpen, setIsOpen] = useState(false);        // モーダルが開いている？
 const [isSubmitting, setIsSubmitting] = useState(false);  // 送信中？
 </code></pre>
 
-
-
 </div>
 
 <hr />
 <h2 id="4-カスタムフック---ロジックの再利用">4. カスタムフック - ロジックの再利用<a class="header-link" href="#4-カスタムフック---ロジックの再利用" title="Permanent link">&para;</a></h2>
+<div class="architecture-box">
+<h3>ここまでの流れ: useState → useEffect → カスタムフック</h3>
+<div class="box-content">
+
+<p><strong>Step 1: useState で状態を持つ</strong></p>
+<pre><code class="typescript">const [user, setUser] = useState(null);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState(null);</code></pre>
+<p style="text-align:center; font-size:1.2em;">↓ でも毎回3つ書くのは面倒...</p>
+
+<p><strong>Step 2: useEffect で画面表示時に処理</strong></p>
+<pre><code class="typescript">useEffect(() => {
+  fetchUser().then(data => {
+    setUser(data);
+    setLoading(false);
+  });
+}, []);</code></pre>
+<p style="text-align:center; font-size:1.2em;">↓ この組み合わせ、何度も使うよね...</p>
+
+<p><strong>Step 3: カスタムフックでまとめる！</strong></p>
+<pre><code class="typescript">function useAuth() {
+  // useState と useEffect をまとめて
+  // 「認証」という意味のある名前で提供
+  return { user, loading, error, login, logout };
+}</code></pre>
+<p style="text-align:center; font-size:1.2em;">↓ 使う側はシンプルに！</p>
+
+<pre><code class="typescript">const { user, loading } = useAuth();</code></pre>
+
+</div>
+</div>
+
 <h3 id="カスタムフックとは">カスタムフックとは？<a class="header-link" href="#カスタムフックとは" title="Permanent link">&para;</a></h3>
 <p><code>use</code> で始まる関数。useState や useEffect を組み合わせて、<br />
 <strong>よく使う処理をまとめて、分かりやすい名前をつける</strong>ことができます。</p>
@@ -2027,7 +2151,7 @@ export function useAuth() {
 <div class="warning-box">
 <h3>⚠️ これは何をしている？</h3>
 
-**「分割代入（Destructuring）」** という書き方です。
+<strong>「分割代入（Destructuring）」</strong> という書き方です。
 useAuth() が返すオブジェクトから、必要な値だけを取り出しています。
 
 </div>
@@ -2053,20 +2177,17 @@ const { user, loading, error: authError, loginWithGoogle, logout } = useAuth()
 
 
 
-**`error: authError`** は「`error` を取り出して `authError` という別名で使う」という意味です。
+<strong><code>error: authError</code></strong> は「<code>error</code> を取り出して <code>authError</code> という別名で使う」という意味です。
 
-**Pythonで書くと:**
-
-<pre class="codehilite"><code class="language-python"># Pythonの辞書から値を取り出すイメージ
+<strong>Pythonで書くと:</strong>
+<pre><code class="python"># Pythonの辞書から値を取り出すイメージ
 result = use_auth()  # {'user': ..., 'loading': ..., 'error': ...}
 user = result['user']
 loading = result['loading']
 auth_error = result['error']  # 別名で使う
 </code></pre>
 
-
-
-**JavaScriptの分割代入は、これを1行で書ける便利な書き方です！**
+<strong>JavaScriptの分割代入は、これを1行で書ける便利な書き方です！</strong>
 
 </div>
 
@@ -2081,39 +2202,33 @@ auth_error = result['error']  # 別名で使う
 <div class="warning-box">
 <h3>⚠️ ここで混乱しやすいポイント</h3>
 
-**「`(user) => { ... }` って何？どこで定義された関数？」**
+<strong>「<code>(user) =&gt; { ... }</code> って何？どこで定義された関数？」</strong>
 
-→ これは**その場で作った関数**を、引数として渡しています！
+→ これは<strong>その場で作った関数</strong>を、引数として渡しています！
 
 </div>
 
 <div class="info-box">
 <h3>📝 構造を分解して理解しよう</h3>
 
-**まず、どこが何なのかを色分けして見てみましょう：**
+<strong>まず、どこが何なのかを色分けして見てみましょう：</strong>
 
-
-<pre class="codehilite"><code class="language-tsx">onAuthStateChanged(auth, (user) =&gt; { setUser(user); setLoading(false); });
+<pre><code class="tsx">onAuthStateChanged(auth, (user) =&gt; { setUser(user); setLoading(false); });
 //                 ----  ------------------------------------------------
 //                  ↑                        ↑
 //               第1引数                   第2引数（これ全体が1つの関数！）
 </code></pre>
 
+<strong>第2引数をさらに分解：</strong>
 
-
-**第2引数をさらに分解：**
-
-
-<pre class="codehilite"><code class="language-tsx">(user) =&gt; { setUser(user); setLoading(false); }
+<pre><code class="tsx">(user) =&gt; { setUser(user); setLoading(false); }
 // ↑    ↑   ↑                                ↑
 // │    │   └──────────── 関数の中身 ─────────┘
 // │    └── アロー（「関数ですよ」の印）
 // └── 引数（Firebaseから渡されるユーザー情報）
 </code></pre>
 
-
-
-**つまり、こういう構造：**
+<strong>つまり、こういう構造：</strong>
 
 
 <pre class="codehilite"><code class="language-tsx">onAuthStateChanged(
@@ -2149,7 +2264,7 @@ onAuthStateChanged(auth, handleAuthChange);
 
 
 
-**どちらも同じ動作！** パターンAは「関数をその場で作って渡す」方法です。
+<strong>どちらも同じ動作！</strong> パターンAは「関数をその場で作って渡す」方法です。
 
 </div>
 
@@ -2157,7 +2272,7 @@ onAuthStateChanged(auth, handleAuthChange);
 <h3>📖 もっと詳しく知りたい方へ</h3>
 
 アロー関数の基本は、この記事の冒頭「[🐍 Pythonエンジニア向け: アロー関数の基礎](#-pythonエンジニア向け-アロー関数の基礎)」で解説しています。
-特に「**パターン1: イベントハンドラ**」を見ると、同じパターンがわかります！
+特に「<strong>パターン1: イベントハンドラ</strong>」を見ると、同じパターンがわかります！
 
 </div>
 
@@ -3111,89 +3226,6 @@ const [user, setUser] = useState&lt;User | null&gt;(null);
 </tr>
 </tbody>
 </table>
-<hr />
-<h2 id="練習問題">練習問題<a class="header-link" href="#練習問題" title="Permanent link">&para;</a></h2>
-<h3 id="q1-usestate-について">Q1: useState について<a class="header-link" href="#q1-usestate-について" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-tsx">const [count, setCount] = useState(0);
-
-// 以下のコードで count は何になる？
-setCount(count + 1);
-setCount(count + 1);
-setCount(count + 1);
-
-// A. 3
-// B. 1
-// C. 0
-</code></pre>
-
-<details>
-<summary>答えを見る</summary>
-
-**答え: B. 1**
-
-理由: setCount は非同期的に更新されるため、3回呼んでも全て `0 + 1 = 1` になる。
-
-連続して加算したい場合は:
-
-<pre class="codehilite"><code class="language-tsx">setCount(prev =&gt; prev + 1);
-setCount(prev =&gt; prev + 1);
-setCount(prev =&gt; prev + 1);
-// → 3 になる
-</code></pre>
-
-
-
-</details>
-
-<h3 id="q2-useeffect-の依存配列">Q2: useEffect の依存配列<a class="header-link" href="#q2-useeffect-の依存配列" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-tsx">useEffect(() =&gt; {
-  console.log(&quot;実行されました&quot;);
-}, [userId]);
-</code></pre>
-
-<p>このコードはいつ実行される？</p>
-<details>
-<summary>答えを見る</summary>
-
-**答え:**
-1. コンポーネントが最初に表示されたとき（マウント時）
-2. `userId` の値が変わったとき
-
-`userId` が同じ値のままなら、再レンダリングしても実行されない。
-
-</details>
-
-<h3 id="q3-typescript-の型エラー">Q3: TypeScript の型エラー<a class="header-link" href="#q3-typescript-の型エラー" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-tsx">interface User {
-  id: string;
-  name: string;
-}
-
-const user: User = {
-  id: 1,
-  name: &quot;太郎&quot;,
-};
-</code></pre>
-
-<p>このコードにはエラーがあります。何が問題？</p>
-<details>
-<summary>答えを見る</summary>
-
-**答え:** `id` の型が違う
-
-`id` は `string` 型として定義されているが、`1`（number）を渡している。
-
-正しくは:
-
-<pre class="codehilite"><code class="language-tsx">const user: User = {
-  id: &quot;1&quot;,  // 文字列にする
-  name: &quot;太郎&quot;,
-};
-</code></pre>
-
-
-
-</details>
       </article>
       <footer class="footer">
         GCP AI Agent 設計資料 | Built with Python & Markdown
