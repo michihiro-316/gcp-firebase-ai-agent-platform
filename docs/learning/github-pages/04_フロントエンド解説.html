@@ -2679,6 +2679,67 @@ const message: Message = {
 </pre>
 </div>
 
+<div class="info-box">
+<h3>📝 UseChatOptions 型の解説</h3>
+
+
+<pre class="codehilite"><code class="language-tsx">interface UseChatOptions {
+  activeSession: ChatSession | null
+  onMessagesUpdate: (sessionId: string, messages: Message[], threadId: string | null) =&gt; void
+}
+</code></pre>
+
+
+
+<p><strong>2つのプロパティがあります：</strong></p>
+
+<table>
+<tr><th>プロパティ</th><th>型</th><th>意味</th></tr>
+<tr>
+<td><code>activeSession</code></td>
+<td><code>ChatSession | null</code></td>
+<td>現在選択中のセッション（なければ null）</td>
+</tr>
+<tr>
+<td><code>onMessagesUpdate</code></td>
+<td>関数</td>
+<td>メッセージが更新された時に呼ぶコールバック関数</td>
+</tr>
+</table>
+
+<h4>🔍 onMessagesUpdate を分解して理解する</h4>
+
+<pre>
+onMessagesUpdate: (sessionId: string, messages: Message[], threadId: string | null) => void
+                   ↑                  ↑                    ↑                          ↑
+                   引数1              引数2                引数3                       戻り値
+</pre>
+
+<table>
+<tr><th>部分</th><th>意味</th></tr>
+<tr><td><code>(sessionId: string, ...)</code></td><td>引数1: セッションID（文字列）</td></tr>
+<tr><td><code>(..., messages: Message[], ...)</code></td><td>引数2: メッセージの配列</td></tr>
+<tr><td><code>(..., threadId: string | null)</code></td><td>引数3: スレッドID（文字列 or null）</td></tr>
+<tr><td><code>=> void</code></td><td>戻り値なし（何も返さない）</td></tr>
+</table>
+
+<h4>📌 実際の使われ方（App.tsx）</h4>
+
+<pre>
+// App.tsx で useChat を呼び出す時
+const { messages, sendMessage } = useChat({
+  activeSession: activeSession,
+  onMessagesUpdate: (sessionId, messages, threadId) => {
+    // この関数が「メッセージ更新時」に呼ばれる
+    // → セッションにメッセージを保存する処理
+    updateSessionMessages(sessionId, messages, threadId)
+  }
+})
+</pre>
+
+<p>💡 <strong>ポイント:</strong> <code>onMessagesUpdate</code> は「メッセージが変わったら、この関数を呼んでね」という<strong>お願い</strong>を useChat に渡している。useChat 側はメッセージ送信完了時にこの関数を呼び出す。</p>
+</div>
+
 <hr />
 <h3 id="step-2-ヘルパー関数">Step 2: ヘルパー関数<a class="header-link" href="#step-2-ヘルパー関数" title="Permanent link">&para;</a></h3>
 <p>メイン関数の中で繰り返し使う処理を、先に関数として定義しておきます。</p>
