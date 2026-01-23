@@ -1464,6 +1464,24 @@ useEffect(() =&gt; {
 }, []);
 </code></pre>
 
+<div class="info-box">
+<h3>🎯 useEffect のライフサイクル（重要！）</h3>
+<p>コンポーネントの一生:</p>
+<pre>
+[マウント] ─────→ [更新] ─────→ [更新] ─────→ [アンマウント]
+    ↓                ↓            ↓                ↓
+useEffect        依存配列の     依存配列の      クリーンアップ
+実行             値が変わった   値が変わった      関数実行
+                 ら再実行       ら再実行
+</pre>
+<ul>
+<li><strong>マウント</strong> = 画面に表示されたとき</li>
+<li><strong>アンマウント</strong> = 画面から消えたとき（別ページに移動など）</li>
+<li><strong>クリーンアップ</strong> = タイマー停止、イベント解除など後片付け</li>
+</ul>
+<p><strong>💡 <code>return</code> で関数を返すと、React が「画面から消えるとき」に自動で呼び出してくれる！</strong></p>
+</div>
+
 <hr />
 <details>
 <summary><strong>☕ ブレイクタイム: パターン4を徹底解説</strong>（クリックで展開）</summary>
@@ -1666,24 +1684,6 @@ clearInterval(timer) でタイマー停止
     ↓
 もう fetchNewMessages() は呼ばれない ✅
 </pre>
-
-
-<div class="info-box">
-<h3>🎯 useEffect のライフサイクル</h3>
-<p>コンポーネントの一生:</p>
-<pre>
-[マウント] ─────→ [更新] ─────→ [更新] ─────→ [アンマウント]
-    ↓                ↓            ↓                ↓
-useEffect        依存配列の     依存配列の      クリーンアップ
-実行             値が変わった   値が変わった      関数実行
-                 ら再実行       ら再実行
-</pre>
-<ul>
-<li><strong>マウント</strong> = 画面に表示されたとき</li>
-<li><strong>アンマウント</strong> = 画面から消えたとき（別ページに移動など）</li>
-<li><strong>クリーンアップ</strong> = タイマー停止、イベント解除など後片付け</li>
-</ul>
-</div>
 
 </details>
 
@@ -2216,6 +2216,18 @@ export function useAuth() {
     // - ログインしたとき
     // - ログアウトしたとき
     // - ページリロード時（既存のログイン状態を復元）
+    //
+    // 【コールバック関数の構造】
+    // ┌─────────────────────────────────────────────────────────┐
+    // │ onAuthStateChanged( auth , (user) =&gt; { ... } )         │
+    // │                      ↑            ↑                    │
+    // │                   第1引数      第2引数                  │
+    // │                  (Firebase)  (コールバック関数)          │
+    // │                              「認証変わったら            │
+    // │                               この処理やってね」         │
+    // └─────────────────────────────────────────────────────────┘
+    // ※ 第2引数は「関数を渡している」だけ。値を返すわけではない
+    //
     const unsubscribe = onAuthStateChanged(auth, (user) =&gt; {
       setUser(user)       // ユーザー情報をセット（null = 未ログイン）
       setLoading(false)   // 読み込み完了
@@ -2267,72 +2279,55 @@ export function useAuth() {
 }
 </code></pre>
 
-<h3 id="-useauth-の使い方分割代入">💡 useAuth() の使い方（分割代入）<a class="header-link" href="#-useauth-の使い方分割代入" title="Permanent link">&para;</a></h3>
-<p>useAuth() を使う側（App.tsx）のコードを見てみましょう：</p>
-<pre class="codehilite"><code class="language-tsx">const { user, loading, error: authError, loginWithGoogle, logout } = useAuth()
-</code></pre>
+<details>
+<summary><strong>📖 コールバック関数って何？（クリックで展開）</strong></summary>
 
-<div class="warning-box">
-<h3>⚠️ これは何をしている？</h3>
+<div class="info-box" style="margin-top: 16px;">
+<div class="box-title">コールバック関数 = 「後で呼んでね」と渡す関数</div>
+<div class="box-content">
 
-<strong>「分割代入（Destructuring）」</strong> という書き方です。
-useAuth() が返すオブジェクトから、必要な値だけを取り出しています。
+上のコードで一番わかりづらいのがここ：
 
-</div>
+<pre><code class="tsx">onAuthStateChanged(auth, (user) => {
+  setUser(user)
+  setLoading(false)
+})</code></pre>
 
-<div class="info-box">
-<h3>📝 分割代入を理解しよう</h3>
+<strong>構造を図解：</strong>
 
+<pre><code>onAuthStateChanged( auth , (user) => { ... } )
+                     ↑            ↑
+                  第1引数      第2引数
+                 (Firebase)  (コールバック関数)
+                             「認証変わったら
+                              この処理やってね」</code></pre>
 
-<pre class="codehilite"><code class="language-tsx">// useAuth() が返すオブジェクト（上のコードの return 部分）
-return {
-  user,           // ← これを
-  loading,        // ← これを
-  error,          // ← これを
-  loginWithGoogle,// ← これを
-  logout,         // ← これを取り出す
-}
+<strong>イメージ：</strong>
 
-// 使う側（分割代入で取り出す）
-const { user, loading, error: authError, loginWithGoogle, logout } = useAuth()
-//      ↑     ↑       ↑                  ↑               ↑
-//      それぞれ対応する値を変数として使える
-</code></pre>
+<pre><code>あなた: 「Firebase さん、認証状態変わったら教えてね」
 
+Firebase: 「OK、変わったら (user) => {...} を呼ぶね」
 
+    〜〜〜 時間経過 〜〜〜
 
-<strong><code>error: authError</code></strong> は「<code>error</code> を取り出して <code>authError</code> という別名で使う」という意味です。
+Firebase: 「ログインされたよ！」
+         → (user) => { setUser(user); setLoading(false) } を実行</code></pre>
 
-<strong>Pythonで書くと:</strong>
-<pre><code class="python"># Pythonの辞書から値を取り出すイメージ
-result = use_auth()  # {'user': ..., 'loading': ..., 'error': ...}
-user = result['user']
-loading = result['loading']
-auth_error = result['error']  # 別名で使う
-</code></pre>
-
-<strong>JavaScriptの分割代入は、これを1行で書ける便利な書き方です！</strong>
+<strong>ポイント：</strong>
+<ul>
+<li>第2引数は「関数を渡している」だけ（値を返すわけではない）</li>
+<li><code>setUser(user)</code> と <code>setLoading(false)</code> は関数内で実行される「命令」</li>
+<li>GAS の <code>forEach</code> に関数を渡すのと同じパターン</li>
+</ul>
 
 </div>
-
-<h3 id="-コールバック関数を引数として渡すパターン">💡 コールバック関数を引数として渡すパターン<a class="header-link" href="#-コールバック関数を引数として渡すパターン" title="Permanent link">&para;</a></h3>
-<p>この useAuth.ts で最もわかりづらいのが、以下の書き方です：</p>
-<pre class="codehilite"><code class="language-tsx">onAuthStateChanged(auth, (user) =&gt; {
-  setUser(user);
-  setLoading(false);
-});
-</code></pre>
-
-<div class="warning-box">
-<h3>⚠️ ここで混乱しやすいポイント</h3>
-
-<strong>「<code>(user) =&gt; { ... }</code> って何？どこで定義された関数？」</strong>
-
-→ これは<strong>その場で作った関数</strong>を、引数として渡しています！
-
 </div>
+</details>
 
-<div class="info-box">
+<details>
+<summary><strong>📖 コールバック関数をもっと詳しく理解する</strong>（クリックで展開）</summary>
+
+<div class="info-box" style="margin-top: 16px;">
 <h3>📝 構造を分解して理解しよう</h3>
 
 <strong>まず、どこが何なのかを色分けして見てみましょう：</strong>
@@ -2354,26 +2349,22 @@ auth_error = result['error']  # 別名で使う
 
 <strong>つまり、こういう構造：</strong>
 
-
-<pre class="codehilite"><code class="language-tsx">onAuthStateChanged(
+<pre><code class="tsx">onAuthStateChanged(
   auth,                    // 第1引数: 認証オブジェクト
-  (user) =&gt; {              // 第2引数: 関数（←ここから
+  (user) => {              // 第2引数: 関数（←ここから
     setUser(user);         //   関数の中身
     setLoading(false);     //   関数の中身
   }                        // ←ここまでが1つの関数）
 );
 </code></pre>
 
-
-
 </div>
 
 <div class="tip-box">
 <h3>💡 名前付き関数で書き直すと？</h3>
 
-
-<pre class="codehilite"><code class="language-tsx">// パターンA: アロー関数を直接渡す（実際のコード）
-onAuthStateChanged(auth, (user) =&gt; {
+<pre><code class="tsx">// パターンA: アロー関数を直接渡す（実際のコード）
+onAuthStateChanged(auth, (user) => {
   setUser(user);
   setLoading(false);
 });
@@ -2386,8 +2377,6 @@ function handleAuthChange(user) {
 onAuthStateChanged(auth, handleAuthChange);
 </code></pre>
 
-
-
 <strong>どちらも同じ動作！</strong> パターンAは「関数をその場で作って渡す」方法です。
 
 </div>
@@ -2395,10 +2384,12 @@ onAuthStateChanged(auth, handleAuthChange);
 <div class="tip-box">
 <h3>📖 もっと詳しく知りたい方へ</h3>
 
-アロー関数の基本は、この記事の冒頭「[🐍 Pythonエンジニア向け: アロー関数の基礎](#-pythonエンジニア向け-アロー関数の基礎)」で解説しています。
+アロー関数の基本は、この記事の冒頭「<a href="#-pythonエンジニア向け-アロー関数の基礎">🐍 Pythonエンジニア向け: アロー関数の基礎</a>」で解説しています。
 特に「<strong>パターン1: イベントハンドラ</strong>」を見ると、同じパターンがわかります！
 
 </div>
+
+</details>
 
 <h3 id="onauthstatechanged-の仕組み">onAuthStateChanged の仕組み<a class="header-link" href="#onauthstatechanged-の仕組み" title="Permanent link">&para;</a></h3>
 <div class="flow-box">
