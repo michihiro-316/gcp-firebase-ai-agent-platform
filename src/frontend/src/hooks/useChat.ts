@@ -8,10 +8,6 @@ import { useState, useCallback, useEffect } from 'react'
 import { sendChatMessage } from '../services/api'
 import type { ChatSession } from './useSessions'
 
-// ─────────────────────────────────────────────────────────────────
-// 型定義
-// ─────────────────────────────────────────────────────────────────
-
 /** メッセージの型 */
 export interface Message {
   id: string
@@ -25,10 +21,6 @@ interface UseChatOptions {
   onMessagesUpdate: (sessionId: string, messages: Message[], threadId: string | null) => void
 }
 
-// ─────────────────────────────────────────────────────────────────
-// ヘルパー関数
-// ─────────────────────────────────────────────────────────────────
-
 /**
  * ユニークなIDを生成
  * crypto.randomUUID()を使用して衝突のないIDを生成
@@ -37,10 +29,6 @@ interface UseChatOptions {
 function generateUniqueId(): string {
   return crypto.randomUUID()
 }
-
-// ─────────────────────────────────────────────────────────────────
-// メイン関数
-// ─────────────────────────────────────────────────────────────────
 
 export function useChat(options?: UseChatOptions) {
   const { activeSession, onMessagesUpdate } = options || {}
