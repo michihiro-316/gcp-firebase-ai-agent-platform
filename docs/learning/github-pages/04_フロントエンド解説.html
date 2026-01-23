@@ -2729,13 +2729,22 @@ onMessagesUpdate: (sessionId: string, messages: Message[], threadId: string | nu
 // App.tsx で useChat を呼び出す時
 const { messages, sendMessage } = useChat({
   activeSession: activeSession,
-  onMessagesUpdate: (sessionId, messages, threadId) => {
-    // この関数が「メッセージ更新時」に呼ばれる
-    // → セッションにメッセージを保存する処理
-    updateSessionMessages(sessionId, messages, threadId)
-  }
+  onMessagesUpdate: updateSessionMessages  // ← 関数をそのまま渡す
 })
 </pre>
+
+<p><strong>🔍 なぜこれでOK？</strong></p>
+<pre>
+// 冗長な書き方（引数を受け取って、そのまま渡すだけ）
+onMessagesUpdate: (sessionId, messages, threadId) => {
+  updateSessionMessages(sessionId, messages, threadId)
+}
+
+// シンプルな書き方（関数をそのまま渡す）
+onMessagesUpdate: updateSessionMessages
+</pre>
+<p>引数の型が同じなので、関数をそのまま渡せます。<br>
+「<code>(a, b, c) => func(a, b, c)</code>」は「<code>func</code>」と同じ意味！</p>
 
 <p>💡 <strong>ポイント:</strong> <code>onMessagesUpdate</code> は「メッセージが変わったら、この関数を呼んでね」という<strong>お願い</strong>を useChat に渡している。useChat 側はメッセージ送信完了時にこの関数を呼び出す。</p>
 </div>
