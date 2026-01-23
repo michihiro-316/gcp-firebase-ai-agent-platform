@@ -2648,6 +2648,38 @@ interface UseChatOptions {
 }
 </code></pre>
 
+<div class="warning-box">
+<h3>❓ なぜ useChat だけ型定義（interface）がある？</h3>
+<p>これまでの useAuth, useSessions には interface がなかったのに、なぜ急に？</p>
+
+<table>
+<tr><th>フック</th><th>引数</th><th>型定義</th></tr>
+<tr><td>useAuth()</td><td>なし</td><td>不要</td></tr>
+<tr><td>useSessions()</td><td>なし</td><td>不要</td></tr>
+<tr><td><strong>useChat(options)</strong></td><td><strong>あり</strong></td><td><strong>必要</strong></td></tr>
+</table>
+
+<p><strong>答え: 引数を受け取るから</strong></p>
+
+<pre>
+// useAuth - 引数なし → 型定義は不要
+export function useAuth() {
+  // 内部で Firebase を直接使う
+}
+
+// useChat - 引数あり → 「どんな引数を受け取るか」を定義する必要がある
+interface UseChatOptions {    // ← これが引数の型定義
+  activeSession: ...
+  onMessagesUpdate: ...
+}
+export function useChat(options?: UseChatOptions) {
+  // 外部から渡された情報を使う
+}
+</pre>
+
+<p>💡 <strong>ポイント:</strong> 型定義は「引数の形を説明書として書いておく」ためのもの。引数がなければ説明書も不要！</p>
+</div>
+
 <div class="info-box">
 <h3>🔑 export の有無で何が変わる？</h3>
 <table>
