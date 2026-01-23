@@ -2603,19 +2603,27 @@ import type { ChatSession } from './useSessions'
 </div>
 </div>
 
-<h3 id="完全なコード_1">完全なコード<a class="header-link" href="#完全なコード_1" title="Permanent link">&para;</a></h3>
+<h3 id="このファイルの全体像">このファイルの全体像<a class="header-link" href="#このファイルの全体像" title="Permanent link">&para;</a></h3>
 <div class="warning-box">
-<h3>📚 このファイルの特徴</h3>
-<p>useChat.ts は他のファイルと比べて複雑です。以下の要素が含まれています：</p>
-<ul>
-<li><strong>export interface</strong> - 他のファイルでも使う型定義</li>
-<li><strong>interface（exportなし）</strong> - このファイル内だけで使う型定義</li>
-<li><strong>ヘルパー関数</strong> - メイン関数の中で使う補助的な関数</li>
-<li><strong>ストリーミング処理</strong> - AIの応答をリアルタイム表示</li>
-</ul>
-<p>順番に見ていきましょう！</p>
+<h3>📚 useChat.ts は複雑なファイルです</h3>
+<p>他のファイルと比べて要素が多いため、<strong>段階的に解説</strong>します。</p>
+<pre>
+┌─────────────────────────────────────────────────────────────────┐
+│ 1. インポート         ← 必要なものを読み込む                      │
+├─────────────────────────────────────────────────────────────────┤
+│ 2. 型定義（interface） ← データの形を定義する                     │
+├─────────────────────────────────────────────────────────────────┤
+│ 3. ヘルパー関数        ← メイン関数内で使う補助関数               │
+├─────────────────────────────────────────────────────────────────┤
+│ 4. メイン関数          ← 実際の処理                               │
+└─────────────────────────────────────────────────────────────────┘
+</pre>
+<p>上から順番に見ていきましょう！</p>
 </div>
 
+<hr />
+<h3 id="step-1-型定義interface">Step 1: 型定義（interface）<a class="header-link" href="#step-1-型定義interface" title="Permanent link">&para;</a></h3>
+<p>まず、このファイルで使う「データの形」を定義します。</p>
 <pre class="codehilite"><code class="language-tsx">// ファイル: src/frontend/src/hooks/useChat.ts
 
 import { useState, useCallback, useEffect } from 'react'
@@ -2623,7 +2631,7 @@ import { sendChatMessage } from '../services/api'
 import type { ChatSession } from './useSessions'
 
 // ─────────────────────────────────────────────────────────────────
-// 1. 型定義（interface）
+// 型定義
 // ─────────────────────────────────────────────────────────────────
 
 /** メッセージの型（他のファイルでも使うので export） */
@@ -2638,9 +2646,44 @@ interface UseChatOptions {
   activeSession: ChatSession | null
   onMessagesUpdate: (sessionId: string, messages: Message[], threadId: string | null) =&gt; void
 }
+</code></pre>
 
-// ─────────────────────────────────────────────────────────────────
-// 2. ヘルパー関数（内部で使う補助関数）
+<div class="info-box">
+<h3>🔑 export の有無で何が変わる？</h3>
+<table>
+<tr><th>書き方</th><th>意味</th><th>どこで使う？</th></tr>
+<tr>
+<td><code>export interface Message</code></td>
+<td>他のファイルからも使える</td>
+<td>ChatScreen.tsx で <code>import { Message } from './hooks/useChat'</code></td>
+</tr>
+<tr>
+<td><code>interface UseChatOptions</code></td>
+<td>このファイル内だけ</td>
+<td>下の useChat 関数の引数の型として使用</td>
+</tr>
+</table>
+<p><strong>判断基準:</strong> 他のファイルで使う予定があるなら <code>export</code> をつける</p>
+</div>
+
+<div class="tip-box">
+<h3>💡 Message 型の役割</h3>
+<p>チャットの1つ1つのメッセージを表します：</p>
+<pre>
+// 例：こんな形のデータになる
+const message: Message = {
+  id: "abc-123-def",           // 重複しないユニークなID
+  role: "user",                // "user" か "assistant" のどちらか
+  content: "こんにちは！"       // 実際のメッセージ内容
+}
+</pre>
+</div>
+
+<hr />
+<h3 id="step-2-ヘルパー関数">Step 2: ヘルパー関数<a class="header-link" href="#step-2-ヘルパー関数" title="Permanent link">&para;</a></h3>
+<p>メイン関数の中で繰り返し使う処理を、先に関数として定義しておきます。</p>
+<pre class="codehilite"><code class="language-tsx">// ─────────────────────────────────────────────────────────────────
+// ヘルパー関数
 // ─────────────────────────────────────────────────────────────────
 
 /**
@@ -2650,9 +2693,53 @@ interface UseChatOptions {
 function generateUniqueId(): string {
   return crypto.randomUUID()
 }
+</code></pre>
 
-// ─────────────────────────────────────────────────────────────────
-// 3. メイン関数（export）
+<div class="info-box">
+<h3>🔧 なぜヘルパー関数を作る？</h3>
+<p>この関数は、下のメイン関数内で<strong>2回</strong>呼ばれます：</p>
+<ol>
+<li>ユーザーのメッセージを作るとき</li>
+<li>AIの応答メッセージを作るとき</li>
+</ol>
+
+<p><strong>ヘルパー関数がない場合（同じ処理を2回書く）:</strong></p>
+<pre>
+const userMessage = {
+  id: crypto.randomUUID(),  // 1回目
+  ...
+}
+const assistantMessage = {
+  id: crypto.randomUUID(),  // 2回目（コピペ）
+  ...
+}
+</pre>
+
+<p><strong>ヘルパー関数がある場合（関数を呼ぶだけ）:</strong></p>
+<pre>
+const userMessage = {
+  id: generateUniqueId(),  // 意図が明確！
+  ...
+}
+const assistantMessage = {
+  id: generateUniqueId(),  // 同じ関数を再利用
+  ...
+}
+</pre>
+
+<p><strong>メリット:</strong></p>
+<ul>
+<li><strong>再利用</strong> - 同じ処理を何度でも呼べる</li>
+<li><strong>可読性</strong> - 「ユニークIDを生成」という意図が明確</li>
+<li><strong>保守性</strong> - ID生成方法を変えたい時、1箇所だけ修正すればOK</li>
+</ul>
+</div>
+
+<hr />
+<h3 id="step-3-メイン関数の状態定義">Step 3: メイン関数の状態定義<a class="header-link" href="#step-3-メイン関数の状態定義" title="Permanent link">&para;</a></h3>
+<p>いよいよメイン関数です。まず、管理する「状態」を定義します。</p>
+<pre class="codehilite"><code class="language-tsx">// ─────────────────────────────────────────────────────────────────
+// メイン関数
 // ─────────────────────────────────────────────────────────────────
 
 export function useChat(options?: UseChatOptions) {
@@ -2663,8 +2750,287 @@ export function useChat(options?: UseChatOptions) {
   const [threadId, setThreadId] = useState&lt;string | null&gt;(activeSession?.threadId || null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState&lt;string | null&gt;(null)
+</code></pre>
 
-  // アクティブセッションが変更されたらメッセージを復元
+<div class="info-box">
+<h3>📦 4つの状態（State）</h3>
+<table>
+<tr><th>状態</th><th>型</th><th>役割</th></tr>
+<tr><td><code>messages</code></td><td><code>Message[]</code></td><td>チャットメッセージの配列</td></tr>
+<tr><td><code>threadId</code></td><td><code>string | null</code></td><td>会話スレッドのID（バックエンドで管理）</td></tr>
+<tr><td><code>isLoading</code></td><td><code>boolean</code></td><td>送信中かどうか</td></tr>
+<tr><td><code>error</code></td><td><code>string | null</code></td><td>エラーメッセージ</td></tr>
+</table>
+</div>
+
+<hr />
+<h3 id="step-4-セッション切り替え時の処理">Step 4: セッション切り替え時の処理<a class="header-link" href="#step-4-セッション切り替え時の処理" title="Permanent link">&para;</a></h3>
+<p>タブを切り替えた時に、そのセッションのメッセージを復元します。</p>
+<pre class="codehilite"><code class="language-tsx">  // アクティブセッションが変更されたらメッセージを復元
+  useEffect(() =&gt; {
+    if (activeSession) {
+      setMessages(activeSession.messages)
+      setThreadId(activeSession.threadId)
+      setError(null)
+    }
+  }, [activeSession?.id])
+</code></pre>
+
+<div class="flow-box">
+<h3>🔄 セッション切り替えの流れ</h3>
+<pre>
+[タブ1] をクリック
+    │
+    ▼
+activeSession が変わる
+    │
+    ▼
+useEffect が発火
+    │
+    ▼
+setMessages(タブ1のメッセージ) → 画面に表示
+</pre>
+</div>
+
+<hr />
+<h3 id="step-5-メッセージ送信処理sendmessage">Step 5: メッセージ送信処理（sendMessage）<a class="header-link" href="#step-5-メッセージ送信処理sendmessage" title="Permanent link">&para;</a></h3>
+<p>ここが最も複雑な部分です。ユーザーがメッセージを送信した時の処理です。</p>
+<pre class="codehilite"><code class="language-tsx">  // メッセージを送信
+  const sendMessage = useCallback(async (content: string) =&gt; {
+    if (!content.trim() || isLoading) return
+
+    setError(null)
+    setIsLoading(true)
+
+    // ─────────────────────────────────────────────────────────────
+    // Step A: ユーザーメッセージを追加
+    // ─────────────────────────────────────────────────────────────
+    const userMessage: Message = {
+      id: generateUniqueId(),  // ← ヘルパー関数を使用
+      role: 'user',
+      content,
+    }
+    const updatedMessagesWithUser = [...messages, userMessage]
+    setMessages(updatedMessagesWithUser)
+
+    // ─────────────────────────────────────────────────────────────
+    // Step B: AIの応答用プレースホルダーを追加
+    // ─────────────────────────────────────────────────────────────
+    const assistantMessageId = generateUniqueId()  // ← ヘルパー関数を使用
+    const assistantMessage: Message = {
+      id: assistantMessageId,
+      role: 'assistant',
+      content: '',  // 最初は空
+    }
+    const updatedMessagesWithAssistant = [...updatedMessagesWithUser, assistantMessage]
+    setMessages(updatedMessagesWithAssistant)
+</code></pre>
+
+<div class="flow-box">
+<h3>📝 Step A → B の画面変化</h3>
+<pre>
+【Step A: ユーザーメッセージ追加】
+
+┌─────────────────────────────────────┐
+│ 🧑 こんにちは                         │  ← ユーザーのメッセージが表示
+└─────────────────────────────────────┘
+
+【Step B: プレースホルダー追加】
+
+┌─────────────────────────────────────┐
+│ 🧑 こんにちは                         │
+├─────────────────────────────────────┤
+│ 🤖 （空）                             │  ← AIの応答欄が追加（まだ空）
+└─────────────────────────────────────┘
+</pre>
+</div>
+
+<hr />
+<h3 id="step-6-ストリーミング受信">Step 6: ストリーミング受信<a class="header-link" href="#step-6-ストリーミング受信" title="Permanent link">&para;</a></h3>
+<p>AIからの応答をリアルタイムで受信します。</p>
+<pre class="codehilite"><code class="language-tsx">    // ─────────────────────────────────────────────────────────────
+    // Step C: ストリーミングでメッセージを受信
+    // ─────────────────────────────────────────────────────────────
+    try {
+      let currentContent = ''
+
+      const newThreadId = await sendChatMessage(
+        content,
+        threadId,
+        (chunk) =&gt; {
+          // チャンク（断片）を受信するたびに呼ばれる
+          currentContent += chunk
+
+          // メッセージを更新（リアルタイム表示！）
+          setMessages(prev =&gt;
+            prev.map(msg =&gt;
+              msg.id === assistantMessageId
+                ? { ...msg, content: currentContent }
+                : msg
+            )
+          )
+        }
+      )
+
+      setThreadId(newThreadId)
+</code></pre>
+
+<div class="flow-box">
+<h3>📡 ストリーミング表示の仕組み</h3>
+<pre>
+[フロントエンド]                        [バックエンド]
+
+sendMessage("こんにちは") ──────────────▶
+
+content = ""              ◀───────────── "こ"
+content = "こ"            ◀───────────── "ん"
+content = "こん"          ◀───────────── "に"
+content = "こんに"        ◀───────────── "ち"
+content = "こんにち"      ◀───────────── "は"
+content = "こんにちは"    ◀───────────── "！"
+content = "こんにちは！"  ◀───────────── [DONE]
+</pre>
+<p><strong>画面の変化:</strong><br>
+「こ」→「こん」→「こんに」→「こんにち」→「こんにちは」→「こんにちは！」</p>
+<p>💡 チャンクを受信するたびに <code>setMessages</code> を呼ぶ<br>
+→ 画面が更新される<br>
+→ ユーザーは文字が増えていくのをリアルタイムで見れる！</p>
+</div>
+
+<hr />
+<h3 id="step-7-成功時エラー時の処理">Step 7: 成功時・エラー時の処理<a class="header-link" href="#step-7-成功時エラー時の処理" title="Permanent link">&para;</a></h3>
+<pre class="codehilite"><code class="language-tsx">      // 成功時：セッションにメッセージを保存
+      if (activeSession &amp;&amp; onMessagesUpdate) {
+        const finalMessages = updatedMessagesWithUser.concat({
+          ...assistantMessage,
+          content: currentContent,
+        })
+        onMessagesUpdate(activeSession.id, finalMessages, newThreadId)
+      }
+    } catch (err) {
+      // エラー時
+      const errorMessage = err instanceof Error ? err.message : 'エラーが発生しました'
+      setError(errorMessage)
+
+      // 失敗したAIメッセージを削除
+      setMessages(prev =&gt; prev.filter(msg =&gt; msg.id !== assistantMessageId))
+
+      // ユーザーメッセージは残す
+      if (activeSession &amp;&amp; onMessagesUpdate) {
+        onMessagesUpdate(activeSession.id, updatedMessagesWithUser, threadId)
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }, [threadId, isLoading, messages, activeSession, onMessagesUpdate])
+</code></pre>
+
+<div class="info-box">
+<h3>✅ 成功時 vs ❌ エラー時</h3>
+<table>
+<tr><th></th><th>成功時</th><th>エラー時</th></tr>
+<tr><td>ユーザーメッセージ</td><td>保存</td><td>保存</td></tr>
+<tr><td>AIメッセージ</td><td>保存</td><td><strong>削除</strong></td></tr>
+<tr><td>エラー表示</td><td>なし</td><td>表示</td></tr>
+</table>
+<p>💡 エラー時にAIメッセージを削除するのは、空のメッセージが残らないようにするため</p>
+</div>
+
+<hr />
+<h3 id="step-8-戻り値">Step 8: 戻り値<a class="header-link" href="#step-8-戻り値" title="Permanent link">&para;</a></h3>
+<p>最後に、このフックを使う側が必要なものを返します。</p>
+<pre class="codehilite"><code class="language-tsx">  return {
+    messages,      // メッセージ一覧
+    isLoading,     // 送信中か
+    error,         // エラーメッセージ
+    sendMessage,   // 送信関数
+    threadId,      // スレッドID
+  }
+}
+</code></pre>
+
+<div class="flow-box">
+<h3>📤 App.tsx での使い方</h3>
+<pre>
+// App.tsx で useChat を呼び出す
+const { messages, isLoading, error, sendMessage } = useChat({
+  activeSession,
+  onMessagesUpdate: updateSessionMessages,
+})
+
+// 画面に表示
+messages.map(msg => &lt;Message key={msg.id} ... /&gt;)
+
+// 送信ボタンで呼び出し
+&lt;button onClick={() => sendMessage(input)}&gt;送信&lt;/button&gt;
+</pre>
+</div>
+
+<hr />
+<h3 id="コードの構造まとめ">コードの構造まとめ<a class="header-link" href="#コードの構造まとめ" title="Permanent link">&para;</a></h3>
+<div class="flow-box">
+<h3>📐 useChat.ts の全体構造</h3>
+<pre>
+┌─────────────────────────────────────────────────────────────────┐
+│ 1. インポート                                                     │
+│    - React のフック (useState, useCallback, useEffect)           │
+│    - API 関数 (sendChatMessage)                                  │
+│    - 型 (ChatSession)                                            │
+├─────────────────────────────────────────────────────────────────┤
+│ 2. 型定義                                                        │
+│    - export interface Message     ← 他ファイルでも使う           │
+│    - interface UseChatOptions     ← このファイル内だけ           │
+├─────────────────────────────────────────────────────────────────┤
+│ 3. ヘルパー関数                                                   │
+│    - generateUniqueId()           ← メイン関数内で2回使用        │
+├─────────────────────────────────────────────────────────────────┤
+│ 4. メイン関数 (export function useChat)                          │
+│    - 状態定義 (useState × 4)                                     │
+│    - セッション切り替え (useEffect)                               │
+│    - メッセージ送信 (sendMessage)                                 │
+│    - 戻り値 (return)                                              │
+└─────────────────────────────────────────────────────────────────┘
+</pre>
+</div>
+
+<details>
+<summary><strong>📄 完全なコード（全体を見たい場合はクリック）</strong></summary>
+
+
+<pre class="codehilite"><code class="language-tsx">// ファイル: src/frontend/src/hooks/useChat.ts
+
+import { useState, useCallback, useEffect } from 'react'
+import { sendChatMessage } from '../services/api'
+import type { ChatSession } from './useSessions'
+
+/** メッセージの型 */
+export interface Message {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+}
+
+/** useChat のオプション型 */
+interface UseChatOptions {
+  activeSession: ChatSession | null
+  onMessagesUpdate: (sessionId: string, messages: Message[], threadId: string | null) =&gt; void
+}
+
+/**
+ * ユニークなIDを生成
+ */
+function generateUniqueId(): string {
+  return crypto.randomUUID()
+}
+
+export function useChat(options?: UseChatOptions) {
+  const { activeSession, onMessagesUpdate } = options || {}
+
+  const [messages, setMessages] = useState&lt;Message[]&gt;(activeSession?.messages || [])
+  const [threadId, setThreadId] = useState&lt;string | null&gt;(activeSession?.threadId || null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState&lt;string | null&gt;(null)
+
   useEffect(() =&gt; {
     if (activeSession) {
       setMessages(activeSession.messages)
@@ -2673,16 +3039,14 @@ export function useChat(options?: UseChatOptions) {
     }
   }, [activeSession?.id])
 
-  // メッセージを送信
   const sendMessage = useCallback(async (content: string) =&gt; {
     if (!content.trim() || isLoading) return
 
     setError(null)
     setIsLoading(true)
 
-    // ユーザーメッセージを追加
     const userMessage: Message = {
-      id: generateUniqueId(),  // ← ヘルパー関数を使用
+      id: generateUniqueId(),
       role: 'user',
       content,
     }
@@ -2690,8 +3054,7 @@ export function useChat(options?: UseChatOptions) {
     const updatedMessagesWithUser = [...messages, userMessage]
     setMessages(updatedMessagesWithUser)
 
-    // AIの応答用プレースホルダー
-    const assistantMessageId = generateUniqueId()  // ← ヘルパー関数を使用
+    const assistantMessageId = generateUniqueId()
     const assistantMessage: Message = {
       id: assistantMessageId,
       role: 'assistant',
@@ -2704,13 +3067,11 @@ export function useChat(options?: UseChatOptions) {
     try {
       let currentContent = ''
 
-      // ストリーミングでメッセージを受信
       const newThreadId = await sendChatMessage(
         content,
         threadId,
         (chunk) =&gt; {
           currentContent += chunk
-          // チャンクを受信するたびにメッセージを更新
           setMessages(prev =&gt;
             prev.map(msg =&gt;
               msg.id === assistantMessageId
@@ -2723,7 +3084,6 @@ export function useChat(options?: UseChatOptions) {
 
       setThreadId(newThreadId)
 
-      // セッションにメッセージを保存
       if (activeSession &amp;&amp; onMessagesUpdate) {
         const finalMessages = updatedMessagesWithUser.concat({
           ...assistantMessage,
@@ -2735,10 +3095,8 @@ export function useChat(options?: UseChatOptions) {
       const errorMessage = err instanceof Error ? err.message : 'エラーが発生しました'
       setError(errorMessage)
 
-      // エラー時は失敗したメッセージを削除
       setMessages(prev =&gt; prev.filter(msg =&gt; msg.id !== assistantMessageId))
 
-      // セッションにはユーザーメッセージまで保存
       if (activeSession &amp;&amp; onMessagesUpdate) {
         onMessagesUpdate(activeSession.id, updatedMessagesWithUser, threadId)
       }
@@ -2757,91 +3115,13 @@ export function useChat(options?: UseChatOptions) {
 }
 </code></pre>
 
-<h3 id="export-interface-と-interface-の違い">export interface と interface の違い<a class="header-link" href="#export-interface-と-interface-の違い" title="Permanent link">&para;</a></h3>
-<div class="info-box">
-<h3>🔑 export の有無で何が変わる？</h3>
-<table>
-<tr><th>書き方</th><th>意味</th><th>使用例</th></tr>
-<tr>
-<td><code>export interface Message</code></td>
-<td>他のファイルからも使える</td>
-<td>ChatScreen.tsx で <code>import { Message } from './hooks/useChat'</code></td>
-</tr>
-<tr>
-<td><code>interface UseChatOptions</code></td>
-<td>このファイル内だけで使う</td>
-<td>useChat 関数の引数の型として内部で使用</td>
-</tr>
-</table>
-<p><strong>判断基準:</strong> 他のファイルで使う予定があるなら <code>export</code> をつける</p>
-</div>
 
-<h3 id="ヘルパー関数とは">ヘルパー関数とは？<a class="header-link" href="#ヘルパー関数とは" title="Permanent link">&para;</a></h3>
-<div class="info-box">
-<h3>🔧 ヘルパー関数の役割</h3>
-<p><strong>定義:</strong> メイン関数の中で繰り返し使う処理を切り出した補助関数</p>
 
-<p><strong>このファイルでの例:</strong></p>
-<pre>
-function generateUniqueId(): string {
-  return crypto.randomUUID()
-}
-</pre>
+</details>
 
-<p><strong>なぜ切り出す？</strong></p>
-<ol>
-<li><strong>再利用</strong> - sendMessage 内で2回呼ばれている（userMessage と assistantMessage）</li>
-<li><strong>可読性</strong> - 「ユニークIDを生成」という意図が明確になる</li>
-<li><strong>保守性</strong> - ID生成ロジックを変更したい時、1箇所だけ修正すればOK</li>
-</ol>
+<details>
+<summary><strong>🔄 useCallback とは？（補足）</strong></summary>
 
-<pre>
-// ヘルパー関数がない場合（同じ処理を2回書く）
-const userMessage = {
-  id: crypto.randomUUID(),  // 1回目
-  ...
-}
-const assistantMessage = {
-  id: crypto.randomUUID(),  // 2回目（コピペ）
-  ...
-}
-
-// ヘルパー関数がある場合（関数を呼ぶだけ）
-const userMessage = {
-  id: generateUniqueId(),  // 意図が明確
-  ...
-}
-const assistantMessage = {
-  id: generateUniqueId(),  // 同じ関数を再利用
-  ...
-}
-</pre>
-</div>
-
-<h3 id="コードの構造まとめ">コードの構造まとめ<a class="header-link" href="#コードの構造まとめ" title="Permanent link">&para;</a></h3>
-<div class="flow-box">
-<h3>📐 useChat.ts の構造</h3>
-<pre>
-┌─────────────────────────────────────────────────────────────────┐
-│ 1. インポート                                                     │
-│    - React のフック (useState, useCallback, useEffect)           │
-│    - API 関数 (sendChatMessage)                                  │
-│    - 型 (ChatSession)                                            │
-├─────────────────────────────────────────────────────────────────┤
-│ 2. 型定義                                                        │
-│    - export interface Message     ← 他ファイルでも使う           │
-│    - interface UseChatOptions     ← このファイル内だけ           │
-├─────────────────────────────────────────────────────────────────┤
-│ 3. ヘルパー関数                                                   │
-│    - generateUniqueId()           ← メイン関数内で2回使用        │
-├─────────────────────────────────────────────────────────────────┤
-│ 4. メイン関数 (export)                                           │
-│    - export function useChat()    ← App.tsx から呼ばれる         │
-└─────────────────────────────────────────────────────────────────┘
-</pre>
-</div>
-
-<h3 id="usecallback-とは">useCallback とは？<a class="header-link" href="#usecallback-とは" title="Permanent link">&para;</a></h3>
 <div class="info-box">
 <h3>🔄 useCallback の役割</h3>
 <p><strong>問題:</strong><br>
@@ -2859,28 +3139,7 @@ const sendMessage = useCallback(async (content) => {
 <p>💡 パフォーマンス最適化のため。なくても動くが、あると効率的。</p>
 </div>
 
-<h3 id="ストリーミング表示の仕組み">ストリーミング表示の仕組み<a class="header-link" href="#ストリーミング表示の仕組み" title="Permanent link">&para;</a></h3>
-<div class="flow-box">
-<h3>📡 ストリーミング表示</h3>
-<pre>
-[フロントエンド]                        [バックエンド]
-
-sendMessage("こんにちは") ──────────────▶
-
-content = ""              ◀───────────── "こ"
-content = "こ"            ◀───────────── "ん"
-content = "こん"          ◀───────────── "に"
-content = "こんに"        ◀───────────── "ち"
-content = "こんにち"      ◀───────────── "は"
-content = "こんにちは"    ◀───────────── "！"
-content = "こんにちは！"  ◀───────────── [DONE]
-</pre>
-<p><strong>画面:</strong><br>
-「こ」→「こん」→「こんに」→「こんにち」→「こんにちは」→「こんにちは！」</p>
-<p>💡 onChunk コールバックで setMessages を呼ぶ<br>
-→ 毎回画面が更新される<br>
-→ ユーザーはリアルタイムで文字が増えていくのを見れる！</p>
-</div>
+</details>
 
 <hr />
 <h2 id="8-usesessionsts---セッション管理の完全解説">8. useSessions.ts - セッション管理の完全解説<a class="header-link" href="#8-usesessionsts---セッション管理の完全解説" title="Permanent link">&para;</a></h2>
@@ -2974,7 +3233,7 @@ import type { Message } from './useChat'
 </div>
 </div>
 
-<h3 id="完全なコード_2">完全なコード<a class="header-link" href="#完全なコード_2" title="Permanent link">&para;</a></h3>
+<h3 id="完全なコード_1">完全なコード<a class="header-link" href="#完全なコード_1" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-tsx">/** ローカルストレージのキー */
 const STORAGE_KEY = 'chat_sessions'
 
@@ -3257,7 +3516,7 @@ import { auth } from './firebase'
 </div>
 </div>
 
-<h3 id="完全なコード_3">完全なコード<a class="header-link" href="#完全なコード_3" title="Permanent link">&para;</a></h3>
+<h3 id="完全なコード_2">完全なコード<a class="header-link" href="#完全なコード_2" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-tsx">// ファイル: src/frontend/src/services/api.ts
 
 import { auth } from './firebase'
@@ -3483,7 +3742,7 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth'
 </div>
 </div>
 
-<h3 id="完全なコード_4">完全なコード<a class="header-link" href="#完全なコード_4" title="Permanent link">&para;</a></h3>
+<h3 id="完全なコード_3">完全なコード<a class="header-link" href="#完全なコード_3" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-tsx">// ファイル: src/frontend/src/services/firebase.ts
 
 import { initializeApp } from 'firebase/app'
