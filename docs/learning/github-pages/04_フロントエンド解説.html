@@ -2678,6 +2678,51 @@ export function useChat(options?: UseChatOptions) {
 </pre>
 
 <p>💡 <strong>ポイント:</strong> 型定義は「引数の形を説明書として書いておく」ためのもの。引数がなければ説明書も不要！</p>
+
+<h4>❓ でも sendChatMessage も引数あるのに interface ないよね？</h4>
+
+<p>良い質問！引数があっても interface を使わないケースもあります：</p>
+
+<table>
+<tr><th>関数</th><th>引数の書き方</th><th>理由</th></tr>
+<tr>
+<td><code>sendChatMessage</code></td>
+<td><code>(message: string, threadId: string | null, onChunk: ...)</code></td>
+<td>引数が<strong>単純</strong>（string など基本型）</td>
+</tr>
+<tr>
+<td><code>loginWithGoogle</code></td>
+<td><code>()</code></td>
+<td>引数なし</td>
+</tr>
+<tr>
+<td><code>useChat</code></td>
+<td><code>(options?: UseChatOptions)</code></td>
+<td>引数が<strong>複雑</strong>（オブジェクトの中に関数）</td>
+</tr>
+</table>
+
+<pre>
+// 引数が単純 → インライン（その場で直接書く）
+function sendChatMessage(
+  message: string,           // ← 単純！string だけ
+  threadId: string | null,   // ← 単純！string か null
+  onChunk: (chunk: string) => void
+) { ... }
+
+// 引数が複雑 → interface で別途定義
+interface UseChatOptions {
+  activeSession: ChatSession | null    // ← オブジェクト型
+  onMessagesUpdate: (sessionId: string, messages: Message[], ...) => void  // ← 複雑な関数
+}
+function useChat(options?: UseChatOptions) { ... }
+</pre>
+
+<p><strong>判断基準:</strong></p>
+<ul>
+<li>引数が <code>string</code>, <code>number</code>, <code>boolean</code> など単純 → <strong>直接書く</strong></li>
+<li>引数がオブジェクト（<code>{ ... }</code>）で複雑 → <strong>interface で定義</strong></li>
+</ul>
 </div>
 
 <div class="info-box">
