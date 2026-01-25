@@ -930,21 +930,29 @@ ul.task-list li.checked::before {
   animation: fadeIn 0.3s ease;
 }
 
-/* Scrollbar styling */
+/* Scrollbar styling - Qiita green theme */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 16px;
+  height: 16px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-color);
+  background: var(--primary-light);
+  border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 4px;
+  background: var(--primary-color);
+  border-radius: 8px;
+  border: 3px solid var(--primary-light);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-light);
+  background: var(--primary-hover);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: auto;
+  scrollbar-color: var(--primary-color) var(--primary-light);
 }
