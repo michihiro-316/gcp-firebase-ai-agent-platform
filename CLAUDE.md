@@ -62,3 +62,34 @@ gcp-firebase-ai-agent-platform/
 - 変数名: スネークケース（`agent_class` など）
 - コメント: 初心者エンジニアが理解できる日本語で記述
 - 不要なコード: 使用していない関数・変数は削除する
+
+---
+
+## 未対応タスク (TODO)
+
+### Firestore TTL 設定（優先度: 中）
+
+**背景**:
+- フロントエンドの localStorage は MAX_SESSIONS=10 で古いセッションを自動削除
+- しかし Firestore の checkpoints データは削除されず蓄積し続ける
+- 結果: localStorage から消えた threadId のデータが「死んだデータ」として残り、コストがかかる
+
+**対応方法**:
+
+1. **バックエンド変更** (`src/backend/src/agents/_base/firestore_checkpointer.py`)
+   ```python
+   from datetime import datetime, timedelta
+
+   # ドキュメント保存時に expireAt フィールドを追加
+   doc_data = {
+       # 既存のデータ...
+       "expireAt": datetime.now() + timedelta(days=30)  # 30日後に自動削除
+   }
+   ```
+
+2. **GCP Console 設定**
+   - Firestore → TTL policies → Create policy
+   - Collection: `customers/{customer_id}/checkpoints`
+   - Field: `expireAt`
+
+**参考**: この設計は 2026-01-26 の会話で決定（セッション管理とデータ永続化の議論）
