@@ -93,3 +93,32 @@ gcp-firebase-ai-agent-platform/
    - Field: `expireAt`
 
 **参考**: この設計は 2026-01-26 の会話で決定（セッション管理とデータ永続化の議論）
+
+---
+
+### useChat.ts コードスタイル統一（優先度: 低）
+
+**背景**:
+- `src/frontend/src/hooks/useChat.ts` で配列操作のスタイルが混在している
+- 64行目・75行目: spread演算子 `[...array, item]`
+- 102行目: `concat()` メソッド
+
+**対応方法**:
+- どちらかに統一する（機能的には同じ）
+- 推奨: spread演算子に統一（モダンな書き方）
+
+```typescript
+// 現状（102行目）
+const finalMessages = updatedMessagesWithUser.concat({
+  ...assistantMessage,
+  content: currentContent,
+})
+
+// 統一後
+const finalMessages = [...updatedMessagesWithUser, {
+  ...assistantMessage,
+  content: currentContent,
+}]
+```
+
+**参考**: 2026-01-26 の会話で発見
