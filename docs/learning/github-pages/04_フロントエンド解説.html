@@ -3441,6 +3441,7 @@ content = "こんにちは！"  ◀───────────── [DONE
         onMessagesUpdate(activeSession.id, finalMessages, newThreadId)
         // ↑ 親コンポーネントに「メッセージが更新されたよ」と通知
         // これにより localStorage にも保存される
+        // ※ この関数は「8. useSessions.ts - セッション管理の完全解説」で詳しく説明します
       }
 
     } catch (err) {
