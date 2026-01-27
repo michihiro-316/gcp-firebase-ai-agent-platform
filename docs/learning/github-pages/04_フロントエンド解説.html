@@ -3905,8 +3905,34 @@ function saveSessionsToStorage(sessions: ChatSession[]): void {
     // 容量超過などのエラーは握りつぶす
   }
 }
+</code></pre>
 
-/**
+<div class="info-box">
+<h3>💡 この2つの関数はいつ呼ばれる？</h3>
+<div class="box-content">
+
+**loadSessionsFromStorage（読み込み）**
+
+| タイミング | 説明 |
+|------------|------|
+| ページをリロード（F5） | 保存済みのセッションを復元 |
+| ブラウザを閉じて再度開く | 保存済みのセッションを復元 |
+| URL を直接入力してアクセス | 保存済みのセッションを復元 |
+
+**saveSessionsToStorage（保存）**
+
+| タイミング | 説明 |
+|------------|------|
+| メッセージを送信 | 会話内容を保存 |
+| 新しいチャットを作成 | 新しいセッションを保存 |
+| チャットを削除 | 削除後の状態を保存 |
+
+保存は `useEffect` で `sessions` が変わるたびに自動実行されます（後述）。
+
+</div>
+</div>
+
+<pre class="codehilite"><code class="language-tsx">/**
  * メッセージ内容からタイトルを生成
  * - 最大20文字まで
  * - 改行はスペースに変換
