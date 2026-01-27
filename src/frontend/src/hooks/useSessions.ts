@@ -138,18 +138,18 @@ export function useSessions() {
   )
 
   /**
+   * 現在アクティブなセッションを取得
+   * - 見つからない場合は最初のセッションを返す（安全対策）
+   */
+  const activeSession = sessions.find(s => s.id === activeSessionId) || sessions[0]
+
+  /**
    * セッション変更時に自動保存
    * - sessionsが変更されるたびにローカルストレージを更新
    */
   useEffect(() => {
     saveSessionsToStorage(sessions)
   }, [sessions])
-
-  /**
-   * 現在アクティブなセッションを取得
-   * - 見つからない場合は最初のセッションを返す（安全対策）
-   */
-  const activeSession = sessions.find(s => s.id === activeSessionId) || sessions[0]
 
   /**
    * 新しいセッションを作成

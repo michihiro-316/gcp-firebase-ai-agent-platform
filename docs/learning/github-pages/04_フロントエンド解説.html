@@ -3987,15 +3987,15 @@ export function useSessions() {
 </div>
 </div>
 
-<pre class="codehilite"><code class="language-tsx">  // ───────────────────────────────────────────────────────────────
+<pre class="codehilite"><code class="language-tsx">  // 現在アクティブなセッション
+  const activeSession = sessions.find(s =&gt; s.id === activeSessionId) || sessions[0]
+
+  // ───────────────────────────────────────────────────────────────
   // セッション変更時に自動保存
   // ───────────────────────────────────────────────────────────────
   useEffect(() =&gt; {
     saveSessionsToStorage(sessions)
   }, [sessions])
-
-  // 現在アクティブなセッション
-  const activeSession = sessions.find(s =&gt; s.id === activeSessionId) || sessions[0]
 
   // ───────────────────────────────────────────────────────────────
   // 新しいセッションを作成
