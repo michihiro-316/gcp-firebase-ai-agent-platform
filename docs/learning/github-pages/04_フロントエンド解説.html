@@ -2705,30 +2705,31 @@ const { messages, isLoading, sendMessage } = useChat(...)
 <div class="box-title">🔗 useSessions との連携</div>
 <div class="box-content">
 
-**2つのフックの役割分担**
+<strong>2つのフックの役割分担</strong>
 
-| フック | 役割 | 担当 |
-|--------|------|------|
-| `useChat` | 画面表示 | 「今」のメッセージを管理 |
-| `useSessions` | データ保存 | ローカルストレージへの永続化 |
+<table>
+<tr><th>フック</th><th>役割</th><th>担当</th></tr>
+<tr><td><code>useChat</code></td><td>画面表示</td><td>「今」のメッセージを管理</td></tr>
+<tr><td><code>useSessions</code></td><td>データ保存</td><td>ローカルストレージへの永続化</td></tr>
+</table>
 
-**橋渡しの仕組み**
+<strong>橋渡しの仕組み</strong>
 
-
-<pre class="codehilite"><code>useSessions                      useChat
+<pre>
+useSessions                      useChat
     │                               │
     │── activeSession ─────────────▶│  「このセッションを表示して」
     │                               │
     │◀── onMessagesUpdate ─────────│  「メッセージ更新したから保存して」
     │                               │
-</code></pre>
+</pre>
 
+<ul>
+<li><strong>activeSession</strong>: useSessions → useChat（表示するセッションを教える）</li>
+<li><strong>onMessagesUpdate</strong>: useChat → useSessions（更新を通知して保存してもらう）</li>
+</ul>
 
-
-- **activeSession**: useSessions → useChat（表示するセッションを教える）
-- **onMessagesUpdate**: useChat → useSessions（更新を通知して保存してもらう）
-
-App.tsx でこの2つのフックを接続しています（詳細は「8. useSessions.ts」を参照）。
+<p>App.tsx でこの2つのフックを接続しています（詳細は「8. useSessions.ts」を参照）。</p>
 
 </div>
 </div>
@@ -3892,30 +3893,31 @@ export function useChat(options?: UseChatOptions) {
 <div class="box-title">🔗 useChat との連携</div>
 <div class="box-content">
 
-**2つのフックの役割分担**
+<strong>2つのフックの役割分担</strong>
 
-| フック | 役割 | 担当 |
-|--------|------|------|
-| `useChat` | 画面表示 | 「今」のメッセージを管理 |
-| `useSessions` | データ保存 | ローカルストレージへの永続化 |
+<table>
+<tr><th>フック</th><th>役割</th><th>担当</th></tr>
+<tr><td><code>useChat</code></td><td>画面表示</td><td>「今」のメッセージを管理</td></tr>
+<tr><td><code>useSessions</code></td><td>データ保存</td><td>ローカルストレージへの永続化</td></tr>
+</table>
 
-**橋渡しの仕組み**
+<strong>橋渡しの仕組み</strong>
 
-
-<pre class="codehilite"><code>useSessions                      useChat
+<pre>
+useSessions                      useChat
     │                               │
     │── activeSession ─────────────▶│  「このセッションを表示して」
     │                               │
     │◀── onMessagesUpdate ─────────│  「メッセージ更新したから保存して」
     │                               │
-</code></pre>
+</pre>
 
+<ul>
+<li><strong>activeSession</strong>: useSessions → useChat（表示するセッションを教える）</li>
+<li><strong>onMessagesUpdate</strong>: useChat → useSessions（更新を通知して保存してもらう）</li>
+</ul>
 
-
-- **activeSession**: useSessions → useChat（表示するセッションを教える）
-- **onMessagesUpdate**: useChat → useSessions（更新を通知して保存してもらう）
-
-App.tsx でこの2つのフックを接続しています（詳細は「7. useChat.ts」を参照）。
+<p>App.tsx でこの2つのフックを接続しています（詳細は「7. useChat.ts」を参照）。</p>
 
 </div>
 </div>
