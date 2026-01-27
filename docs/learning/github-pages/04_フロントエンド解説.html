@@ -4055,7 +4055,12 @@ export function useSessions() {
     threadId: string | null
   ) =&gt; {
     setSessions(prev =&gt; prev.map(session =&gt; {
+      // map は配列の要素を1つずつ処理する
+      // session には sessions[0], sessions[1], ... が順番に入る
+      // IDが違う（更新対象外）ならそのまま返す
       if (session.id !== sessionId) return session
+
+      // ↓ ここから下は、IDが一致した（更新対象の）セッションだけ実行される
 
       // タイトル自動生成（まだ「新しい会話」の場合のみ）
       let title = session.title
