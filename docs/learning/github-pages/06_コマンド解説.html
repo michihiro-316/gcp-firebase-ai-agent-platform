@@ -236,10 +236,10 @@ firebase deploy --only hosting       # dist/ をアップロード
 <p><strong>【.shファイルがない場合】</strong><br>
 毎回これを打つ必要がある：</p>
 <pre>
-$ cd src/backend
+$ cd backend
 $ pip install -r requirements.txt
 $ python -m functions_framework --target=main --port=8080 &
-$ cd ../src/frontend
+$ cd ../frontend
 $ npm install
 $ npm run dev
 </pre>
@@ -275,7 +275,7 @@ sh start.sh
 <pre class="codehilite"><code class="language-bash">#!/bin/bash           ← 「このファイルはbashで実行してね」という宣言
 
 echo &quot;Hello&quot;          ← コマンド1
-cd src/backend            ← コマンド2
+cd backend            ← コマンド2
 pip install ...       ← コマンド3
 
 # 上から順番に実行される
@@ -326,9 +326,9 @@ pip install ...       ← コマンド3
 <hr />
 <h2 id="-顧客管理コマンド">👥 顧客管理コマンド<a class="header-link" href="#-顧客管理コマンド" title="Permanent link">&para;</a></h2>
 <p>顧客（会社）とユーザーを管理するコマンドです。<br />
-<strong>src/backend/scripts/manage_customer.py</strong> を使います。</p>
+<strong>backend/scripts/manage_customer.py</strong> を使います。</p>
 <h3 id="実行方法_1">実行方法<a class="header-link" href="#実行方法_1" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-bash">cd src/backend
+<pre class="codehilite"><code class="language-bash">cd backend
 python scripts/manage_customer.py &lt;コマンド&gt; [引数...]
 </code></pre>
 
@@ -390,7 +390,7 @@ python scripts/manage_customer.py &lt;コマンド&gt; [引数...]
 </tbody>
 </table>
 <h3 id="クイックスタート新規顧客の追加">クイックスタート（新規顧客の追加）<a class="header-link" href="#クイックスタート新規顧客の追加" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-bash">cd src/backend
+<pre class="codehilite"><code class="language-bash">cd backend
 
 # 1. 顧客を作成
 python scripts/manage_customer.py add acme-corp &quot;株式会社ACME&quot;
@@ -462,7 +462,7 @@ python scripts/manage_customer.py show acme-corp
 </div>
 
 <p><strong>よく使うパターン</strong>:</p>
-<pre class="codehilite"><code class="language-bash">cd src/backend      # backendフォルダに入る
+<pre class="codehilite"><code class="language-bash">cd backend          # backendフォルダに入る
 cd ..           # 一つ上のフォルダに戻る
 cd ~            # ホームフォルダに戻る
 </code></pre>
@@ -638,7 +638,7 @@ http://localhost:8080
 <h3>🔄 ローカル開発フロー</h3>
 <pre>
 【ターミナル1】                【ターミナル2】
-cd src/backend                     cd src/frontend
+cd backend                         cd frontend
 pip install -r requirements.txt    npm install
 functions-framework ...        npm run dev
     ↓                              ↓

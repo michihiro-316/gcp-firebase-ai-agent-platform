@@ -102,7 +102,7 @@
 │   Company Cloud Functions（会社ごと）    │
 │                                         │
 │  バックエンド API + AI Agent             │
-│  → 既存の src/backend/src/main.py       │
+│  → 既存の backend/main.py               │
 │                                         │
 └─────────────────────────────────────────┘
 </code></pre>
@@ -229,7 +229,7 @@ resp = requests.request(
 <h2 id="移行の流れ">移行の流れ<a class="header-link" href="#移行の流れ" title="Permanent link">&para;</a></h2>
 <h3 id="phase-1-gateway-の追加既存を壊さない">Phase 1: Gateway の追加（既存を壊さない）<a class="header-link" href="#phase-1-gateway-の追加既存を壊さない" title="Permanent link">&para;</a></h3>
 <ol>
-<li><code>src/gateway/src/main.py</code> を作成（済み）</li>
+<li><code>gateway/main.py</code> を作成（済み）</li>
 <li>Gateway Cloud Functions をデプロイ</li>
 <li>動作確認（既存の構成と並行稼働）</li>
 </ol>
@@ -248,19 +248,16 @@ resp = requests.request(
 <h2 id="ディレクトリ構造">ディレクトリ構造<a class="header-link" href="#ディレクトリ構造" title="Permanent link">&para;</a></h2>
 <pre class="codehilite"><code>gcp-firebase-ai-agent-platform/
 │
-├── src/
-│   ├── gateway/                      # Gateway Cloud Functions
-│   │   └── src/
-│   │       ├── main.py               # Gateway 本体（約100行）
-│   │       └── requirements.txt      # 依存関係
-│   │
-│   ├── backend/                      # Company Cloud Functions（既存）
-│   │   └── src/
-│   │       ├── main.py               # バックエンド本体
-│   │       ├── agents/               # AI エージェント
-│   │       └── common/               # 共通モジュール
-│   │
-│   └── frontend/                     # フロントエンド（既存）
+├── gateway/                          # Gateway Cloud Functions
+│   ├── main.py                       # Gateway 本体（約100行）
+│   └── requirements.txt              # 依存関係
+│
+├── backend/                          # Company Cloud Functions（既存）
+│   ├── main.py                       # バックエンド本体
+│   ├── agents/                       # AI エージェント
+│   └── common/                       # 共通モジュール
+│
+├── frontend/                         # フロントエンド（既存）
 │
 └── infrastructure/
     ├── deploy-gateway.sh             # Gateway デプロイ

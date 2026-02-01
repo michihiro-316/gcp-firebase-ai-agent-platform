@@ -103,7 +103,7 @@
 <h2 id="基本-system_prompt-を変更する">基本: SYSTEM_PROMPT を変更する<a class="header-link" href="#基本-system_prompt-を変更する" title="Permanent link">&para;</a></h2>
 <p>AIの性格・役割は <code>SYSTEM_PROMPT</code> で決まります。</p>
 <h3 id="ファイルの場所">ファイルの場所<a class="header-link" href="#ファイルの場所" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code>src/backend/src/agents/_template/agent.py
+<pre class="codehilite"><code>backend/agents/_template/agent.py
 </code></pre>
 
 <h3 id="変更箇所">変更箇所<a class="header-link" href="#変更箇所" title="Permanent link">&para;</a></h3>
@@ -183,14 +183,14 @@ AI: 疲れちゃったんだね 😢 でも大丈夫だよ！
 <h2 id="変更を確認する手順">変更を確認する手順<a class="header-link" href="#変更を確認する手順" title="Permanent link">&para;</a></h2>
 <h3 id="1-agentpy-を編集">1. agent.py を編集<a class="header-link" href="#1-agentpy-を編集" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-bash"># VSCode で開く
-code src/backend/src/agents/_template/agent.py
+code backend/agents/_template/agent.py
 
 # または vim で開く
-vim src/backend/src/agents/_template/agent.py
+vim backend/agents/_template/agent.py
 </code></pre>
 
 <h3 id="2-バックエンドを再起動">2. バックエンドを再起動<a class="header-link" href="#2-バックエンドを再起動" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-bash">cd src/backend
+<pre class="codehilite"><code class="language-bash">cd backend
 # Ctrl+C で停止してから再起動
 functions-framework --target=main --port=8080
 </code></pre>
@@ -207,12 +207,12 @@ functions-framework --target=main --port=8080
 <hr />
 <h2 id="顧客別にカスタマイズする場合">顧客別にカスタマイズする場合<a class="header-link" href="#顧客別にカスタマイズする場合" title="Permanent link">&para;</a></h2>
 <h3 id="1-テンプレートをコピー">1. テンプレートをコピー<a class="header-link" href="#1-テンプレートをコピー" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-bash">cd src/backend/src/agents
+<pre class="codehilite"><code class="language-bash">cd backend/agents
 cp -r _template acme-corp
 </code></pre>
 
 <h3 id="2-agentpy-を編集">2. agent.py を編集<a class="header-link" href="#2-agentpy-を編集" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-python"># src/backend/src/agents/acme-corp/agent.py
+<pre class="codehilite"><code class="language-python"># backend/agents/acme-corp/agent.py
 
 class AcmeCorpAgent(BaseAgent):
     SYSTEM_PROMPT = &quot;&quot;&quot;あなたはACME社の専門AIアシスタントです。

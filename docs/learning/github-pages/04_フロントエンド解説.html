@@ -544,7 +544,7 @@ function Button(): JSX.Element {
 <div class="architecture-box">
 <h3>🏗️ Reactプロジェクトの構成</h3>
 <pre>
-src/frontend/
+frontend/
 ├── index.html           ← ★ HTMLの土台（1回だけ読み込まれる）
 ├── src/
 │   ├── main.tsx         ← ★ Reactの起動スクリプト
@@ -665,7 +665,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
 <hr />
 <h2 id="ファイル構成詳細">ファイル構成（詳細）<a class="header-link" href="#ファイル構成詳細" title="Permanent link">&para;</a></h2>
-<pre class="codehilite"><code>src/frontend/src/
+<pre class="codehilite"><code>frontend/src/
 ├── App.tsx              ← 🎯 メインコンポーネント（ここから始まる）
 ├── main.tsx             ← エントリーポイント（Reactの起動）
 ├── hooks/               ← 🎣 カスタムフック（ロジックを再利用）
@@ -2487,7 +2487,7 @@ export default App
 <div class="box-content">
 
 
-<pre class="codehilite"><code class="language-tsx">// ファイル: src/frontend/src/hooks/useAuth.ts
+<pre class="codehilite"><code class="language-tsx">// ファイル: frontend/src/hooks/useAuth.ts
 
 // React のフック（状態管理・副作用処理）
 import { useState, useEffect } from 'react'
@@ -2553,10 +2553,10 @@ import { auth, googleProvider } from '../services/firebase'
 <div class="box-content">
 
 
-<pre class="codehilite"><code>現在地: src/frontend/src/hooks/useAuth.ts
+<pre class="codehilite"><code>現在地: frontend/src/hooks/useAuth.ts
                         └── hooks フォルダにいる
-../    = 1つ上（src/frontend/src/）
-../services = 1つ上の services フォルダ（src/frontend/src/services/）
+../    = 1つ上（frontend/src/）
+../services = 1つ上の services フォルダ（frontend/src/services/）
 ../services/firebase = その中の firebase.ts
 </code></pre>
 
@@ -2919,7 +2919,7 @@ await sendChatMessage(content, threadId, onChunk)</code></pre>
 <div class="box-content">
 
 
-<pre class="codehilite"><code class="language-tsx">// ファイル: src/frontend/src/hooks/useChat.ts
+<pre class="codehilite"><code class="language-tsx">// ファイル: frontend/src/hooks/useChat.ts
 
 // React のフック（状態管理・関数メモ化・副作用処理）
 import { useState, useCallback, useEffect } from 'react'
@@ -2977,7 +2977,7 @@ import type { ChatSession } from './useSessions'
 </table>
 
 
-<pre class="codehilite"><code>src/frontend/src/
+<pre class="codehilite"><code>frontend/src/
 ├── hooks/
 │   ├── useAuth.ts      ← ここから見ると...
 │   ├── useChat.ts      ← ./useChat（同じフォルダ）
@@ -3014,7 +3014,7 @@ import type { ChatSession } from './useSessions'
 <hr />
 <h3 id="step-1-型定義interface">Step 1: 型定義（interface）<a class="header-link" href="#step-1-型定義interface" title="Permanent link">&para;</a></h3>
 <p>まず、このファイルで使う「データの形」を定義します。</p>
-<pre class="codehilite"><code class="language-tsx">// ファイル: src/frontend/src/hooks/useChat.ts
+<pre class="codehilite"><code class="language-tsx">// ファイル: frontend/src/hooks/useChat.ts
 
 import { useState, useCallback, useEffect } from 'react'
 import { sendChatMessage } from '../services/api'
@@ -3766,7 +3766,7 @@ messages.map(msg => &lt;Message key={msg.id} ... /&gt;)
 <summary><strong>📄 完全なコード（全体を見たい場合はクリック）</strong></summary>
 
 
-<pre class="codehilite"><code class="language-tsx">// ファイル: src/frontend/src/hooks/useChat.ts
+<pre class="codehilite"><code class="language-tsx">// ファイル: frontend/src/hooks/useChat.ts
 
 import { useState, useCallback, useEffect } from 'react'
 import { sendChatMessage } from '../services/api'
@@ -3964,7 +3964,7 @@ export function useChat(options?: UseChatOptions) {
 <div class="box-content">
 
 
-<pre class="codehilite"><code class="language-tsx">// ファイル: src/frontend/src/hooks/useSessions.ts
+<pre class="codehilite"><code class="language-tsx">// ファイル: frontend/src/hooks/useSessions.ts
 
 // React のフック（状態管理・関数メモ化・副作用処理）
 import { useState, useCallback, useEffect } from 'react'
@@ -4007,7 +4007,7 @@ import type { Message } from './useChat'
 <div class="box-content">
 
 
-<pre class="codehilite"><code>現在地: src/frontend/src/hooks/useSessions.ts
+<pre class="codehilite"><code>現在地: frontend/src/hooks/useSessions.ts
 ./useChat = 同じ hooks フォルダ内の useChat.ts
 </code></pre>
 
@@ -4322,7 +4322,7 @@ localStorage.removeItem('key')        // 削除
 <div class="box-content">
 
 
-<pre class="codehilite"><code class="language-tsx">// ファイル: src/frontend/src/services/api.ts
+<pre class="codehilite"><code class="language-tsx">// ファイル: frontend/src/services/api.ts
 
 // 同じ services フォルダ内の firebase.ts から auth をインポート
 import { auth } from './firebase'
@@ -4347,7 +4347,7 @@ import { auth } from './firebase'
 <div class="box-content">
 
 
-<pre class="codehilite"><code>現在地: src/frontend/src/services/api.ts
+<pre class="codehilite"><code>現在地: frontend/src/services/api.ts
 ./firebase = 同じ services フォルダ内の firebase.ts
 </code></pre>
 
@@ -4357,7 +4357,7 @@ import { auth } from './firebase'
 </div>
 
 <h3 id="完全なコード_2">完全なコード<a class="header-link" href="#完全なコード_2" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-tsx">// ファイル: src/frontend/src/services/api.ts
+<pre class="codehilite"><code class="language-tsx">// ファイル: frontend/src/services/api.ts
 
 import { auth } from './firebase'
 
@@ -4475,7 +4475,7 @@ fetch("/chat", {...}) ──────────────────▶
 <div class="box-content">
 
 
-<pre class="codehilite"><code class="language-tsx">// ファイル: src/frontend/src/services/firebase.ts
+<pre class="codehilite"><code class="language-tsx">// ファイル: frontend/src/services/firebase.ts
 
 // Firebase SDK からインポート
 import { initializeApp } from 'firebase/app'
@@ -4523,7 +4523,7 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth'
 </div>
 
 <h3 id="完全なコード_3">完全なコード<a class="header-link" href="#完全なコード_3" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-tsx">// ファイル: src/frontend/src/services/firebase.ts
+<pre class="codehilite"><code class="language-tsx">// ファイル: frontend/src/services/firebase.ts
 
 import { initializeApp } from 'firebase/app'
 import { getAuth, GoogleAuthProvider } from 'firebase/auth'
@@ -4623,6 +4623,31 @@ frontend/.env
 </pre>
 </div>
 
+<hr />
+<h2 id="-やりたいこと--編集ファイル-対応表">📋 やりたいこと → 編集ファイル 対応表<a class="header-link" href="#-やりたいこと--編集ファイル-対応表" title="Permanent link">&para;</a></h2>
+<div class="info-box">
+<div class="box-title">🛠️ カスタマイズガイド</div>
+<div class="box-content">
+
+| やりたいこと | 編集するファイル | 該当箇所 |
+|-------------|-----------------|---------|
+| **色を変える** | `frontend/src/styles.css` | `:root` の CSS 変数（`--color-primary` など） |
+| **ボタンのテキストを変える** | `frontend/src/components/ChatScreen.tsx` | `<button>` タグの中身 |
+| **ローディング表示を変える** | `frontend/src/components/ChatScreen.tsx` | `isLoading` 時の表示部分 |
+| **ログイン画面のデザインを変える** | `frontend/src/components/LoginScreen.tsx` | 全体 |
+| **APIのURLを変える** | `frontend/.env` | `VITE_API_BASE_URL` |
+| **新しいAPIエンドポイントを追加** | `frontend/src/services/api.ts` | 新しい関数を追加 |
+| **認証方法を変える** | `frontend/src/services/firebase.ts` | プロバイダ設定 |
+| **セッション数の上限を変える** | `frontend/src/hooks/useSessions.ts` | `MAX_SESSIONS` 定数 |
+| **AIの応答を変える** | `backend/agents/_template/agent.py` | `SYSTEM_PROMPT`（フロントではない） |
+
+</div>
+</div>
+
+<blockquote>
+<p><strong>💡 ポイント</strong>: UIの見た目を変えるだけなら <code>styles.css</code> と <code>ChatScreen.tsx</code> だけで十分です。<br />
+AIの応答内容を変えるには、バックエンドの <code>agent.py</code> を編集してください。</p>
+</blockquote>
 <hr />
 <h2 id="まとめ">まとめ<a class="header-link" href="#まとめ" title="Permanent link">&para;</a></h2>
 <div class="summary-box">

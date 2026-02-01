@@ -199,7 +199,7 @@ GASでは自動で待っていたが、TypeScript/Pythonでは <code>await</code
 - 他の画面で再利用できない<br />
 - テストしにくい</p>
 <p><strong>解決</strong>: ロジックを「フック（Hook）」として分離する</p>
-<h3 id="場所-srcfrontendsrchooksusechatts">場所: <code>src/frontend/src/hooks/useChat.ts</code><a class="header-link" href="#場所-srcfrontendsrchooksusechatts" title="Permanent link">&para;</a></h3>
+<h3 id="場所-frontendsrchooksusechatts">場所: <code>frontend/src/hooks/useChat.ts</code><a class="header-link" href="#場所-frontendsrchooksusechatts" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-typescript">// useChat.ts の sendMessage 関数（簡略版）
 
 const sendMessage = useCallback(async (content: string) =&gt; {
@@ -259,7 +259,7 @@ async function sendMessage(content: string) {
 <h3 id="なぜこのファイルがあるのか_1">なぜこのファイルがあるのか？<a class="header-link" href="#なぜこのファイルがあるのか_1" title="Permanent link">&para;</a></h3>
 <p><strong>問題</strong>: サーバーにリクエストを送るとき、毎回「私は誰です」という証明が必要<br />
 <strong>解決</strong>: 認証トークンを自動で付ける処理を一箇所にまとめる</p>
-<h3 id="場所-srcfrontendsrcservicesapits">場所: <code>src/frontend/src/services/api.ts</code><a class="header-link" href="#場所-srcfrontendsrcservicesapits" title="Permanent link">&para;</a></h3>
+<h3 id="場所-frontendsrcservicesapits">場所: <code>frontend/src/services/api.ts</code><a class="header-link" href="#場所-frontendsrcservicesapits" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-typescript">// api.ts（簡略版）
 
 // ★ チャットメッセージを送信する関数
@@ -323,7 +323,7 @@ export async function sendChatMessage(
 - 認証チェック（トークン検証）<br />
 - customer_id から転送先URL取得<br />
 - 会社ごとのバックエンドに転送</p>
-<h3 id="場所-srcgatewaysrcmainpy">場所: <code>src/gateway/src/main.py</code><a class="header-link" href="#場所-srcgatewaysrcmainpy" title="Permanent link">&para;</a></h3>
+<h3 id="場所-gatewaymainpy">場所: <code>gateway/main.py</code><a class="header-link" href="#場所-gatewaymainpy" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-python"># Gateway main.py（簡略版）
 
 @app.route(&quot;/chat&quot;, methods=[&quot;POST&quot;])
@@ -381,7 +381,7 @@ def chat():
 - A社だけの特殊カスタマイズが可能<br />
 - 他社への影響ゼロで安全に更新<br />
 - 障害が他社に波及しない</p>
-<h3 id="場所-srcbackendsrcmainpy">場所: <code>src/backend/src/main.py</code><a class="header-link" href="#場所-srcbackendsrcmainpy" title="Permanent link">&para;</a></h3>
+<h3 id="場所-backendmainpy">場所: <code>backend/main.py</code><a class="header-link" href="#場所-backendmainpy" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-python"># Backend main.py（簡略版）
 
 @app.route(&quot;/chat&quot;, methods=[&quot;POST&quot;])
@@ -463,7 +463,7 @@ def chat():
 - <code>/agents</code> エンドポイント<br />
 - 将来の新しいエンドポイント</p>
 <p><strong>解決</strong>: 認証処理を別ファイルにまとめる + Gateway経由に対応</p>
-<h3 id="場所-srcbackendsrccommonauthpy">場所: <code>src/backend/src/common/auth.py</code><a class="header-link" href="#場所-srcbackendsrccommonauthpy" title="Permanent link">&para;</a></h3>
+<h3 id="場所-backendcommonauthpy">場所: <code>backend/common/auth.py</code><a class="header-link" href="#場所-backendcommonauthpy" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-python"># auth.py（簡略版）
 
 def authenticate_request_with_gateway(request) -&gt; dict:
@@ -556,7 +556,7 @@ def authenticate_request(request) -&gt; dict:
 - 社内FAQ用<br />
 - 翻訳用</p>
 <p><strong>解決</strong>: エージェントを「差し替え可能」な形で作る</p>
-<h3 id="場所-srcbackendsrcagents_templateagentpy">場所: <code>src/backend/src/agents/_template/agent.py</code><a class="header-link" href="#場所-srcbackendsrcagents_templateagentpy" title="Permanent link">&para;</a></h3>
+<h3 id="場所-backendagents_templateagentpy">場所: <code>backend/agents/_template/agent.py</code><a class="header-link" href="#場所-backendagents_templateagentpy" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-python"># agent.py（簡略版）
 
 class TemplateAgent(BaseAgent):
@@ -619,7 +619,7 @@ class TemplateAgent(BaseAgent):
 <p><strong>解決</strong>:<br />
 - Firestoreに保存して永続化<br />
 - 会社（顧客）ごとにデータを分離</p>
-<h3 id="場所-srcbackendsrcagents_basefirestore_checkpointerpy">場所: <code>src/backend/src/agents/_base/firestore_checkpointer.py</code><a class="header-link" href="#場所-srcbackendsrcagents_basefirestore_checkpointerpy" title="Permanent link">&para;</a></h3>
+<h3 id="場所-backendagents_basefirestore_checkpointerpy">場所: <code>backend/agents/_base/firestore_checkpointer.py</code><a class="header-link" href="#場所-backendagents_basefirestore_checkpointerpy" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-python"># firestore_checkpointer.py（簡略版）
 
 class FirestoreCheckpointer(BaseCheckpointSaver):

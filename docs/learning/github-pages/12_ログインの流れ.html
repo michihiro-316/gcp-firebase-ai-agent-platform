@@ -178,7 +178,7 @@
 - 他の画面（設定画面など）で再利用できない<br />
 - テストしにくい</p>
 <p><strong>解決</strong>: ログイン処理を「フック（Hook）」として分離する</p>
-<h3 id="場所-srcfrontendsrchooksuseauthts">場所: <code>src/frontend/src/hooks/useAuth.ts</code><a class="header-link" href="#場所-srcfrontendsrchooksuseauthts" title="Permanent link">&para;</a></h3>
+<h3 id="場所-frontendsrchooksuseauthts">場所: <code>frontend/src/hooks/useAuth.ts</code><a class="header-link" href="#場所-frontendsrchooksuseauthts" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-typescript">// useAuth.ts（簡略版）
 
 export function useAuth() {
@@ -247,7 +247,7 @@ useEffect(() =&gt; {
 - 同じコードが重複する<br />
 - 設定を変えたい時に全部直す必要がある</p>
 <p><strong>解決</strong>: Firebase初期化を1つのファイルにまとめる</p>
-<h3 id="場所-srcfrontendsrcservicesfirebasets">場所: <code>src/frontend/src/services/firebase.ts</code><a class="header-link" href="#場所-srcfrontendsrcservicesfirebasets" title="Permanent link">&para;</a></h3>
+<h3 id="場所-frontendsrcservicesfirebasets">場所: <code>frontend/src/services/firebase.ts</code><a class="header-link" href="#場所-frontendsrcservicesfirebasets" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-typescript">// firebase.ts
 
 // ★ Firebase設定（環境変数から取得）
@@ -353,7 +353,7 @@ Google: 「本物の山田太郎さんです」
 </pre>
 </div>
 
-<h3 id="場所-srcbackendsrccommonauthpy">場所: <code>src/backend/src/common/auth.py</code><a class="header-link" href="#場所-srcbackendsrccommonauthpy" title="Permanent link">&para;</a></h3>
+<h3 id="場所-backendcommonauthpy">場所: <code>backend/common/auth.py</code><a class="header-link" href="#場所-backendcommonauthpy" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-python"># auth.py（簡略版）
 
 def authenticate_request(request):
@@ -438,7 +438,7 @@ def get_user_customer_id(uid, email=None):
 
 <h3 id="管理者の作業手順推奨自動振り分け">管理者の作業手順（推奨：自動振り分け）<a class="header-link" href="#管理者の作業手順推奨自動振り分け" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-bash"># ターミナルで実行（管理者が行う）
-cd src/backend
+cd backend
 
 # 1. 会社を追加
 python scripts/manage_customer.py add acme-corp &quot;株式会社ACME&quot;

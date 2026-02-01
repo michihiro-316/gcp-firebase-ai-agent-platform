@@ -152,11 +152,11 @@ GCPプロジェクト作成 → Firebase設定 → サービスアカウント�
   <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 16px; background: #ecfdf5; border-radius: 0 6px 6px 6px; border: 2px solid #10b981;">
     <div style="background: white; border: 2px solid #10b981; border-radius: 8px; padding: 12px 20px; text-align: center; min-width: 140px;">
       <div style="font-size: 0.8em; color: #6b7280;">STEP 4</div>
-      <div style="font-weight: bold; color: #065f46;">src/backend/.env</div>
+      <div style="font-weight: bold; color: #065f46;">backend/.env</div>
     </div>
     <div style="background: white; border: 2px solid #10b981; border-radius: 8px; padding: 12px 20px; text-align: center; min-width: 140px;">
       <div style="font-size: 0.8em; color: #6b7280;">STEP 5</div>
-      <div style="font-weight: bold; color: #065f46;">src/frontend/.env</div>
+      <div style="font-weight: bold; color: #065f46;">frontend/.env</div>
     </div>
   </div>
 </div>
@@ -372,7 +372,7 @@ xxx@project.iam.gserviceaccount.com<br>
 <p>JSONファイルがダウンロードされる。</p>
 <h3 id="34-鍵ファイルを配置">3.4 鍵ファイルを配置<a class="header-link" href="#34-鍵ファイルを配置" title="Permanent link">&para;</a></h3>
 <p>ダウンロードしたJSONファイルを:</p>
-<pre class="codehilite"><code>src/backend/service-account.json
+<pre class="codehilite"><code>backend/service-account.json
 </code></pre>
 
 <p>に配置（リネーム）。</p>
@@ -391,7 +391,7 @@ xxx@project.iam.gserviceaccount.com<br>
 
 <hr />
 <h2 id="ステップ4-バックエンド環境変数設定">ステップ4: バックエンド環境変数設定<a class="header-link" href="#ステップ4-バックエンド環境変数設定" title="Permanent link">&para;</a></h2>
-<h3 id="場所-srcbackendenv">場所: <code>src/backend/.env</code><a class="header-link" href="#場所-srcbackendenv" title="Permanent link">&para;</a></h3>
+<h3 id="場所-backendenv">場所: <code>backend/.env</code><a class="header-link" href="#場所-backendenv" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-bash"># ===== GCP設定 =====
 # GCPプロジェクトID（Firebase Consoleで確認）
 GOOGLE_CLOUD_PROJECT=your-project-id
@@ -447,7 +447,7 @@ RATE_LIMIT_WINDOW=60
 </table>
 <hr />
 <h2 id="ステップ5-フロントエンド環境変数設定">ステップ5: フロントエンド環境変数設定<a class="header-link" href="#ステップ5-フロントエンド環境変数設定" title="Permanent link">&para;</a></h2>
-<h3 id="場所-srcfrontendenv">場所: <code>src/frontend/.env</code><a class="header-link" href="#場所-srcfrontendenv" title="Permanent link">&para;</a></h3>
+<h3 id="場所-frontendenv">場所: <code>frontend/.env</code><a class="header-link" href="#場所-frontendenv" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-bash"># ===== Firebase設定 =====
 # Firebase Console → プロジェクト設定 → Webアプリ から取得
 VITE_FIREBASE_API_KEY=AIzaSyXXXXXXXXXXXXXXXXXXXX
@@ -474,7 +474,7 @@ VITE_API_BASE_URL=http://localhost:8080
 <h2 id="ステップ6-バックエンド依存関係インストール">ステップ6: バックエンド依存関係インストール<a class="header-link" href="#ステップ6-バックエンド依存関係インストール" title="Permanent link">&para;</a></h2>
 <h3 id="ターミナルで実行">ターミナルで実行<a class="header-link" href="#ターミナルで実行" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-bash"># backendフォルダに移動
-cd src/backend
+cd backend
 
 # 仮想環境を作成（推奨）
 python -m venv venv
@@ -517,14 +517,14 @@ JavaScript/TypeScript のライブラリ（パッケージ）を管理するツ�
 
 <h3 id="packagejson-と-node_modules-の関係">package.json と node_modules の関係<a class="header-link" href="#packagejson-と-node_modules-の関係" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code>【クローン直後】
-src/frontend/
+frontend/
 ├── package.json      ← 「何が必要か」のリスト
 └── （node_modules はない）
 
         ↓ npm install を実行
 
 【インストール後】
-src/frontend/
+frontend/
 ├── package.json      ← リスト（変わらない）
 ├── package-lock.json ← 実際にインストールしたバージョンを記録（自動生成）
 └── node_modules/     ← ライブラリ本体がダウンロードされる（自動生成）
@@ -542,7 +542,7 @@ src/frontend/
 
 <h3 id="ターミナルで実行_1">ターミナルで実行<a class="header-link" href="#ターミナルで実行_1" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-bash"># frontendフォルダに移動
-cd src/frontend
+cd frontend
 
 # 依存パッケージをインストール
 npm install
@@ -710,7 +710,7 @@ localhost = PC（建物）
 
 <h3 id="ターミナル2別のターミナルで実行">ターミナル2（別のターミナル）で実行<a class="header-link" href="#ターミナル2別のターミナルで実行" title="Permanent link">&para;</a></h3>
 <pre class="codehilite"><code class="language-bash"># frontendフォルダに移動
-cd src/frontend
+cd frontend
 
 # 開発サーバーを起動
 npm run dev
@@ -760,7 +760,7 @@ npm run dev
 対処: pip install -r requirements.txt を再実行</p>
 <p><strong>【エラー2】CORS エラー</strong><br>
 原因: ALLOWED_ORIGINS の設定が違う<br>
-対処: src/backend/.env を確認<br>
+対処: backend/.env を確認<br>
 ALLOWED_ORIGINS=http://localhost:5173（末尾スラッシュなし）</p>
 <p><strong>【エラー3】認証エラー / トークンの検証に失敗</strong><br>
 原因: service-account.json がない、または環境変数が未設定<br>
@@ -785,9 +785,9 @@ ALLOWED_ORIGINS=http://localhost:5173（末尾スラッシュなし）</p>
 <li>[ ] Firestore データベースを作成した</li>
 <li>[ ] Webアプリを登録してAPIキー等を取得した</li>
 <li>[ ] サービスアカウントを作成した</li>
-<li>[ ] 鍵をダウンロードして <code>src/backend/service-account.json</code> に配置した</li>
-<li>[ ] <code>src/backend/.env</code> を作成した</li>
-<li>[ ] <code>src/frontend/.env</code> を作成した</li>
+<li>[ ] 鍵をダウンロードして <code>backend/service-account.json</code> に配置した</li>
+<li>[ ] <code>backend/.env</code> を作成した</li>
+<li>[ ] <code>frontend/.env</code> を作成した</li>
 <li>[ ] <code>pip install -r requirements.txt</code> を実行した</li>
 <li>[ ] <code>npm install</code> を実行した</li>
 <li>[ ] 顧客を追加した</li>

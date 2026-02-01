@@ -148,13 +148,13 @@
 </ul>
 <h3 id="手順">手順<a class="header-link" href="#手順" title="Permanent link">&para;</a></h3>
 <p><strong>ターミナル1: モックサーバー起動</strong></p>
-<pre class="codehilite"><code class="language-bash">cd src/backend/dev
+<pre class="codehilite"><code class="language-bash">cd backend/dev
 pip install flask flask-cors  # 初回のみ
 python mock_server.py
 </code></pre>
 
 <p><strong>ターミナル2: フロントエンド起動</strong></p>
-<pre class="codehilite"><code class="language-bash">cd src/frontend
+<pre class="codehilite"><code class="language-bash">cd frontend
 npm install  # 初回のみ
 
 # .env を編集
@@ -176,7 +176,7 @@ npm run dev
 <li>✅ 認証スキップ</li>
 <li>✅ フロントエンド開発に集中できる</li>
 </ul>
-<p>詳細は src/backend/dev/README.md を参照</p>
+<p>詳細は backend/dev/README.md を参照</p>
 </div>
 
 <hr />
@@ -193,7 +193,7 @@ npm run dev
 <h3 id="1-バックエンドを起動">1. バックエンドを起動<a class="header-link" href="#1-バックエンドを起動" title="Permanent link">&para;</a></h3>
 <p>ターミナル1:</p>
 <pre class="codehilite"><code class="language-bash"># backendフォルダに移動
-cd src/backend
+cd backend
 
 # 依存パッケージをインストール（初回のみ）
 pip install -r requirements.txt
@@ -210,7 +210,7 @@ functions-framework --target=main --port=8080
 <h3 id="2-フロントエンドを起動">2. フロントエンドを起動<a class="header-link" href="#2-フロントエンドを起動" title="Permanent link">&para;</a></h3>
 <p>ターミナル2（別のターミナルを開く）:</p>
 <pre class="codehilite"><code class="language-bash"># frontendフォルダに移動
-cd src/frontend
+cd frontend
 
 # 依存パッケージをインストール（初回のみ）
 npm install
@@ -264,7 +264,7 @@ npm run dev
 <div class="warning-box">
 <h3>🔧 よくあるエラーと対処法</h3>
 <p><strong>【CORS エラー】</strong><br>
-src/backend/.env を確認:<br>
+backend/.env を確認:<br>
 <code>ALLOWED_ORIGINS=http://localhost:5173</code><br>
 （末尾にスラッシュをつけない）</p>
 <p><strong>【認証エラー】</strong></p>
@@ -314,7 +314,7 @@ src/backend/.env を確認:<br>
 <hr />
 <h2 id="コードを変更してみよう">コードを変更してみよう<a class="header-link" href="#コードを変更してみよう" title="Permanent link">&para;</a></h2>
 <h3 id="実験1-aiの返答を変える">実験1: AIの返答を変える<a class="header-link" href="#実験1-aiの返答を変える" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-python"># src/backend/src/agents/_template/agent.py
+<pre class="codehilite"><code class="language-python"># backend/agents/_template/agent.py
 
 SYSTEM_PROMPT = &quot;&quot;&quot;あなたは関西弁で話すAIアシスタントやで。
 ユーザーの質問にフレンドリーに答えてや。&quot;&quot;&quot;
@@ -322,7 +322,7 @@ SYSTEM_PROMPT = &quot;&quot;&quot;あなたは関西弁で話すAIアシスタ�
 
 <p>→ バックエンドを再起動 → チャットしてみる</p>
 <h3 id="実験2-画面の色を変える">実験2: 画面の色を変える<a class="header-link" href="#実験2-画面の色を変える" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-css">/* src/frontend/src/styles.css */
+<pre class="codehilite"><code class="language-css">/* frontend/src/styles.css */
 
 .chat-container {
   background-color: #f0f8ff;  /* 薄い青に変更 */
