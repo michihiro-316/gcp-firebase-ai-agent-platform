@@ -33,8 +33,8 @@ NC='\033[0m' # No Color
 # 引数からカスタマーIDを取得（デフォルト: 環境変数またはdefault）
 CUSTOMER_ID=${1:-${CUSTOMER_ID:-"default"}}
 
-# プロジェクトルートに移動
-cd "$(dirname "$0")"
+# プロジェクトルートに移動（infrastructureの親ディレクトリ）
+cd "$(dirname "$0")/.."
 PROJECT_ROOT=$(pwd)
 
 echo ""
@@ -73,7 +73,7 @@ echo ""
 echo -e "${YELLOW}┌─────────────────────────────────────────────────────────────┐${NC}"
 echo -e "${YELLOW}│ Step 1/3: バックエンドをCloud Functionsにデプロイ           │${NC}"
 echo -e "${YELLOW}│                                                             │${NC}"
-echo -e "${YELLOW}│ 📁 ソース: backend/src/                                     │${NC}"
+echo -e "${YELLOW}│ 📁 ソース: backend/                                         │${NC}"
 echo -e "${YELLOW}│ 🎯 デプロイ先: Cloud Functions (Python 3.11)                │${NC}"
 echo -e "${YELLOW}│                                                             │${NC}"
 echo -e "${YELLOW}│ 💡 これにより以下が作成されます:                             │${NC}"
@@ -89,7 +89,7 @@ gcloud functions deploy "$FUNCTION_NAME" \
     --gen2 \
     --runtime=python311 \
     --region=asia-northeast1 \
-    --source=src \
+    --source=. \
     --entry-point=main \
     --trigger-http \
     --allow-unauthenticated \
@@ -110,7 +110,7 @@ echo ""
 echo -e "${YELLOW}┌─────────────────────────────────────────────────────────────┐${NC}"
 echo -e "${YELLOW}│ Step 2/3: フロントエンドをFirebase Hostingにデプロイ        │${NC}"
 echo -e "${YELLOW}│                                                             │${NC}"
-echo -e "${YELLOW}│ 📁 ソース: frontend/src/                                    │${NC}"
+echo -e "${YELLOW}│ 📁 ソース: frontend/                                        │${NC}"
 echo -e "${YELLOW}│ 🔧 ビルド: npm run build → dist/                            │${NC}"
 echo -e "${YELLOW}│ 🎯 デプロイ先: Firebase Hosting                             │${NC}"
 echo -e "${YELLOW}│                                                             │${NC}"
@@ -141,13 +141,13 @@ echo ""
 echo -e "${YELLOW}┌─────────────────────────────────────────────────────────────┐${NC}"
 echo -e "${YELLOW}│ Step 3/3: Firestoreセキュリティルールをデプロイ             │${NC}"
 echo -e "${YELLOW}│                                                             │${NC}"
-echo -e "${YELLOW}│ 📁 ソース: firestore.rules                                  │${NC}"
+echo -e "${YELLOW}│ 📁 ソース: infrastructure/firestore.rules                   │${NC}"
 echo -e "${YELLOW}│ 🎯 デプロイ先: Firestore                                    │${NC}"
 echo -e "${YELLOW}│                                                             │${NC}"
 echo -e "${YELLOW}│ 💡 これによりデータベースのアクセス制御が設定されます         │${NC}"
 echo -e "${YELLOW}└─────────────────────────────────────────────────────────────┘${NC}"
 
-cd "$PROJECT_ROOT"
+cd "$PROJECT_ROOT/infrastructure"
 
 firebase deploy --only firestore:rules
 

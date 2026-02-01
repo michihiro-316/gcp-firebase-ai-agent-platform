@@ -27,10 +27,17 @@
 
 ```
 gcp-firebase-ai-agent-platform/
-├── src/                     # ソースコード
-│   ├── gateway/             # 共通 Gateway（1つ）
-│   ├── backend/             # バックエンド（開発用）
-│   └── frontend/            # フロントエンド（開発用）
+├── backend/                 # バックエンド（Cloud Functionsにそのままデプロイ可）
+│   ├── main.py              # エントリーポイント
+│   ├── requirements.txt     # Python依存関係
+│   ├── agents/              # AIエージェント
+│   └── common/              # 共通モジュール
+├── gateway/                 # 共通 Gateway（Cloud Functionsにそのままデプロイ可）
+│   ├── main.py              # エントリーポイント
+│   └── requirements.txt     # Python依存関係
+├── frontend/                # フロントエンド（Firebase Hostingにデプロイ）
+│   ├── src/                 # Reactソースコード
+│   └── package.json         # npm設定
 ├── docs/                    # ドキュメント
 │   ├── SETUP.md
 │   ├── CUSTOMER_GUIDE.md
@@ -39,8 +46,7 @@ gcp-firebase-ai-agent-platform/
 │   ├── deploy.sh
 │   ├── deploy-customer.sh
 │   └── firestore.rules
-└── templates/               # 顧客用テンプレート
-    └── _template/
+└── start.sh                 # 開発環境起動スクリプト
 ```
 
 ---
@@ -49,10 +55,25 @@ gcp-firebase-ai-agent-platform/
 
 | ファイル | 役割 |
 |----------|------|
-| `templates/_template/backend/src/agents/_template/agent.py` | AI エージェントのテンプレート |
-| `src/gateway/src/main.py` | Gateway エントリーポイント（共通） |
-| `src/backend/src/main.py` | 開発用 Backend API |
-| `src/frontend/src/App.tsx` | 開発用フロントエンド |
+| `backend/agents/_template/agent.py` | AI エージェントのテンプレート（ここを編集） |
+| `backend/main.py` | Backend API エントリーポイント |
+| `gateway/main.py` | Gateway エントリーポイント |
+| `frontend/src/App.tsx` | フロントエンド |
+
+---
+
+## デプロイ方法
+
+### コピペでデプロイ（初心者向け）
+各フォルダ（`backend/`, `gateway/`, `frontend/`）は自己完結しているため、
+GCPコンソールからそのままCloud Functionsにアップロード可能。
+
+### シェルスクリプトでデプロイ
+```bash
+./infrastructure/deploy.sh
+```
+
+詳細は各フォルダの README.md を参照。
 
 ---
 
@@ -76,7 +97,7 @@ gcp-firebase-ai-agent-platform/
 
 **対応方法**:
 
-1. **バックエンド変更** (`src/backend/src/agents/_base/firestore_checkpointer.py`)
+1. **バックエンド変更** (`backend/agents/_base/firestore_checkpointer.py`)
    ```python
    from datetime import datetime, timedelta
 
@@ -99,7 +120,7 @@ gcp-firebase-ai-agent-platform/
 ### useChat.ts コードスタイル統一（優先度: 低）
 
 **背景**:
-- `src/frontend/src/hooks/useChat.ts` で配列操作のスタイルが混在している
+- `frontend/src/hooks/useChat.ts` で配列操作のスタイルが混在している
 - 64行目・75行目: spread演算子 `[...array, item]`
 - 102行目: `concat()` メソッド
 
@@ -122,3 +143,35 @@ const finalMessages = [...updatedMessagesWithUser, {
 ```
 
 **参考**: 2026-01-26 の会話で発見
+
+---
+
+### useSessions.ts 不要な return 削除（優先度: 低）
+
+**背景**:
+- `frontend/src/hooks/useSessions.ts` の `createSession` 関数で `return newSession.id` がある
+- しかし、この返り値はどこでも使われていない
+- 関数名 `createSession` と返り値 `id` の不一致で混乱を招く
+
+**対応方法**:
+- `return newSession.id` を削除する
+
+```typescript
+// 現状
+const createSession = useCallback(() => {
+  const newSession = createNewSession()
+  setSessions(prev => { ... })
+  setActiveSessionId(newSession.id)
+  return newSession.id  // ← 不要
+}, [])
+
+// 修正後
+const createSession = useCallback(() => {
+  const newSession = createNewSession()
+  setSessions(prev => { ... })
+  setActiveSessionId(newSession.id)
+  // return を削除
+}, [])
+```
+
+**参考**: 2026-01-28 の会話で発見

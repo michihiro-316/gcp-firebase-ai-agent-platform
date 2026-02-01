@@ -22,8 +22,8 @@
 #   ./deploy-customer.sh customer-a --backend-only   # バックエンドのみ
 #
 # 【前提条件】
-#   - src/frontend/ ディレクトリにフロントエンドのソースがあること
-#   - src/backend/customer-configs/{customer_id}.env が存在すること
+#   - frontend/ ディレクトリにフロントエンドのソースがあること
+#   - backend/customer-configs/{customer_id}.env が存在すること
 #   - GCSバケットが設定済みであること（setup-gcs-hosting.sh）
 #
 # 【GCS構造】
@@ -136,7 +136,7 @@ if [ "$PROJECT_ID" = "your-project-id" ]; then
 fi
 
 # バックエンド設定ファイルのパス
-BACKEND_CONFIG_DIR="${PROJECT_ROOT}/src/backend/customer-configs"
+BACKEND_CONFIG_DIR="${PROJECT_ROOT}/backend/customer-configs"
 BACKEND_CONFIG_FILE="${BACKEND_CONFIG_DIR}/${CUSTOMER_ID}.env"
 
 # -----------------------------------------------------------------------------
@@ -206,7 +206,7 @@ deploy_backend() {
 
     log_step "Step 1: バックエンドのデプロイ"
 
-    cd "${PROJECT_ROOT}/src/backend"
+    cd "${PROJECT_ROOT}/backend"
 
     # 顧客専用の Cloud Functions 名
     CUSTOMER_FUNCTION_NAME="${CUSTOMER_ID}-api"
@@ -247,7 +247,7 @@ deploy_backend() {
         --gen2 \
         --runtime python311 \
         --region "$REGION" \
-        --source ./src \
+        --source . \
         --entry-point main \
         --trigger-http \
         --allow-unauthenticated \
@@ -275,7 +275,7 @@ create_customer_config() {
 
     log_step "Step 2: フロントエンド設定ファイルの準備"
 
-    CONFIG_DIR="${PROJECT_ROOT}/src/frontend/customer-configs"
+    CONFIG_DIR="${PROJECT_ROOT}/frontend/customer-configs"
     CONFIG_FILE="${CONFIG_DIR}/${CUSTOMER_ID}.json"
 
     # 設定ディレクトリ作成
@@ -366,10 +366,10 @@ build_frontend() {
 
     log_step "Step 3: フロントエンドのビルド"
 
-    cd "${PROJECT_ROOT}/src/frontend"
+    cd "${PROJECT_ROOT}/frontend"
 
     # 顧客設定を public ディレクトリにコピー
-    CONFIG_FILE="${PROJECT_ROOT}/src/frontend/customer-configs/${CUSTOMER_ID}.json"
+    CONFIG_FILE="${PROJECT_ROOT}/frontend/customer-configs/${CUSTOMER_ID}.json"
     mkdir -p public
     cp "$CONFIG_FILE" "public/config.json"
     log_info "設定ファイルをコピーしました"
@@ -399,7 +399,7 @@ upload_to_gcs() {
 
     log_step "Step 4: GCSへのアップロード"
 
-    DIST_DIR="${PROJECT_ROOT}/src/frontend/dist"
+    DIST_DIR="${PROJECT_ROOT}/frontend/dist"
     GCS_PATH="gs://${BUCKET_NAME}/customers/${CUSTOMER_ID}/"
 
     if [ ! -d "$DIST_DIR" ]; then
@@ -416,7 +416,7 @@ upload_to_gcs() {
     gsutil -m cp -r "${DIST_DIR}/"* "$GCS_PATH"
 
     # 顧客設定もアップロード
-    CONFIG_FILE="${PROJECT_ROOT}/src/frontend/customer-configs/${CUSTOMER_ID}.json"
+    CONFIG_FILE="${PROJECT_ROOT}/frontend/customer-configs/${CUSTOMER_ID}.json"
     gsutil cp "$CONFIG_FILE" "${GCS_PATH}config.json"
 
     log_info "アップロード完了"
@@ -488,7 +488,7 @@ show_result() {
             echo "    本番URL: https://${DOMAIN}/customers/${CUSTOMER_ID}/"
         fi
         echo "    GCS直接: https://storage.googleapis.com/${BUCKET_NAME}/customers/${CUSTOMER_ID}/index.html"
-        echo "    設定: ${PROJECT_ROOT}/src/frontend/customer-configs/${CUSTOMER_ID}.json"
+        echo "    設定: ${PROJECT_ROOT}/frontend/customer-configs/${CUSTOMER_ID}.json"
         echo ""
     fi
 

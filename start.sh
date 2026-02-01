@@ -36,14 +36,14 @@ echo ""
 echo -e "${YELLOW}┌─────────────────────────────────────────────────────────────┐${NC}"
 echo -e "${YELLOW}│ Step 1/3: バックエンド起動                                  │${NC}"
 echo -e "${YELLOW}│                                                             │${NC}"
-echo -e "${YELLOW}│ 📁 場所: src/backend/src/main.py                            │${NC}"
+echo -e "${YELLOW}│ 📁 場所: backend/main.py                                    │${NC}"
 echo -e "${YELLOW}│ 🔧 役割: AIエージェントのAPI（チャット処理）                 │${NC}"
 echo -e "${YELLOW}│ 🌐 URL:  http://localhost:8080                              │${NC}"
 echo -e "${YELLOW}│                                                             │${NC}"
 echo -e "${YELLOW}│ 📚 詳細: docs/learning/md/03_バックエンド解説.md             │${NC}"
 echo -e "${YELLOW}└─────────────────────────────────────────────────────────────┘${NC}"
 
-cd "$PROJECT_ROOT/src/backend"
+cd "$PROJECT_ROOT/backend"
 
 # 仮想環境のチェック
 if [ -d "venv" ]; then
@@ -71,14 +71,14 @@ echo ""
 echo -e "${YELLOW}┌─────────────────────────────────────────────────────────────┐${NC}"
 echo -e "${YELLOW}│ Step 2/3: フロントエンド起動                                │${NC}"
 echo -e "${YELLOW}│                                                             │${NC}"
-echo -e "${YELLOW}│ 📁 場所: src/frontend/src/App.tsx                           │${NC}"
+echo -e "${YELLOW}│ 📁 場所: frontend/src/App.tsx                               │${NC}"
 echo -e "${YELLOW}│ 🔧 役割: ユーザーが見る画面（React）                        │${NC}"
 echo -e "${YELLOW}│ 🌐 URL:  http://localhost:5173                              │${NC}"
 echo -e "${YELLOW}│                                                             │${NC}"
 echo -e "${YELLOW}│ 📚 詳細: docs/learning/md/04_フロントエンド解説.md          │${NC}"
 echo -e "${YELLOW}└─────────────────────────────────────────────────────────────┘${NC}"
 
-cd "$PROJECT_ROOT/src/frontend"
+cd "$PROJECT_ROOT/frontend"
 
 # node_modulesがなければインストール
 if [ ! -d "node_modules" ]; then
@@ -119,7 +119,7 @@ echo -e "${GREEN}║                                                            
 echo -e "${GREEN}║  🌐 ブラウザで開く: http://localhost:5173                  ║${NC}"
 echo -e "${GREEN}║                                                            ║${NC}"
 echo -e "${GREEN}║  📝 AIを編集するファイル:                                  ║${NC}"
-echo -e "${GREEN}║     src/backend/src/agents/_template/agent.py              ║${NC}"
+echo -e "${GREEN}║     backend/agents/_template/agent.py                      ║${NC}"
 echo -e "${GREEN}║                                                            ║${NC}"
 echo -e "${GREEN}║  📚 仕組みを理解する:                                      ║${NC}"
 echo -e "${GREEN}║     docs/learning/md/02_全体像.md から読み始める           ║${NC}"

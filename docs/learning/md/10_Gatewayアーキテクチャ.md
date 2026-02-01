@@ -25,7 +25,7 @@
 │   Company Cloud Functions（会社ごと）    │
 │                                         │
 │  バックエンド API + AI Agent             │
-│  → 既存の src/backend/src/main.py       │
+│  → 既存の backend/main.py               │
 │                                         │
 └─────────────────────────────────────────┘
 ```
@@ -181,7 +181,7 @@ export PROJECT_ID=your-project-id
 
 ### Phase 1: Gateway の追加（既存を壊さない）
 
-1. `src/gateway/src/main.py` を作成（済み）
+1. `gateway/main.py` を作成（済み）
 2. Gateway Cloud Functions をデプロイ
 3. 動作確認（既存の構成と並行稼働）
 
@@ -204,19 +204,16 @@ export PROJECT_ID=your-project-id
 ```
 gcp-firebase-ai-agent-platform/
 │
-├── src/
-│   ├── gateway/                      # Gateway Cloud Functions
-│   │   └── src/
-│   │       ├── main.py               # Gateway 本体（約100行）
-│   │       └── requirements.txt      # 依存関係
-│   │
-│   ├── backend/                      # Company Cloud Functions（既存）
-│   │   └── src/
-│   │       ├── main.py               # バックエンド本体
-│   │       ├── agents/               # AI エージェント
-│   │       └── common/               # 共通モジュール
-│   │
-│   └── frontend/                     # フロントエンド（既存）
+├── gateway/                          # Gateway Cloud Functions
+│   ├── main.py                       # Gateway 本体（約100行）
+│   └── requirements.txt              # 依存関係
+│
+├── backend/                          # Company Cloud Functions（既存）
+│   ├── main.py                       # バックエンド本体
+│   ├── agents/                       # AI エージェント
+│   └── common/                       # 共通モジュール
+│
+├── frontend/                         # フロントエンド（既存）
 │
 └── infrastructure/
     ├── deploy-gateway.sh             # Gateway デプロイ

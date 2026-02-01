@@ -43,7 +43,7 @@ FUNCTION_NAME="gateway"
 
 # スクリプトのディレクトリ
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-GATEWAY_DIR="${SCRIPT_DIR}/../gateway/src"
+GATEWAY_DIR="${SCRIPT_DIR}/../gateway"
 
 # -----------------------------------------------------------------------------
 # 色付きログ
