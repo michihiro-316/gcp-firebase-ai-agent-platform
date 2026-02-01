@@ -45,11 +45,23 @@ echo -e "${YELLOW}└───────────────────�
 
 cd "$PROJECT_ROOT/backend"
 
-# 仮想環境のチェック
+# 仮想環境のチェック・作成
 if [ -d "venv" ]; then
     source venv/bin/activate
 elif [ -d ".venv" ]; then
     source .venv/bin/activate
+else
+    echo "   📦 Python仮想環境を作成中..."
+    python3 -m venv venv
+    source venv/bin/activate
+    echo "   📦 Python依存関係をインストール中..."
+    pip install -r requirements.txt --quiet
+fi
+
+# 依存関係が不足している場合はインストール
+if ! python -c "import functions_framework" 2>/dev/null; then
+    echo "   📦 Python依存関係をインストール中..."
+    pip install -r requirements.txt --quiet
 fi
 
 # バックエンドをバックグラウンドで起動

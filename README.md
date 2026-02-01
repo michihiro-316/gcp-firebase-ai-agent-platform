@@ -27,6 +27,28 @@
 
 ---
 
+## 📋 前提条件
+
+`./start.sh` を実行する前に、以下がインストールされていることを確認してください。
+
+| ツール | バージョン | 確認コマンド | インストール（Mac） |
+|--------|-----------|-------------|-------------------|
+| Python | 3.11以上 | `python3 --version` | `brew install python` |
+| Node.js | 18以上 | `node --version` | `brew install node` |
+
+> **💡 ヒント**: `start.sh` は仮想環境の作成と依存関係のインストールを自動で行います。
+
+### 本番デプロイ時に追加で必要なもの
+
+| ツール | 用途 | インストール |
+|--------|------|-------------|
+| gcloud CLI | Cloud Functionsデプロイ | `brew install google-cloud-sdk` |
+| Firebase CLI | Firebase Hostingデプロイ | `npm install -g firebase-tools` |
+
+初期設定は `docs/SETUP.md` を参照してください。
+
+---
+
 ## 🚀 クイックスタート（5分で起動）
 
 ### 1. 起動（1コマンド）
@@ -36,6 +58,8 @@
 ```
 
 これだけで以下が自動実行されます：
+- Python仮想環境の作成（なければ自動作成）
+- Python依存関係のインストール
 - バックエンド起動（Python/Flask）
 - フロントエンド起動（React/Vite）
 - 接続確認
@@ -195,6 +219,23 @@ python scripts/manage_customer.py add-domain acme-corp acme.co.jp
 | 全体像を理解したい | `docs/learning/md/02_全体像.md` |
 | エラーが出た | `docs/SETUP.md` のトラブルシューティング |
 | 顧客を追加したい | `docs/CUSTOMER_GUIDE.md` |
+
+---
+
+## 📖 用語集（最初に覚える5つ）
+
+| 用語 | 一言で言うと | イメージ |
+|------|-------------|---------|
+| **Cloud Functions** | サーバーなしでPythonを動かす場所 | レンタルキッチン（使った分だけ支払い） |
+| **Gateway** | 玄関番（認証・振り分け担当） | マンションの受付 |
+| **Backend** | AIが住んでいる場所 | 料理人がいる厨房 |
+| **LangGraph** | AIに「記憶」と「思考の流れ」を持たせるツール | 料理人のレシピノート |
+| **Firestore** | データを保存する場所（会話履歴など） | 冷蔵庫 |
+
+> **💡 なぜ Gateway と Backend が分かれているの？**
+>
+> 複数の会社（顧客）に対応するため。Gateway が「どの会社のユーザーか」を判定し、
+> その会社専用の Backend に転送します。これにより顧客ごとにAIをカスタマイズできます。
 
 ---
 
