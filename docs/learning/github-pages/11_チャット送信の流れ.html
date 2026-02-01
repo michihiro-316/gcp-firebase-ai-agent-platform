@@ -63,6 +63,7 @@
         <div class="sidebar-title">🔧 上級編</div>
         <ul class="sidebar-nav">
           <li><a href="10_Gatewayアーキテクチャ.html" >Gatewayアーキテクチャ</a></li>
+          <li><a href="14_セキュリティとファイル連携.html" >セキュリティとファイル連携</a></li>
         </ul>
       </div>
 
@@ -85,25 +86,19 @@
 <p><strong>読了時間</strong>: 約45分</p>
 <hr />
 <h2 id="まず知っておくべきこと">まず知っておくべきこと<a class="header-link" href="#まず知っておくべきこと" title="Permanent link">&para;</a></h2>
-<h3 id="ストリーミングとは">ストリーミングとは？<a class="header-link" href="#ストリーミングとは" title="Permanent link">&para;</a></h3>
+<h3 id="同期通信とは">同期通信とは？<a class="header-link" href="#同期通信とは" title="Permanent link">&para;</a></h3>
 <div class="flow-box">
-<h3>📡 ストリーミングの仕組み</h3>
-<p><strong>【普通の通信】</strong></p>
+<h3>📡 同期通信の仕組み</h3>
+<p><strong>【同期通信】</strong></p>
 <pre>
 質問 ───────────────────────────────→ サーバー
-                                        ↓ 全部作ってから返す
+                                        ↓ AIが回答を生成
+        「AIが考え中...」と表示          ↓
+                                        ↓
 「こんにちは、今日は良い天気ですね！」 ←─────────────────
+                                        （一括で返す）
 </pre>
-<p><strong>【ストリーミング通信】</strong></p>
-<pre>
-質問 ───────────────────────────────→ サーバー
-「こん」     ←──── 少しずつ返す
-「にち」     ←────
-「は、」     ←────
-「今日」     ←────
-「は...」    ←────
-</pre>
-<p>→ ChatGPTのように文字が流れるように表示される！</p>
+<p>→ 処理中は「AIが考え中...」が表示され、完了したら一括で回答が表示される</p>
 </div>
 
 <h3 id="asyncawait-とはgas経験者向け">async/await とは？（GAS経験者向け）<a class="header-link" href="#asyncawait-とはgas経験者向け" title="Permanent link">&para;</a></h3>
@@ -182,9 +177,8 @@ GASでは自動で待っていたが、TypeScript/Pythonでは <code>await</code
             ↓
 ════════════════════════ インターネット ════════════════════════
             ↓
-3. ストリーミングで
-   「こん」「にち」「は」
-   と少しずつ表示
+3. 「AIが考え中...」表示後
+   回答が一括で表示される
 </pre>
 </div>
 
@@ -213,37 +207,36 @@ const sendMessage = useCallback(async (content: string) =&gt; {
   // 【この関数の役割】
   // 1. ユーザーのメッセージを画面に表示
   // 2. サーバーにメッセージを送信
-  // 3. AIの返答を少しずつ受け取って表示
+  // 3. AIの返答を受け取って表示
   // ====================================
 
   if (!content.trim() || isLoading) return  // 空文字や連打を防止
 
-  setIsLoading(true)  // ← 「送信中...」状態にする
+  setIsLoading(true)  // ← 「AIが考え中...」状態にする
 
   // ユーザーのメッセージを画面に追加
   const userMessage = { id: '...', role: 'user', content }
-  setMessages(prev =&gt; [...prev, userMessage])
-
-  // AIの返答用の「空の箱」を用意
-  const assistantMessage = { id: '...', role: 'assistant', content: '' }
-  setMessages(prev =&gt; [...prev, assistantMessage])
+  const updatedMessagesWithUser = [...messages, userMessage]
+  setMessages(updatedMessagesWithUser)
 
   try {
     // ★ ここで api.ts の関数を呼ぶ
-    await sendChatMessage(
+    const { response, threadId: newThreadId } = await sendChatMessage(
       content,         // 「こんにちは」
       threadId,        // 会話のID
-      (chunk) =&gt; {     // AIの返答を少しずつ受け取る
-        // 「こん」「にち」「は」と来るたびに画面を更新
-        // → 文字が流れるように表示される
-      }
     )
+
+    // AIの返答をメッセージに追加
+    const assistantMessage = { id: '...', role: 'assistant', content: response }
+    const finalMessages = [...updatedMessagesWithUser, assistantMessage]
+    setMessages(finalMessages)
+    setThreadId(newThreadId)
   } catch (err) {
     setError(err.message)  // エラーがあれば表示
   } finally {
     setIsLoading(false)  // 送信完了
   }
-}, [threadId, isLoading])
+}, [threadId, isLoading, messages])
 </code></pre>
 
 <h3 id="gas経験者向け解説">GAS経験者向け解説<a class="header-link" href="#gas経験者向け解説" title="Permanent link">&para;</a></h3>
@@ -283,22 +276,23 @@ export async function sendChatMessage(
   }
 
   // 2. サーバーにリクエストを送信
-  const response = await fetch(`${API_URL}/chat`, {
+  const res = await fetch(`${API_URL}/chat`, {
     method: 'POST',
     headers,
     body: JSON.stringify({ message, thread_id: threadId }),
   })
 
-  // 3. ストリーミングで返答を受け取る
-  const reader = response.body?.getReader()
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
+  // 3. エラーチェック
+  if (!res.ok) {
+    const error = await res.json()
+    throw new Error(error.error || 'エラーが発生しました')
+  }
 
-    // 「data: こん」→「こん」を取り出して呼び出し元に返す
-    const text = new TextDecoder().decode(value)
-    // ... パース処理 ...
-    onChunk(parsedData)  // ← useChat.ts に渡される
+  // 4. JSONレスポンスを取得
+  const data = await res.json()
+  return {
+    response: data.data.response,    // AIの返答
+    threadId: data.data.thread_id,   // スレッドID
   }
 }
 </code></pre>
@@ -392,7 +386,7 @@ def chat():
 
 @app.route(&quot;/chat&quot;, methods=[&quot;POST&quot;])
 def chat():
-    &quot;&quot;&quot;チャットAPI（ストリーミング）&quot;&quot;&quot;
+    &quot;&quot;&quot;チャットAPI（同期）&quot;&quot;&quot;
 
     # 1. 認証チェック（Gateway経由かどうかで分岐）
     user_info = authenticate_request_with_gateway(request)
@@ -409,13 +403,19 @@ def chat():
     # 4. AIエージェントを呼び出し
     agent = get_agent(&quot;template&quot;, customer_id)
 
-    # 5. ストリーミングで返す
-    def generate():
-        for chunk in agent.run(message, thread_id):
-            yield f&quot;data: {chunk}\n\n&quot;  # SSE形式
-        yield &quot;data: [DONE]\n\n&quot;
+    # 5. AIを呼び出してJSON返却
+    loop = asyncio.new_event_loop()
+    try:
+        response_text = loop.run_until_complete(agent.run_sync(message, thread_id))
+        # 後処理パイプライン（拡張ポイント）
+        processed_response = post_process(response_text, customer_id)
+    finally:
+        loop.close()
 
-    return Response(generate(), mimetype=&quot;text/event-stream&quot;)
+    return success_response({
+        &quot;response&quot;: processed_response,
+        &quot;thread_id&quot;: thread_id
+    })
 </code></pre>
 
 <h3 id="backend-mainpy-の役割を図解">Backend main.py の役割を図解<a class="header-link" href="#backend-mainpy-の役割を図解" title="Permanent link">&para;</a></h3>
@@ -438,12 +438,15 @@ def chat():
 │  ③ get_agent()                         │
 │     → 適切なAIエージェントを取得          │
 │                                         │
-│  ④ agent.run()                         │
+│  ④ agent.run_sync()                    │
 │     → AIに質問して返答を生成             │
+│                                         │
+│  ⑤ post_process()                      │
+│     → 後処理パイプライン（拡張ポイント）   │
 │                                         │
 └─────────────────────────────────────────┘
     ↓
- ストリーミングで返す
+ JSON形式で返す
 </pre>
 </div>
 

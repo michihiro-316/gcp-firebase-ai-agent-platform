@@ -63,6 +63,7 @@
         <div class="sidebar-title">🔧 上級編</div>
         <ul class="sidebar-nav">
           <li><a href="10_Gatewayアーキテクチャ.html" class="active">Gatewayアーキテクチャ</a></li>
+          <li><a href="14_セキュリティとファイル連携.html" >セキュリティとファイル連携</a></li>
         </ul>
       </div>
 
@@ -155,7 +156,7 @@
 </code></pre>
 
 <h3 id="3-リクエストをそのまま転送">3. リクエストをそのまま転送<a class="header-link" href="#3-リクエストをそのまま転送" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-python"># リクエストを転送（ストリーミング対応）
+<pre class="codehilite"><code class="language-python"># リクエストを転送
 resp = requests.request(
     method=request.method,
     url=target_url,
@@ -165,7 +166,6 @@ resp = requests.request(
         &quot;X-Customer-Id&quot;: customer_id,
     },
     data=request.get_data(),
-    stream=True,  # SSE 対応
     timeout=300,
 )
 </code></pre>
@@ -314,7 +314,7 @@ else:
 <li><code>403</code>: customer_id が未設定</li>
 <li><code>404</code>: customers コレクションに cloud_functions_url が未設定</li>
 </ul>
-<h3 id="sse-が途切れる">SSE が途切れる<a class="header-link" href="#sse-が途切れる" title="Permanent link">&para;</a></h3>
+<h3 id="タイムアウト">タイムアウト<a class="header-link" href="#タイムアウト" title="Permanent link">&para;</a></h3>
 <p>Gateway のタイムアウトは 300 秒に設定されています。それ以上かかる場合は調整が必要です。</p>
       </article>
       <footer class="footer">

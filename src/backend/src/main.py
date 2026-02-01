@@ -8,8 +8,7 @@
 ║     適切なAIエージェントに処理を振り分ける「司令塔」                           ║
 ║                                                                              ║
 ║  📡 エンドポイント:                                                          ║
-║     POST /chat      → チャットメッセージを処理（ストリーミング）              ║
-║     POST /chat/sync → 同期版チャット（デバッグ用）                           ║
+║     POST /chat      → チャットメッセージを処理（同期）                       ║
 ║     GET  /health    → ヘルスチェック（死活監視用）                           ║
 ║     GET  /agents    → 利用可能なエージェント一覧                             ║
 ║                                                                              ║
@@ -44,7 +43,7 @@ import asyncio
 import re
 import uuid
 import logging
-from flask import Flask, request, Response
+from flask import Flask, request
 import functions_framework
 
 # ロギング設定
@@ -86,6 +85,7 @@ else:
 # セキュリティ設定
 MAX_MESSAGE_LENGTH = 10000  # メッセージの最大文字数（DoS/コスト攻撃対策）
 THREAD_ID_PATTERN = re.compile(r'^[a-zA-Z0-9_-]{1,100}$')  # thread_idの許可パターン
+AI_TIMEOUT_SECONDS = 55  # AI処理のタイムアウト（Cloud Run の60秒制限より短く設定）
 
 
 # ===== アプリケーション初期化 =====
@@ -239,78 +239,92 @@ def health_check():
     return success_response({"status": "healthy"})
 
 
+def post_process(response_text: str, customer_id: str) -> str:
+    """
+    レスポンスの後処理パイプライン
+
+    【この関数は何をするのか？】
+    AIからの生の回答テキストを、画面に表示する前に加工するための関数です。
+    現在は「何もせずそのまま返す」だけですが、将来の拡張ポイントとして用意されています。
+
+    【なぜ必要か？】
+    ストリーミングを廃止し同期方式にしたことで、AIの完全なレスポンスを
+    一括で受け取れるようになりました。これにより、以下のような処理が可能です：
+    - 表形式データの検出・変換（Markdownテーブル → HTML）
+    - グラフ用データの抽出（数値データ → Chart.js用JSON）
+    - Gemini による要約や再フォーマット
+    - 顧客別のキーワード置換（専門用語の補足など）
+
+    【現在の状態】
+    何も処理せず、AIの回答をそのまま返しています。
+    カスタマイズしたい場合は、この関数の中身を編集してください。
+
+    【拡張例】
+    ```python
+    def post_process(response_text: str, customer_id: str) -> str:
+        # 例1: 特定顧客のみ処理を追加
+        if customer_id == "acme-corp":
+            response_text = response_text.replace("製品A", "製品A（旧名: ProductX）")
+
+        # 例2: Markdownの表を検出してHTMLに変換
+        if "| --- |" in response_text:
+            response_text = convert_markdown_table_to_html(response_text)
+
+        return response_text
+    ```
+
+    Args:
+        response_text: AI からの生レスポンス（加工前のテキスト）
+        customer_id: 顧客ID（顧客別処理の分岐に使用）
+
+    Returns:
+        処理済みのレスポンス（加工後のテキスト）
+    """
+    # 現時点ではそのまま返す（将来の拡張ポイント）
+    return response_text
+
+
 @app.route("/chat", methods=["POST"])
 def chat():
-    """チャットAPI（ストリーミング）"""
-    try:
-        agent, message, thread_id, user_id, customer_id = prepare_chat_request()
-    except ChatRequestError as e:
-        return error_response(e.message, e.status_code)
+    """
+    チャットAPI（同期）
 
-    # ストリーミングレスポンス
-    # 【なぜこの構造が必要か】
-    # Flask は同期フレームワークだが、AI エージェントは非同期（async）で動作する。
-    # そのため、同期の generate() の中で非同期の async_generate() を呼び出す
-    # 「ブリッジ」パターンを使用している。
-    def generate():
-        async def async_generate():
-            """非同期ジェネレータ：AI からの応答を少しずつ yield"""
-            try:
-                async for chunk in agent.run(message, thread_id):
-                    yield f"data: {chunk}\n\n"
-                yield "data: [DONE]\n\n"
-            except Exception as e:
-                # エラー詳細はログに記録し、クライアントには汎用メッセージを返す
-                logger.exception(f"ストリーミング中にエラーが発生: user_id={user_id}, thread_id={thread_id}")
-                yield "data: [ERROR] エラーが発生しました。しばらく待ってから再度お試しください。\n\n"
-
-        # 【asyncio イベントループの仕組み】
-        # Cloud Functions は各リクエストで独立したスレッドで実行されるため、
-        # リクエストごとに新しいイベントループを作成する必要がある。
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            async_gen = async_generate()
-            # 【__anext__() について】
-            # async for を使えないため（同期ジェネレータ内のため）、
-            # 手動で次の値を取得。StopAsyncIteration で終了を検知。
-            while True:
-                try:
-                    chunk = loop.run_until_complete(async_gen.__anext__())
-                    yield chunk
-                except StopAsyncIteration:
-                    break
-        finally:
-            loop.close()
-
-    return Response(
-        generate(),
-        mimetype="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Thread-Id": thread_id,
-        }
-    )
-
-
-@app.route("/chat/sync", methods=["POST"])
-def chat_sync():
-    """同期チャットAPI（デバッグ用）"""
+    フロントエンドからのメッセージを受け取り、AIエージェントの応答を返す。
+    レスポンスは JSON 形式で、後処理パイプラインを通過可能。
+    """
     try:
         agent, message, thread_id, user_id, customer_id = prepare_chat_request()
     except ChatRequestError as e:
         return error_response(e.message, e.status_code)
 
     # 同期実行
+    # 【asyncio イベントループの仕組み】
+    # Cloud Functions は各リクエストで独立したスレッドで実行されるため、
+    # リクエストごとに新しいイベントループを作成する必要がある。
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
-        response_text = loop.run_until_complete(agent.run_sync(message, thread_id))
+        # タイムアウト付きで実行（Cloud Run の60秒制限対策）
+        response_text = loop.run_until_complete(
+            asyncio.wait_for(agent.run_sync(message, thread_id), timeout=AI_TIMEOUT_SECONDS)
+        )
+
+        # 後処理パイプライン（拡張ポイント）
+        processed_response = post_process(response_text, customer_id)
+    except asyncio.TimeoutError:
+        logger.warning(f"AI処理タイムアウト: user_id={user_id}, thread_id={thread_id}")
+        return error_response(
+            "AI処理がタイムアウトしました。シンプルな質問を試してください。",
+            504
+        )
+    except Exception as e:
+        logger.exception(f"チャット処理中にエラーが発生: user_id={user_id}, thread_id={thread_id}")
+        return error_response("エラーが発生しました。しばらく待ってから再度お試しください。", 500)
     finally:
         loop.close()
 
     return success_response({
-        "response": response_text,
+        "response": processed_response,
         "thread_id": thread_id
     })
 
