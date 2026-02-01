@@ -403,12 +403,17 @@ def chat():
     # 4. AIエージェントを呼び出し
     agent = get_agent(&quot;template&quot;, customer_id)
 
-    # 5. AIを呼び出してJSON返却
+    # 5. AIを呼び出してJSON返却（タイムアウト付き）
+    AI_TIMEOUT_SECONDS = 55  # Cloud Run の60秒制限対策
     loop = asyncio.new_event_loop()
     try:
-        response_text = loop.run_until_complete(agent.run_sync(message, thread_id))
+        response_text = loop.run_until_complete(
+            asyncio.wait_for(agent.run_sync(message, thread_id), timeout=AI_TIMEOUT_SECONDS)
+        )
         # 後処理パイプライン（拡張ポイント）
         processed_response = post_process(response_text, customer_id)
+    except asyncio.TimeoutError:
+        return error_response(&quot;AI処理がタイムアウトしました&quot;, 504)
     finally:
         loop.close()
 
@@ -439,7 +444,7 @@ def chat():
 │     → 適切なAIエージェントを取得          │
 │                                         │
 │  ④ agent.run_sync()                    │
-│     → AIに質問して返答を生成             │
+│     → AIに質問（55秒タイムアウト付き）    │
 │                                         │
 │  ⑤ post_process()                      │
 │     → 後処理パイプライン（拡張ポイント）   │
@@ -777,6 +782,11 @@ Firestore（データベース）
 <td><code>thread_idの形式が不正です</code></td>
 <td>不正なthread_id</td>
 <td>thread_idを指定しない</td>
+</tr>
+<tr>
+<td><code>AI処理がタイムアウトしました</code></td>
+<td>AI処理が55秒超過</td>
+<td>シンプルな質問を試す</td>
 </tr>
 <tr>
 <td><code>CORSエラー</code></td>

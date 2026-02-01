@@ -494,12 +494,18 @@ def chat():
     agent = get_agent(&quot;template&quot;, customer_id)
 
     # === ステップ5: AIを呼び出してJSON返却 ===
+    # タイムアウト付きで実行（Cloud Run の60秒制限対策）
+    AI_TIMEOUT_SECONDS = 55
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
-        response_text = loop.run_until_complete(agent.run_sync(message, thread_id))
+        response_text = loop.run_until_complete(
+            asyncio.wait_for(agent.run_sync(message, thread_id), timeout=AI_TIMEOUT_SECONDS)
+        )
         # 後処理パイプライン（拡張ポイント）
         processed_response = post_process(response_text, customer_id)
+    except asyncio.TimeoutError:
+        return {&quot;error&quot;: &quot;AI処理がタイムアウトしました&quot;}, 504
     except Exception as e:
         return {&quot;error&quot;: &quot;エラーが発生しました&quot;}, 500
     finally:
@@ -1267,6 +1273,11 @@ chat = app.route("/chat", methods=["POST"])(chat)
 <td><code>thread_idの形式が不正です</code></td>
 <td>変な文字が入っている</td>
 <td>thread_idを指定しない</td>
+</tr>
+<tr>
+<td><code>AI処理がタイムアウトしました</code></td>
+<td>AI処理が55秒を超過</td>
+<td>シンプルな質問を試す</td>
 </tr>
 </tbody>
 </table>
