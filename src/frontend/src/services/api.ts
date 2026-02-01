@@ -30,22 +30,26 @@ async function createAuthHeaders(): Promise<HeadersInit> {
   }
 }
 
+/** sendChatMessage の戻り値型 */
+export interface ChatResponse {
+  response: string
+  threadId: string
+}
+
 /**
- * チャットメッセージを送信（ストリーミング）
+ * チャットメッセージを送信
  *
  * @param message ユーザーのメッセージ
  * @param threadId スレッドID（省略可）
- * @param onChunk チャンク受信時のコールバック
- * @returns スレッドID
+ * @returns レスポンスオブジェクト { response: string, threadId: string }
  */
 export async function sendChatMessage(
   message: string,
-  threadId: string | null,
-  onChunk: (chunk: string) => void
-): Promise<string> {
+  threadId: string | null
+): Promise<ChatResponse> {
   const headers = await createAuthHeaders()
 
-  const response = await fetch(`${API_BASE_URL}/chat`, {
+  const res = await fetch(`${API_BASE_URL}/chat`, {
     method: 'POST',
     headers,
     body: JSON.stringify({
@@ -54,45 +58,20 @@ export async function sendChatMessage(
     }),
   })
 
-  if (!response.ok) {
-    const error = await response.json()
+  if (!res.ok) {
+    const error = await res.json()
     throw new Error(error.error || 'エラーが発生しました')
   }
 
-  // レスポンスヘッダーからスレッドIDを取得
-  const newThreadId = response.headers.get('X-Thread-Id') || threadId || ''
+  const data = await res.json()
 
-  // Server-Sent Eventsを処理
-  const reader = response.body?.getReader()
-  // stream: true を指定することで、マルチバイト文字（日本語など）が
-  // チャンクの境界で分断された場合でも正しくデコードされる
-  const decoder = new TextDecoder()
-
-  if (!reader) {
-    throw new Error('レスポンスの読み取りに失敗しました')
+  // レスポンス構造の検証（APIの不正な応答を検出）
+  if (!data?.data?.response || !data?.data?.thread_id) {
+    throw new Error('サーバーから無効なレスポンスを受信しました')
   }
 
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-
-    // stream: true で不完全なマルチバイトシーケンスをバッファリング
-    const text = decoder.decode(value, { stream: true })
-    const lines = text.split('\n')
-
-    for (const line of lines) {
-      if (line.startsWith('data: ')) {
-        const data = line.slice(6)
-        if (data === '[DONE]') {
-          break
-        }
-        if (data.startsWith('[ERROR]')) {
-          throw new Error(data.slice(8))
-        }
-        onChunk(data)
-      }
-    }
+  return {
+    response: data.data.response,
+    threadId: data.data.thread_id,
   }
-
-  return newThreadId
 }

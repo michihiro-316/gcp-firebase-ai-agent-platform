@@ -76,6 +76,11 @@ def get_page_config():
             "icon": "📝",
             "desc": "セッション管理の仕組み",
             "category": "flow"
+        },
+        "14_セキュリティとファイル連携": {
+            "icon": "🔐",
+            "desc": "セキュリティとファイル間の繋がり",
+            "category": "advanced"
         }
     }
 
@@ -147,6 +152,7 @@ def get_base_template():
         <div class="sidebar-title">🔧 上級編</div>
         <ul class="sidebar-nav">
           <li><a href="10_Gatewayアーキテクチャ.html" {active_10}>Gatewayアーキテクチャ</a></li>
+          <li><a href="14_セキュリティとファイル連携.html" {active_14}>セキュリティとファイル連携</a></li>
         </ul>
       </div>
 
@@ -255,6 +261,7 @@ def get_index_template():
         <div class="sidebar-title">🔧 上級編</div>
         <ul class="sidebar-nav">
           <li><a href="10_Gatewayアーキテクチャ.html">Gatewayアーキテクチャ</a></li>
+          <li><a href="14_セキュリティとファイル連携.html">セキュリティとファイル連携</a></li>
         </ul>
       </div>
 
@@ -416,6 +423,7 @@ def build_documentation():
             'active_11': get_active_class(filename, '11_'),
             'active_12': get_active_class(filename, '12_'),
             'active_13': get_active_class(filename, '13_'),
+            'active_14': get_active_class(filename, '14_'),
         }
 
         # HTMLテンプレートに適用

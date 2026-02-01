@@ -100,6 +100,19 @@ export function ChatScreen({
             <MessageRenderer key={msg.id} message={msg} config={config} />
           ))
         )}
+
+        {/* 待機中UI（アクセシビリティ対応） */}
+        {isLoading && (
+          <div className="thinking-indicator" role="status" aria-label="AIが考え中です">
+            <div className="thinking-dots" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <p>AIが考え中...</p>
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 

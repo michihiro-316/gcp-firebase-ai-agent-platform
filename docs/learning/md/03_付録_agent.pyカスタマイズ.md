@@ -115,7 +115,7 @@ class MyAgent:
 ```
 
 <div style="background: white; padding: 12px; border-radius: 4px; margin-top: 8px;">
-<strong>なぜ？</strong> BaseAgent に <code>run()</code> メソッドがあり、これがストリーミング処理を担当しているため。
+<strong>なぜ？</strong> BaseAgent に <code>run_sync()</code> メソッドがあり、これがAI呼び出し処理を担当しているため。
 </div>
 </div>
 

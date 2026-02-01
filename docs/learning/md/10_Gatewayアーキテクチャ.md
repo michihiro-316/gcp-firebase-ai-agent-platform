@@ -90,7 +90,7 @@ def get_company_url(customer_id: str) -> str:
 ### 3. リクエストをそのまま転送
 
 ```python
-# リクエストを転送（ストリーミング対応）
+# リクエストを転送
 resp = requests.request(
     method=request.method,
     url=target_url,
@@ -100,7 +100,6 @@ resp = requests.request(
         "X-Customer-Id": customer_id,
     },
     data=request.get_data(),
-    stream=True,  # SSE 対応
     timeout=300,
 )
 ```
@@ -284,6 +283,6 @@ curl https://gateway-xxx.cloudfunctions.net/health
 - `403`: customer_id が未設定
 - `404`: customers コレクションに cloud_functions_url が未設定
 
-### SSE が途切れる
+### タイムアウト
 
 Gateway のタイムアウトは 300 秒に設定されています。それ以上かかる場合は調整が必要です。

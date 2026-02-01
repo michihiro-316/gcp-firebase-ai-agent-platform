@@ -63,53 +63,28 @@ export function useChat(options?: UseChatOptions) {
     const updatedMessagesWithUser = [...messages, userMessage]
     setMessages(updatedMessagesWithUser)
 
-    // AIの応答用プレースホルダー
-    const assistantMessageId = generateUniqueId()
-    const assistantMessage: Message = {
-      id: assistantMessageId,
-      role: 'assistant',
-      content: '',
-    }
-
-    const updatedMessagesWithAssistant = [...updatedMessagesWithUser, assistantMessage]
-    setMessages(updatedMessagesWithAssistant)
-
     try {
-      let currentContent = ''
+      // 同期でレスポンスを取得
+      const { response, threadId: newThreadId } = await sendChatMessage(content, threadId)
 
-      // ストリーミングでメッセージを受信
-      const newThreadId = await sendChatMessage(
-        content,
-        threadId,
-        (chunk) => {
-          currentContent += chunk
-          // チャンクを受信するたびにメッセージを更新
-          setMessages(prev =>
-            prev.map(msg =>
-              msg.id === assistantMessageId
-                ? { ...msg, content: currentContent }
-                : msg
-            )
-          )
-        }
-      )
+      // アシスタントメッセージを追加
+      const assistantMessage: Message = {
+        id: generateUniqueId(),
+        role: 'assistant',
+        content: response,
+      }
 
+      const finalMessages = [...updatedMessagesWithUser, assistantMessage]
+      setMessages(finalMessages)
       setThreadId(newThreadId)
 
       // セッションにメッセージを保存
       if (activeSession && onMessagesUpdate) {
-        const finalMessages = updatedMessagesWithUser.concat({
-          ...assistantMessage,
-          content: currentContent,
-        })
         onMessagesUpdate(activeSession.id, finalMessages, newThreadId)
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'エラーが発生しました'
       setError(errorMessage)
-
-      // エラー時は失敗したメッセージを削除
-      setMessages(prev => prev.filter(msg => msg.id !== assistantMessageId))
 
       // セッションにはユーザーメッセージまで保存
       if (activeSession && onMessagesUpdate) {
