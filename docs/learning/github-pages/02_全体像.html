@@ -496,10 +496,12 @@ main.tsx ─▶ App.tsx ─▶ useChat.ts ─▶ api.ts ═══▶【バック
 ① Firebase でログイン
    ブラウザ ───────────────▶ Firebase（Google）
                                   │
-② トークン発行                    │
+② IDトークン発行                  │
    ブラウザ ◀─────────────────────┘
+      │         eyJhbG...（JWT文字列）
       │
-      │ Authorization: Bearer eyJhbG...（認証の証）
+      │  ※ api.ts でヘッダー形式に整形
+      │    Authorization: Bearer eyJhbG...
       │
 ③ トークン付きでリクエスト
       ▼
