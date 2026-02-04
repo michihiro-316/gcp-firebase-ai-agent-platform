@@ -492,30 +492,71 @@ main.tsx ─▶ App.tsx ─▶ useChat.ts ─▶ api.ts ═══▶【バック
 <div class="box-title">🔐 認証トークンの流れ</div>
 <div class="box-content">
 
-<pre>
-① Firebase でログイン
-   ブラウザ ───────────────▶ Firebase（Google）
-                                  │
-② IDトークン発行                  │
-   ブラウザ ◀─────────────────────┘
-      │         eyJhbG...（JWT文字列）
-      │
-      │  ※ api.ts でヘッダー形式に整形
-      │    Authorization: Bearer eyJhbG...
-      │
-③ トークン付きでリクエスト
-      ▼
-   バックエンド ─────▶ Firebase で検証
-      │                    │
-      │  OK なら処理続行    │
-      │◀───────────────────┘
-</pre>
+<p><strong>なぜ認証が必要？</strong><br>
+認証がないと、誰でもAPIにアクセスできてしまい、他人のデータを見られたり、悪用されたりします。<br>
+「私は〇〇です」という<strong>身分証明書（IDトークン）</strong>を使って、正しいユーザーだけがアクセスできるようにします。</p>
 
+<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+<tr style="background: #4a5568; color: white;">
+<th style="padding: 12px; text-align: center; width: 80px;">ステップ</th>
+<th style="padding: 12px; text-align: left;">何が起きる？</th>
+<th style="padding: 12px; text-align: center; width: 200px;">データの流れ</th>
+</tr>
+<tr style="background: #f0fdf4;">
+<td style="padding: 12px; text-align: center; font-weight: bold; font-size: 20px;">①</td>
+<td style="padding: 12px;">
+<strong>🔑 ログイン</strong><br>
+ユーザーが「Googleでログイン」ボタンをクリック。<br>
+Googleの画面でメールアドレス・パスワードを入力します。
+</td>
+<td style="padding: 12px; text-align: center; font-family: monospace;">
+🖥️ ブラウザ<br>↓<br>🔥 Firebase
+</td>
+</tr>
+<tr style="background: #fef3c7;">
+<td style="padding: 12px; text-align: center; font-weight: bold; font-size: 20px;">②</td>
+<td style="padding: 12px;">
+<strong>📜 IDトークン発行</strong><br>
+ログイン成功すると、Firebaseが<strong>IDトークン</strong>を発行します。<br>
+<code style="background: #1e1e1e; color: #98c379; padding: 2px 6px; border-radius: 4px;">eyJhbG...</code> という長い文字列（JWT形式）で、<br>
+「この人は本物の〇〇さんです」という情報が暗号化されています。
+</td>
+<td style="padding: 12px; text-align: center; font-family: monospace;">
+🔥 Firebase<br>↓<br>🖥️ ブラウザ
+</td>
+</tr>
+<tr style="background: #e0f2fe;">
+<td style="padding: 12px; text-align: center; font-weight: bold; font-size: 20px;">③</td>
+<td style="padding: 12px;">
+<strong>📝 ヘッダー形式に整形（api.ts）</strong><br>
+ブラウザ側のコード（api.ts）で、トークンをHTTPヘッダーの形式に整形します。<br>
+<code style="background: #1e1e1e; color: #98c379; padding: 2px 6px; border-radius: 4px;">Authorization: Bearer eyJhbG...</code><br>
+<small>💡 「Bearer」は「持参人」の意味。このトークンを持っている人に権限を与える形式です。</small>
+</td>
+<td style="padding: 12px; text-align: center; font-family: monospace; color: #666;">
+（ブラウザ内部の処理）
+</td>
+</tr>
+<tr style="background: #fce7f3;">
+<td style="padding: 12px; text-align: center; font-weight: bold; font-size: 20px;">④</td>
+<td style="padding: 12px;">
+<strong>📤 トークン付きでAPIリクエスト</strong><br>
+チャットメッセージを送るとき、ヘッダーにトークンを付けてバックエンドに送信します。<br>
+バックエンドは受け取ったトークンをFirebaseで検証し、<br>
+<strong>本物なら処理を続行</strong>、偽物ならエラーを返します。
+</td>
+<td style="padding: 12px; text-align: center; font-family: monospace;">
+🖥️ ブラウザ<br>↓<br>🐍 バックエンド<br>↔️ 🔥 Firebase検証
+</td>
+</tr>
+</table>
+
+<p><strong>📋 役割分担まとめ</strong></p>
 <table>
 <tr><th>役割</th><th>フロントエンド</th><th>バックエンド</th></tr>
-<tr><td>トークン生成</td><td>✅ api.ts で取得</td><td>—</td></tr>
-<tr><td>トークン送信</td><td>✅ ヘッダーに付ける</td><td>—</td></tr>
-<tr><td>トークン検証</td><td>—</td><td>✅ auth.py で検証</td></tr>
+<tr><td>トークン取得</td><td>✅ api.ts で Firebase から取得</td><td>—</td></tr>
+<tr><td>トークン送信</td><td>✅ HTTPヘッダーに付けて送る</td><td>—</td></tr>
+<tr><td>トークン検証</td><td>—</td><td>✅ auth.py で Firebase に問い合わせて検証</td></tr>
 </table>
 
 <p>→ 詳細は <a href="./04_フロントエンド解説.html">04_フロントエンド解説</a> で説明しています。</p>
