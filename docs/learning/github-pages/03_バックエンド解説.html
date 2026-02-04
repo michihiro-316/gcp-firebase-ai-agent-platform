@@ -116,7 +116,7 @@
 
 <hr />
 <h2 id="ファイル構成">ファイル構成<a class="header-link" href="#ファイル構成" title="Permanent link">&para;</a></h2>
-<pre class="codehilite"><code>gateway/
+<div class="codehilite"><pre><span></span><code>gateway/
 └── main.py              ★ Gateway（すべてのリクエストの入口）
 
 backend/
@@ -132,10 +132,7 @@ backend/
     │   └── firestore_checkpointer.py  会話履歴保存
     └── _template/
         └── agent.py     ★ AIエージェント本体
-
-backend/scripts/
-└── manage_customer.py   ★ 顧客管理コマンド（運用時に必須）
-</code></pre>
+</code></pre></div>
 
 <div class="tip-box">
 <div class="box-title">📁 なぜファイルを分けるの？</div>
@@ -435,108 +432,108 @@ else:
 </div>
 
 <h3 id="コード実際の構造に近い形">コード（実際の構造に近い形）<a class="header-link" href="#コード実際の構造に近い形" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-python"># main.py の構造（簡略化したもの）
+<div class="codehilite"><pre><span></span><code><span class="c1"># main.py の構造（簡略化したもの）</span>
 
-from flask import Flask, request
-import asyncio
-from common.auth import authenticate_request
-from common.rate_limiter import check_rate_limit
+<span class="kn">from</span><span class="w"> </span><span class="nn">flask</span><span class="w"> </span><span class="kn">import</span> <span class="n">Flask</span><span class="p">,</span> <span class="n">request</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">common.auth</span><span class="w"> </span><span class="kn">import</span> <span class="n">authenticate_request</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">common.rate_limiter</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_rate_limit</span>
 
-app = Flask(__name__)
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-# ========================================
-# ヘルスチェック: サーバーが生きてるか確認
-# ========================================
-@app.route(&quot;/health&quot;, methods=[&quot;GET&quot;])
-def health():
-    &quot;&quot;&quot;サーバー生存確認&quot;&quot;&quot;
-    return {&quot;status&quot;: &quot;healthy&quot;}
-
-
-# ========================================
-# チャットAPI: メインの機能
-# ========================================
-@app.route(&quot;/chat&quot;, methods=[&quot;POST&quot;])
-def chat():
-    &quot;&quot;&quot;チャットAPI（同期）&quot;&quot;&quot;
-
-    # === ステップ1: 認証チェック ===
-    try:
-        user_info = authenticate_request(request)
-    except ValueError as e:
-        return {&quot;error&quot;: str(e)}, 401  # 401 = 認証エラー
-
-    user_id = user_info[&quot;uid&quot;]
-    customer_id = user_info[&quot;customer_id&quot;]
-
-    # === ステップ2: レート制限チェック ===
-    if not check_rate_limit(user_id):
-        return {&quot;error&quot;: &quot;リクエスト制限を超えました。1分後に再試行してください。&quot;}, 429
-
-    # === ステップ3: 入力値検証 ===
-    data = request.get_json()
-    message = data.get(&quot;message&quot;, &quot;&quot;)
-    thread_id = data.get(&quot;thread_id&quot;)
-
-    # メッセージが空
-    if not message.strip():
-        return {&quot;error&quot;: &quot;メッセージが空です&quot;}, 400
-
-    # メッセージが長すぎる（DoS対策）
-    if len(message) &gt; 10000:
-        return {&quot;error&quot;: &quot;メッセージが長すぎます（10,000文字まで）&quot;}, 400
-
-    # thread_idの形式チェック（インジェクション対策）
-    if thread_id and not is_valid_thread_id(thread_id):
-        return {&quot;error&quot;: &quot;thread_idの形式が不正です&quot;}, 400
-
-    # === ステップ4: AIエージェント取得 ===
-    agent = get_agent(&quot;template&quot;, customer_id)
-
-    # === ステップ5: AIを呼び出してJSON返却 ===
-    # タイムアウト付きで実行（Cloud Run の60秒制限対策）
-    AI_TIMEOUT_SECONDS = 55
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    try:
-        response_text = loop.run_until_complete(
-            asyncio.wait_for(agent.run_sync(message, thread_id), timeout=AI_TIMEOUT_SECONDS)
-        )
-        # 後処理パイプライン（拡張ポイント）
-        processed_response = post_process(response_text, customer_id)
-    except asyncio.TimeoutError:
-        return {&quot;error&quot;: &quot;AI処理がタイムアウトしました&quot;}, 504
-    except Exception as e:
-        return {&quot;error&quot;: &quot;エラーが発生しました&quot;}, 500
-    finally:
-        loop.close()
-
-    return {
-        &quot;status&quot;: &quot;success&quot;,
-        &quot;data&quot;: {
-            &quot;response&quot;: processed_response,
-            &quot;thread_id&quot;: thread_id
-        }
-    }
+<span class="c1"># ========================================</span>
+<span class="c1"># ヘルスチェック: サーバーが生きてるか確認</span>
+<span class="c1"># ========================================</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;GET&quot;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">health</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;サーバー生存確認&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;healthy&quot;</span><span class="p">}</span>
 
 
-def post_process(response_text: str, customer_id: str) -&gt; str:
-    &quot;&quot;&quot;
-    レスポンスの後処理パイプライン（拡張ポイント）
+<span class="c1"># ========================================</span>
+<span class="c1"># チャットAPI: メインの機能</span>
+<span class="c1"># ========================================</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/chat&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">chat</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;チャットAPI（同期）&quot;&quot;&quot;</span>
 
-    ここで顧客ごとのカスタム処理が可能:
-    - 表形式データの検出・変換
-    - グラフ用データの抽出
-    - Gemini による再処理
-    &quot;&quot;&quot;
-    return response_text
+    <span class="c1"># === ステップ1: 認証チェック ===</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">user_info</span> <span class="o">=</span> <span class="n">authenticate_request</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)},</span> <span class="mi">401</span>  <span class="c1"># 401 = 認証エラー</span>
+
+    <span class="n">user_id</span> <span class="o">=</span> <span class="n">user_info</span><span class="p">[</span><span class="s2">&quot;uid&quot;</span><span class="p">]</span>
+    <span class="n">customer_id</span> <span class="o">=</span> <span class="n">user_info</span><span class="p">[</span><span class="s2">&quot;customer_id&quot;</span><span class="p">]</span>
+
+    <span class="c1"># === ステップ2: レート制限チェック ===</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">check_rate_limit</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;リクエスト制限を超えました。1分後に再試行してください。&quot;</span><span class="p">},</span> <span class="mi">429</span>
+
+    <span class="c1"># === ステップ3: 入力値検証 ===</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;message&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">thread_id</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;thread_id&quot;</span><span class="p">)</span>
+
+    <span class="c1"># メッセージが空</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">message</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;メッセージが空です&quot;</span><span class="p">},</span> <span class="mi">400</span>
+
+    <span class="c1"># メッセージが長すぎる（DoS対策）</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10000</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;メッセージが長すぎます（10,000文字まで）&quot;</span><span class="p">},</span> <span class="mi">400</span>
+
+    <span class="c1"># thread_idの形式チェック（インジェクション対策）</span>
+    <span class="k">if</span> <span class="n">thread_id</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_valid_thread_id</span><span class="p">(</span><span class="n">thread_id</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;thread_idの形式が不正です&quot;</span><span class="p">},</span> <span class="mi">400</span>
+
+    <span class="c1"># === ステップ4: AIエージェント取得 ===</span>
+    <span class="n">agent</span> <span class="o">=</span> <span class="n">get_agent</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="n">customer_id</span><span class="p">)</span>
+
+    <span class="c1"># === ステップ5: AIを呼び出してJSON返却 ===</span>
+    <span class="c1"># タイムアウト付きで実行（Cloud Run の60秒制限対策）</span>
+    <span class="n">AI_TIMEOUT_SECONDS</span> <span class="o">=</span> <span class="mi">55</span>
+    <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">new_event_loop</span><span class="p">()</span>
+    <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop</span><span class="p">(</span><span class="n">loop</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">response_text</span> <span class="o">=</span> <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span>
+            <span class="n">asyncio</span><span class="o">.</span><span class="n">wait_for</span><span class="p">(</span><span class="n">agent</span><span class="o">.</span><span class="n">run_sync</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">thread_id</span><span class="p">),</span> <span class="n">timeout</span><span class="o">=</span><span class="n">AI_TIMEOUT_SECONDS</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="c1"># 後処理パイプライン（拡張ポイント）</span>
+        <span class="n">processed_response</span> <span class="o">=</span> <span class="n">post_process</span><span class="p">(</span><span class="n">response_text</span><span class="p">,</span> <span class="n">customer_id</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;AI処理がタイムアウトしました&quot;</span><span class="p">},</span> <span class="mi">504</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;エラーが発生しました&quot;</span><span class="p">},</span> <span class="mi">500</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;success&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;response&quot;</span><span class="p">:</span> <span class="n">processed_response</span><span class="p">,</span>
+            <span class="s2">&quot;thread_id&quot;</span><span class="p">:</span> <span class="n">thread_id</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
 
 
-def is_valid_thread_id(thread_id: str) -&gt; bool:
-    &quot;&quot;&quot;thread_idの形式を検証（英数字、ハイフン、アンダースコアのみ）&quot;&quot;&quot;
-    import re
-    return bool(re.match(r'^[a-zA-Z0-9_-]+$', thread_id))
-</code></pre>
+<span class="k">def</span><span class="w"> </span><span class="nf">post_process</span><span class="p">(</span><span class="n">response_text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">customer_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    レスポンスの後処理パイプライン（拡張ポイント）</span>
+
+<span class="sd">    ここで顧客ごとのカスタム処理が可能:</span>
+<span class="sd">    - 表形式データの検出・変換</span>
+<span class="sd">    - グラフ用データの抽出</span>
+<span class="sd">    - Gemini による再処理</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">response_text</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">is_valid_thread_id</span><span class="p">(</span><span class="n">thread_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;thread_idの形式を検証（英数字、ハイフン、アンダースコアのみ）&quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+    <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[a-zA-Z0-9_-]+$&#39;</span><span class="p">,</span> <span class="n">thread_id</span><span class="p">))</span>
+</code></pre></div>
 
 <hr />
 <h2 id="3-authpy---認証処理超重要">3. auth.py - 認証処理（超重要！）<a class="header-link" href="#3-authpy---認証処理超重要" title="Permanent link">&para;</a></h2>
@@ -611,165 +608,165 @@ def is_valid_thread_id(thread_id: str) -&gt; bool:
 </div>
 
 <h3 id="コード実際の構造に近い形_1">コード（実際の構造に近い形）<a class="header-link" href="#コード実際の構造に近い形_1" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-python"># auth.py の主要な関数
+<div class="codehilite"><pre><span></span><code><span class="c1"># auth.py の主要な関数</span>
 
-from firebase_admin import auth
-from common.firebase_init import get_firestore_client
+<span class="kn">from</span><span class="w"> </span><span class="nn">firebase_admin</span><span class="w"> </span><span class="kn">import</span> <span class="n">auth</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">common.firebase_init</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_firestore_client</span>
 
-db = get_firestore_client()
-
-
-def authenticate_request(request) -&gt; dict:
-    &quot;&quot;&quot;
-    リクエストを認証し、ユーザー情報を返す
-
-    Returns:
-        dict: {uid, email, name, customer_id, ...}
-
-    Raises:
-        ValueError: 認証に失敗した場合
-    &quot;&quot;&quot;
-
-    # === 関門1: トークンがあるか？ ===
-    auth_header = request.headers.get(&quot;Authorization&quot;, &quot;&quot;)
-
-    if not auth_header:
-        raise ValueError(&quot;認証トークンがありません&quot;)
-
-    # &quot;Bearer &quot; で始まっているか？
-    # セキュリティ上、形式を厳密にチェック
-    parts = auth_header.split(&quot; &quot;)
-    if len(parts) != 2 or parts[0] != &quot;Bearer&quot;:
-        raise ValueError(&quot;認証ヘッダーの形式が不正です&quot;)
-
-    id_token = parts[1]
-
-    # === 関門2: トークンは本物か？ ===
-    try:
-        # Firebase Admin SDK でトークンを検証
-        # check_revoked=True: ログアウト後のトークン使用を防ぐ
-        user_info = auth.verify_id_token(id_token, check_revoked=True)
-
-    except auth.RevokedIdTokenError:
-        # トークンが失効済み（ログアウト後など）
-        raise ValueError(&quot;セッションが無効です。再度ログインしてください。&quot;)
-
-    except auth.ExpiredIdTokenError:
-        # トークンの有効期限切れ（1時間）
-        raise ValueError(&quot;セッションの有効期限が切れました。再度ログインしてください。&quot;)
-
-    except auth.InvalidIdTokenError:
-        # トークンが不正（改ざん、形式エラーなど）
-        raise ValueError(&quot;認証トークンが無効です&quot;)
-
-    # === 関門3: このユーザーは許可されているか？ ===
-    email = user_info.get(&quot;email&quot;, &quot;&quot;)
-
-    if not is_user_allowed(email):
-        raise ValueError(f&quot;アクセスが許可されていません: {email}&quot;)
-
-    # === 関門4: 顧客IDを取得 ===
-    uid = user_info[&quot;uid&quot;]
-    customer_id = get_user_customer_id(uid, email)
-    user_info[&quot;customer_id&quot;] = customer_id
-
-    return user_info
+<span class="n">db</span> <span class="o">=</span> <span class="n">get_firestore_client</span><span class="p">()</span>
 
 
-def is_user_allowed(email: str) -&gt; bool:
-    &quot;&quot;&quot;
-    このメールアドレスはアクセス許可されているか？
+<span class="k">def</span><span class="w"> </span><span class="nf">authenticate_request</span><span class="p">(</span><span class="n">request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    リクエストを認証し、ユーザー情報を返す</span>
 
-    Firestoreの config/access_control ドキュメントを確認
-    &quot;&quot;&quot;
-    if not email:
-        return False
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: {uid, email, name, customer_id, ...}</span>
 
-    # Firestore から許可リストを取得
-    doc_ref = db.collection(&quot;config&quot;).document(&quot;access_control&quot;)
-    doc = doc_ref.get()
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: 認証に失敗した場合</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    if not doc.exists:
-        # 設定がない場合はデフォルトで拒否（セキュリティ優先）
-        return False
+    <span class="c1"># === 関門1: トークンがあるか？ ===</span>
+    <span class="n">auth_header</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Authorization&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
 
-    data = doc.to_dict()
-    allowed_emails = data.get(&quot;allowed_emails&quot;, [])
-    allowed_domains = data.get(&quot;allowed_domains&quot;, [])
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">auth_header</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;認証トークンがありません&quot;</span><span class="p">)</span>
 
-    # メールが直接許可されている？
-    if email in allowed_emails:
-        return True
+    <span class="c1"># &quot;Bearer &quot; で始まっているか？</span>
+    <span class="c1"># セキュリティ上、形式を厳密にチェック</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="n">auth_header</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;Bearer&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;認証ヘッダーの形式が不正です&quot;</span><span class="p">)</span>
 
-    # ドメインが許可されている？
-    domain = email.split(&quot;@&quot;)[1] if &quot;@&quot; in email else &quot;&quot;
-    if domain in allowed_domains:
-        return True
+    <span class="n">id_token</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
-    return False
+    <span class="c1"># === 関門2: トークンは本物か？ ===</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Firebase Admin SDK でトークンを検証</span>
+        <span class="c1"># check_revoked=True: ログアウト後のトークン使用を防ぐ</span>
+        <span class="n">user_info</span> <span class="o">=</span> <span class="n">auth</span><span class="o">.</span><span class="n">verify_id_token</span><span class="p">(</span><span class="n">id_token</span><span class="p">,</span> <span class="n">check_revoked</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
+    <span class="k">except</span> <span class="n">auth</span><span class="o">.</span><span class="n">RevokedIdTokenError</span><span class="p">:</span>
+        <span class="c1"># トークンが失効済み（ログアウト後など）</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;セッションが無効です。再度ログインしてください。&quot;</span><span class="p">)</span>
 
-def get_user_customer_id(uid: str, email: str = None) -&gt; str:
-    &quot;&quot;&quot;
-    ユーザーの顧客IDを取得（自動振り分け対応）
+    <span class="k">except</span> <span class="n">auth</span><span class="o">.</span><span class="n">ExpiredIdTokenError</span><span class="p">:</span>
+        <span class="c1"># トークンの有効期限切れ（1時間）</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;セッションの有効期限が切れました。再度ログインしてください。&quot;</span><span class="p">)</span>
 
-    1. Custom Claims に customer_id があればそれを返す
-    2. なければメールドメインから自動検索・設定
-    &quot;&quot;&quot;
+    <span class="k">except</span> <span class="n">auth</span><span class="o">.</span><span class="n">InvalidIdTokenError</span><span class="p">:</span>
+        <span class="c1"># トークンが不正（改ざん、形式エラーなど）</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;認証トークンが無効です&quot;</span><span class="p">)</span>
 
-    # Firebase Auth からユーザー情報を取得
-    user = auth.get_user(uid)
-    claims = user.custom_claims or {}
+    <span class="c1"># === 関門3: このユーザーは許可されているか？ ===</span>
+    <span class="n">email</span> <span class="o">=</span> <span class="n">user_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;email&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
 
-    # 既に customer_id がある場合
-    if claims.get(&quot;customer_id&quot;):
-        return claims[&quot;customer_id&quot;]
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_user_allowed</span><span class="p">(</span><span class="n">email</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;アクセスが許可されていません: </span><span class="si">{</span><span class="n">email</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    # 自動振り分けを試行
-    if email:
-        customer_id = auto_assign_customer(uid, email)
-        if customer_id:
-            return customer_id
+    <span class="c1"># === 関門4: 顧客IDを取得 ===</span>
+    <span class="n">uid</span> <span class="o">=</span> <span class="n">user_info</span><span class="p">[</span><span class="s2">&quot;uid&quot;</span><span class="p">]</span>
+    <span class="n">customer_id</span> <span class="o">=</span> <span class="n">get_user_customer_id</span><span class="p">(</span><span class="n">uid</span><span class="p">,</span> <span class="n">email</span><span class="p">)</span>
+    <span class="n">user_info</span><span class="p">[</span><span class="s2">&quot;customer_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">customer_id</span>
 
-    # どちらにも該当しない
-    raise ValueError(&quot;顧客に紐付けされていません。管理者に連絡してください。&quot;)
+    <span class="k">return</span> <span class="n">user_info</span>
 
 
-def auto_assign_customer(uid: str, email: str) -&gt; str | None:
-    &quot;&quot;&quot;
-    メールアドレスから顧客を自動検索し、紐付ける
+<span class="k">def</span><span class="w"> </span><span class="nf">is_user_allowed</span><span class="p">(</span><span class="n">email</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    このメールアドレスはアクセス許可されているか？</span>
 
-    Returns:
-        str | None: 紐付けに成功した場合は customer_id、失敗した場合は None
-    &quot;&quot;&quot;
-    domain = email.split(&quot;@&quot;)[1] if &quot;@&quot; in email else &quot;&quot;
+<span class="sd">    Firestoreの config/access_control ドキュメントを確認</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">email</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
 
-    # 顧客を検索
-    customers_ref = db.collection(&quot;customers&quot;)
+    <span class="c1"># Firestore から許可リストを取得</span>
+    <span class="n">doc_ref</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">collection</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">document</span><span class="p">(</span><span class="s2">&quot;access_control&quot;</span><span class="p">)</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">doc_ref</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
 
-    # 1. メールアドレスで直接検索
-    query = customers_ref.where(&quot;allowed_emails&quot;, &quot;array_contains&quot;, email)
-    docs = list(query.stream())
-    if docs:
-        customer_id = docs[0].id
-        _set_customer_id_claim(uid, customer_id)
-        return customer_id
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">doc</span><span class="o">.</span><span class="n">exists</span><span class="p">:</span>
+        <span class="c1"># 設定がない場合はデフォルトで拒否（セキュリティ優先）</span>
+        <span class="k">return</span> <span class="kc">False</span>
 
-    # 2. ドメインで検索
-    query = customers_ref.where(&quot;allowed_domains&quot;, &quot;array_contains&quot;, domain)
-    docs = list(query.stream())
-    if docs:
-        customer_id = docs[0].id
-        _set_customer_id_claim(uid, customer_id)
-        return customer_id
+    <span class="n">data</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+    <span class="n">allowed_emails</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;allowed_emails&quot;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">allowed_domains</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;allowed_domains&quot;</span><span class="p">,</span> <span class="p">[])</span>
 
-    return None
+    <span class="c1"># メールが直接許可されている？</span>
+    <span class="k">if</span> <span class="n">email</span> <span class="ow">in</span> <span class="n">allowed_emails</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="c1"># ドメインが許可されている？</span>
+    <span class="n">domain</span> <span class="o">=</span> <span class="n">email</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;@&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;@&quot;</span> <span class="ow">in</span> <span class="n">email</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">domain</span> <span class="ow">in</span> <span class="n">allowed_domains</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">return</span> <span class="kc">False</span>
 
 
-def _set_customer_id_claim(uid: str, customer_id: str):
-    &quot;&quot;&quot;Custom Claims に customer_id を設定&quot;&quot;&quot;
-    auth.set_custom_user_claims(uid, {&quot;customer_id&quot;: customer_id})
-</code></pre>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_user_customer_id</span><span class="p">(</span><span class="n">uid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">email</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ユーザーの顧客IDを取得（自動振り分け対応）</span>
+
+<span class="sd">    1. Custom Claims に customer_id があればそれを返す</span>
+<span class="sd">    2. なければメールドメインから自動検索・設定</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Firebase Auth からユーザー情報を取得</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">auth</span><span class="o">.</span><span class="n">get_user</span><span class="p">(</span><span class="n">uid</span><span class="p">)</span>
+    <span class="n">claims</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">custom_claims</span> <span class="ow">or</span> <span class="p">{}</span>
+
+    <span class="c1"># 既に customer_id がある場合</span>
+    <span class="k">if</span> <span class="n">claims</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;customer_id&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">claims</span><span class="p">[</span><span class="s2">&quot;customer_id&quot;</span><span class="p">]</span>
+
+    <span class="c1"># 自動振り分けを試行</span>
+    <span class="k">if</span> <span class="n">email</span><span class="p">:</span>
+        <span class="n">customer_id</span> <span class="o">=</span> <span class="n">auto_assign_customer</span><span class="p">(</span><span class="n">uid</span><span class="p">,</span> <span class="n">email</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">customer_id</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">customer_id</span>
+
+    <span class="c1"># どちらにも該当しない</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;顧客に紐付けされていません。管理者に連絡してください。&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">auto_assign_customer</span><span class="p">(</span><span class="n">uid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">email</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    メールアドレスから顧客を自動検索し、紐付ける</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str | None: 紐付けに成功した場合は customer_id、失敗した場合は None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">domain</span> <span class="o">=</span> <span class="n">email</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;@&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;@&quot;</span> <span class="ow">in</span> <span class="n">email</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="c1"># 顧客を検索</span>
+    <span class="n">customers_ref</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">collection</span><span class="p">(</span><span class="s2">&quot;customers&quot;</span><span class="p">)</span>
+
+    <span class="c1"># 1. メールアドレスで直接検索</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">customers_ref</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="s2">&quot;allowed_emails&quot;</span><span class="p">,</span> <span class="s2">&quot;array_contains&quot;</span><span class="p">,</span> <span class="n">email</span><span class="p">)</span>
+    <span class="n">docs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">stream</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">docs</span><span class="p">:</span>
+        <span class="n">customer_id</span> <span class="o">=</span> <span class="n">docs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">id</span>
+        <span class="n">_set_customer_id_claim</span><span class="p">(</span><span class="n">uid</span><span class="p">,</span> <span class="n">customer_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">customer_id</span>
+
+    <span class="c1"># 2. ドメインで検索</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">customers_ref</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="s2">&quot;allowed_domains&quot;</span><span class="p">,</span> <span class="s2">&quot;array_contains&quot;</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span>
+    <span class="n">docs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">stream</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">docs</span><span class="p">:</span>
+        <span class="n">customer_id</span> <span class="o">=</span> <span class="n">docs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">id</span>
+        <span class="n">_set_customer_id_claim</span><span class="p">(</span><span class="n">uid</span><span class="p">,</span> <span class="n">customer_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">customer_id</span>
+
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_set_customer_id_claim</span><span class="p">(</span><span class="n">uid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">customer_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Custom Claims に customer_id を設定&quot;&quot;&quot;</span>
+    <span class="n">auth</span><span class="o">.</span><span class="n">set_custom_user_claims</span><span class="p">(</span><span class="n">uid</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;customer_id&quot;</span><span class="p">:</span> <span class="n">customer_id</span><span class="p">})</span>
+</code></pre></div>
 
 <hr />
 <h2 id="4-agentpy---aiエージェント">4. agent.py - AIエージェント<a class="header-link" href="#4-agentpy---aiエージェント" title="Permanent link">&para;</a></h2>
@@ -841,134 +838,134 @@ FirestoreCheckpointer（会話履歴を保存）
 </div>
 
 <h3 id="コード実際の構造に近い形_2">コード（実際の構造に近い形）<a class="header-link" href="#コード実際の構造に近い形_2" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-python"># agent.py の主要部分
+<div class="codehilite"><pre><span></span><code><span class="c1"># agent.py の主要部分</span>
 
-from langchain_google_vertexai import ChatVertexAI
-from langgraph.graph import StateGraph, MessagesState
+<span class="kn">from</span><span class="w"> </span><span class="nn">langchain_google_vertexai</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChatVertexAI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.graph</span><span class="w"> </span><span class="kn">import</span> <span class="n">StateGraph</span><span class="p">,</span> <span class="n">MessagesState</span>
 
-# =============================================
-# ★ ここを編集してAIをカスタマイズ
-# =============================================
+<span class="c1"># =============================================</span>
+<span class="c1"># ★ ここを編集してAIをカスタマイズ</span>
+<span class="c1"># =============================================</span>
 
-# AIの性格・役割
-SYSTEM_PROMPT = &quot;&quot;&quot;あなたは親切で丁寧なAIアシスタントです。
-ユーザーの質問に対して、わかりやすく簡潔に回答してください。
-日本語で回答してください。&quot;&quot;&quot;
+<span class="c1"># AIの性格・役割</span>
+<span class="n">SYSTEM_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;あなたは親切で丁寧なAIアシスタントです。</span>
+<span class="s2">ユーザーの質問に対して、わかりやすく簡潔に回答してください。</span>
+<span class="s2">日本語で回答してください。&quot;&quot;&quot;</span>
 
-# 使用するモデル
-MODEL_NAME = &quot;gemini-1.5-flash&quot;
+<span class="c1"># 使用するモデル</span>
+<span class="n">MODEL_NAME</span> <span class="o">=</span> <span class="s2">&quot;gemini-1.5-flash&quot;</span>
 
-# 会話履歴の最大数（多いほどコストがかかる）
-MAX_HISTORY_MESSAGES = 20  # 約10往復分
+<span class="c1"># 会話履歴の最大数（多いほどコストがかかる）</span>
+<span class="n">MAX_HISTORY_MESSAGES</span> <span class="o">=</span> <span class="mi">20</span>  <span class="c1"># 約10往復分</span>
 
 
-class TemplateAgent(BaseAgent):
-    &quot;&quot;&quot;テンプレートQ&amp;Aエージェント&quot;&quot;&quot;
+<span class="k">class</span><span class="w"> </span><span class="nc">TemplateAgent</span><span class="p">(</span><span class="n">BaseAgent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;テンプレートQ&amp;Aエージェント&quot;&quot;&quot;</span>
 
-    def __init__(self, customer_id: str, user_id: str):
-        &quot;&quot;&quot;
-        Args:
-            customer_id: 顧客ID（データ分離用）
-            user_id: ユーザーID（会話履歴管理用）
-        &quot;&quot;&quot;
-        self.customer_id = customer_id
-        self.user_id = user_id
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">customer_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            customer_id: 顧客ID（データ分離用）</span>
+<span class="sd">            user_id: ユーザーID（会話履歴管理用）</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">customer_id</span> <span class="o">=</span> <span class="n">customer_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_id</span> <span class="o">=</span> <span class="n">user_id</span>
 
-        # LLM（Large Language Model）を初期化
-        self.llm = ChatVertexAI(
-            model=MODEL_NAME,
-            temperature=0.7,  # 0=確実な回答、1=創造的な回答
-            max_output_tokens=2048,
-        )
+        <span class="c1"># LLM（Large Language Model）を初期化</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">llm</span> <span class="o">=</span> <span class="n">ChatVertexAI</span><span class="p">(</span>
+            <span class="n">model</span><span class="o">=</span><span class="n">MODEL_NAME</span><span class="p">,</span>
+            <span class="n">temperature</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>  <span class="c1"># 0=確実な回答、1=創造的な回答</span>
+            <span class="n">max_output_tokens</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span>
+        <span class="p">)</span>
 
-        # 会話履歴保存用のチェックポインター
-        self.checkpointer = FirestoreCheckpointer(
-            db=get_firestore_client(),
-            customer_id=customer_id
-        )
+        <span class="c1"># 会話履歴保存用のチェックポインター</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">checkpointer</span> <span class="o">=</span> <span class="n">FirestoreCheckpointer</span><span class="p">(</span>
+            <span class="n">db</span><span class="o">=</span><span class="n">get_firestore_client</span><span class="p">(),</span>
+            <span class="n">customer_id</span><span class="o">=</span><span class="n">customer_id</span>
+        <span class="p">)</span>
 
-        # グラフを構築
-        self.graph = self._build_graph()
+        <span class="c1"># グラフを構築</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">graph</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_graph</span><span class="p">()</span>
 
-    def _build_graph(self):
-        &quot;&quot;&quot;
-        LangGraphのグラフを構築
+    <span class="k">def</span><span class="w"> </span><span class="nf">_build_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        LangGraphのグラフを構築</span>
 
-        LangGraph = AIの処理フローを「グラフ」として定義するライブラリ
-        &quot;&quot;&quot;
-        # グラフを作成
-        builder = StateGraph(MessagesState)
+<span class="sd">        LangGraph = AIの処理フローを「グラフ」として定義するライブラリ</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># グラフを作成</span>
+        <span class="n">builder</span> <span class="o">=</span> <span class="n">StateGraph</span><span class="p">(</span><span class="n">MessagesState</span><span class="p">)</span>
 
-        # ノードを追加（処理のステップ）
-        builder.add_node(&quot;chat&quot;, self._chat_node)
+        <span class="c1"># ノードを追加（処理のステップ）</span>
+        <span class="n">builder</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;chat&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chat_node</span><span class="p">)</span>
 
-        # エントリーポイントを設定
-        builder.set_entry_point(&quot;chat&quot;)
+        <span class="c1"># エントリーポイントを設定</span>
+        <span class="n">builder</span><span class="o">.</span><span class="n">set_entry_point</span><span class="p">(</span><span class="s2">&quot;chat&quot;</span><span class="p">)</span>
 
-        # 終了ノードを設定
-        builder.set_finish_point(&quot;chat&quot;)
+        <span class="c1"># 終了ノードを設定</span>
+        <span class="n">builder</span><span class="o">.</span><span class="n">set_finish_point</span><span class="p">(</span><span class="s2">&quot;chat&quot;</span><span class="p">)</span>
 
-        # コンパイルしてグラフを確定
-        return builder.compile(checkpointer=self.checkpointer)
+        <span class="c1"># コンパイルしてグラフを確定</span>
+        <span class="k">return</span> <span class="n">builder</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">checkpointer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">checkpointer</span><span class="p">)</span>
 
-    async def _chat_node(self, state: MessagesState) -&gt; dict:
-        &quot;&quot;&quot;
-        チャット処理のメインロジック
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_chat_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">MessagesState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        チャット処理のメインロジック</span>
 
-        Args:
-            state: 現在の会話状態（メッセージ履歴を含む）
+<span class="sd">        Args:</span>
+<span class="sd">            state: 現在の会話状態（メッセージ履歴を含む）</span>
 
-        Returns:
-            dict: 新しいメッセージを含む状態
-        &quot;&quot;&quot;
-        messages = state[&quot;messages&quot;]
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: 新しいメッセージを含む状態</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">messages</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">]</span>
 
-        # システムプロンプトを先頭に追加
-        full_messages = [
-            {&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: SYSTEM_PROMPT},
-            *messages[-MAX_HISTORY_MESSAGES:]  # 履歴を制限
-        ]
+        <span class="c1"># システムプロンプトを先頭に追加</span>
+        <span class="n">full_messages</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">SYSTEM_PROMPT</span><span class="p">},</span>
+            <span class="o">*</span><span class="n">messages</span><span class="p">[</span><span class="o">-</span><span class="n">MAX_HISTORY_MESSAGES</span><span class="p">:]</span>  <span class="c1"># 履歴を制限</span>
+        <span class="p">]</span>
 
-        # Gemini に問い合わせ
-        response = await self.llm.ainvoke(full_messages)
+        <span class="c1"># Gemini に問い合わせ</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">ainvoke</span><span class="p">(</span><span class="n">full_messages</span><span class="p">)</span>
 
-        return {&quot;messages&quot;: [response]}
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">response</span><span class="p">]}</span>
 
-    async def run_sync(self, message: str, thread_id: str) -&gt; str:
-        &quot;&quot;&quot;
-        チャットを実行（同期）
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run_sync</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">thread_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        チャットを実行（同期）</span>
 
-        Args:
-            message: ユーザーのメッセージ
-            thread_id: 会話のID
+<span class="sd">        Args:</span>
+<span class="sd">            message: ユーザーのメッセージ</span>
+<span class="sd">            thread_id: 会話のID</span>
 
-        Returns:
-            str: AIの返答
-        &quot;&quot;&quot;
-        # 設定
-        config = {
-            &quot;configurable&quot;: {
-                &quot;thread_id&quot;: thread_id,
-            }
-        }
+<span class="sd">        Returns:</span>
+<span class="sd">            str: AIの返答</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 設定</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;configurable&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;thread_id&quot;</span><span class="p">:</span> <span class="n">thread_id</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
 
-        # 入力
-        input_data = {
-            &quot;messages&quot;: [
-                {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: message}
-            ]
-        }
+        <span class="c1"># 入力</span>
+        <span class="n">input_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">message</span><span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
 
-        # 同期実行
-        result = await self.graph.ainvoke(input_data, config)
+        <span class="c1"># 同期実行</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">ainvoke</span><span class="p">(</span><span class="n">input_data</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
 
-        # 最後のメッセージを取得
-        if result.get(&quot;messages&quot;):
-            last_message = result[&quot;messages&quot;][-1]
-            if hasattr(last_message, &quot;content&quot;):
-                return last_message.content
-        return &quot;&quot;
-</code></pre>
+        <span class="c1"># 最後のメッセージを取得</span>
+        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;messages&quot;</span><span class="p">):</span>
+            <span class="n">last_message</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">last_message</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">last_message</span><span class="o">.</span><span class="n">content</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+</code></pre></div>
 
 <div class="tip-box">
 <div class="box-title">📖 もっと詳しく知りたい方へ</div>

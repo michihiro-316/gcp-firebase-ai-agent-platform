@@ -139,7 +139,7 @@
 ### 詳細版（各ステップの詳細）
 
 
-<pre class="codehilite"><code>【ステップ①〜③】ブラウザ側
+<div class="codehilite"><pre><span></span><code>【ステップ①〜③】ブラウザ側
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   ユーザーがログイン
         ↓
@@ -174,7 +174,7 @@
         ↓
   ⑨ AI処理
      └─ Vertex AI (Gemini) に問い合わせ
-</code></pre>
+</code></pre></div>
 
 
 
@@ -191,14 +191,14 @@
 **ファイル**: `frontend/src/services/api.ts`
 
 
-<pre class="codehilite"><code class="language-typescript">async function getAuthToken(): Promise&lt;string&gt; {
-  const user = auth.currentUser
-  if (!user) {
-    throw new Error('ログインが必要です')
-  }
-  return user.getIdToken()  // Firebase からトークン取得
-}
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">getAuthToken</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="kt">string</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">auth</span><span class="p">.</span><span class="nx">currentUser</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">user</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">throw</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="ne">Error</span><span class="p">(</span><span class="s1">&#39;ログインが必要です&#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">user</span><span class="p">.</span><span class="nx">getIdToken</span><span class="p">()</span><span class="w">  </span><span class="c1">// Firebase からトークン取得</span>
+<span class="p">}</span>
+</code></pre></div>
 
 
 
@@ -207,13 +207,13 @@
 
 **トークンの中身**:
 
-<pre class="codehilite"><code class="language-json">{
-  &quot;uid&quot;: &quot;abc123&quot;,
-  &quot;email&quot;: &quot;yamada@acme.co.jp&quot;,
-  &quot;exp&quot;: 1705471200,  // 有効期限（1時間）
-  &quot;iss&quot;: &quot;https://securetoken.google.com/PROJECT_ID&quot;
-}
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;uid&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;abc123&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;yamada@acme.co.jp&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;exp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1705471200</span><span class="p">,</span><span class="w">  </span><span class="c1">// 有効期限（1時間）</span>
+<span class="w">  </span><span class="nt">&quot;iss&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://securetoken.google.com/PROJECT_ID&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
 
 
 
@@ -229,20 +229,20 @@
 **ファイル**: `gateway/main.py`, `backend/common/cors.py`
 
 
-<pre class="codehilite"><code class="language-python"># Gateway での CORS 設定
-ALLOWED_ORIGINS = [
-    &quot;http://localhost:5173&quot;,
-    &quot;https://your-project.web.app&quot;,
-]
+<div class="codehilite"><pre><span></span><code><span class="c1"># Gateway での CORS 設定</span>
+<span class="n">ALLOWED_ORIGINS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;http://localhost:5173&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;https://your-project.web.app&quot;</span><span class="p">,</span>
+<span class="p">]</span>
 
-# プリフライトリクエストへの対応
-if request.method == 'OPTIONS':
-    response = Response()
-    response.headers['Access-Control-Allow-Origin'] = origin
-    response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Authorization, Content-Type'
-    return response
-</code></pre>
+<span class="c1"># プリフライトリクエストへの対応</span>
+<span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;OPTIONS&#39;</span><span class="p">:</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">()</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">origin</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Access-Control-Allow-Methods&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;POST, OPTIONS&#39;</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Access-Control-Allow-Headers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Authorization, Content-Type&#39;</span>
+    <span class="k">return</span> <span class="n">response</span>
+</code></pre></div>
 
 
 
@@ -263,19 +263,19 @@ if request.method == 'OPTIONS':
 **ファイル**: `gateway/main.py`
 
 
-<pre class="codehilite"><code class="language-python">def verify_request():
-    &quot;&quot;&quot;Firebase IDトークンを検証&quot;&quot;&quot;
-    auth_header = request.headers.get(&quot;Authorization&quot;)
-    if not auth_header or not auth_header.startswith(&quot;Bearer &quot;):
-        raise ValueError(&quot;認証トークンがありません&quot;)
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">verify_request</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Firebase IDトークンを検証&quot;&quot;&quot;</span>
+    <span class="n">auth_header</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Authorization&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">auth_header</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">auth_header</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;Bearer &quot;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;認証トークンがありません&quot;</span><span class="p">)</span>
 
-    token = auth_header.split(&quot; &quot;)[1]
+    <span class="n">token</span> <span class="o">=</span> <span class="n">auth_header</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
 
-    # Firebase Admin SDK でトークンを検証
-    decoded_token = firebase_auth.verify_id_token(token, check_revoked=True)
+    <span class="c1"># Firebase Admin SDK でトークンを検証</span>
+    <span class="n">decoded_token</span> <span class="o">=</span> <span class="n">firebase_auth</span><span class="o">.</span><span class="n">verify_id_token</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">check_revoked</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    return decoded_token[&quot;uid&quot;], decoded_token.get(&quot;customer_id&quot;)
-</code></pre>
+    <span class="k">return</span> <span class="n">decoded_token</span><span class="p">[</span><span class="s2">&quot;uid&quot;</span><span class="p">],</span> <span class="n">decoded_token</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;customer_id&quot;</span><span class="p">)</span>
+</code></pre></div>
 
 
 
@@ -302,29 +302,29 @@ if request.method == 'OPTIONS':
 **ファイル**: `backend/common/auth.py`
 
 
-<pre class="codehilite"><code class="language-python">def get_customer_id(decoded_token, email):
-    &quot;&quot;&quot;顧客IDを取得（Custom Claims または 自動振り分け）&quot;&quot;&quot;
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_customer_id</span><span class="p">(</span><span class="n">decoded_token</span><span class="p">,</span> <span class="n">email</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;顧客IDを取得（Custom Claims または 自動振り分け）&quot;&quot;&quot;</span>
 
-    # 1. Custom Claims に customer_id があればそれを返す
-    if &quot;customer_id&quot; in decoded_token:
-        return decoded_token[&quot;customer_id&quot;]
+    <span class="c1"># 1. Custom Claims に customer_id があればそれを返す</span>
+    <span class="k">if</span> <span class="s2">&quot;customer_id&quot;</span> <span class="ow">in</span> <span class="n">decoded_token</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">decoded_token</span><span class="p">[</span><span class="s2">&quot;customer_id&quot;</span><span class="p">]</span>
 
-    # 2. なければメールドメインから自動振り分け
-    domain = email.split(&quot;@&quot;)[1]
+    <span class="c1"># 2. なければメールドメインから自動振り分け</span>
+    <span class="n">domain</span> <span class="o">=</span> <span class="n">email</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;@&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
 
-    # Firestore で allowed_domains を検索
-    customers_ref = db.collection(&quot;customers&quot;)
-    query = customers_ref.where(&quot;allowed_domains&quot;, &quot;array_contains&quot;, domain)
-    docs = list(query.stream())
+    <span class="c1"># Firestore で allowed_domains を検索</span>
+    <span class="n">customers_ref</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">collection</span><span class="p">(</span><span class="s2">&quot;customers&quot;</span><span class="p">)</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">customers_ref</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="s2">&quot;allowed_domains&quot;</span><span class="p">,</span> <span class="s2">&quot;array_contains&quot;</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span>
+    <span class="n">docs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">stream</span><span class="p">())</span>
 
-    if docs:
-        customer_id = docs[0].id
-        # Custom Claims に保存（次回からはここに来ない）
-        auth.set_custom_user_claims(uid, {&quot;customer_id&quot;: customer_id})
-        return customer_id
+    <span class="k">if</span> <span class="n">docs</span><span class="p">:</span>
+        <span class="n">customer_id</span> <span class="o">=</span> <span class="n">docs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">id</span>
+        <span class="c1"># Custom Claims に保存（次回からはここに来ない）</span>
+        <span class="n">auth</span><span class="o">.</span><span class="n">set_custom_user_claims</span><span class="p">(</span><span class="n">uid</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;customer_id&quot;</span><span class="p">:</span> <span class="n">customer_id</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">customer_id</span>
 
-    raise ValueError(&quot;顧客に紐付けされていません&quot;)
-</code></pre>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;顧客に紐付けされていません&quot;</span><span class="p">)</span>
+</code></pre></div>
 
 
 
@@ -344,33 +344,33 @@ if request.method == 'OPTIONS':
 **ファイル**: `gateway/main.py`
 
 
-<pre class="codehilite"><code class="language-python">def get_backend_url(customer_id):
-    &quot;&quot;&quot;顧客IDから転送先URLを取得&quot;&quot;&quot;
-    doc = db.collection(&quot;customers&quot;).document(customer_id).get()
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_backend_url</span><span class="p">(</span><span class="n">customer_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;顧客IDから転送先URLを取得&quot;&quot;&quot;</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">collection</span><span class="p">(</span><span class="s2">&quot;customers&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">document</span><span class="p">(</span><span class="n">customer_id</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
 
-    if not doc.exists:
-        raise ValueError(f&quot;顧客 {customer_id} が見つかりません&quot;)
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">doc</span><span class="o">.</span><span class="n">exists</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;顧客 </span><span class="si">{</span><span class="n">customer_id</span><span class="si">}</span><span class="s2"> が見つかりません&quot;</span><span class="p">)</span>
 
-    data = doc.to_dict()
-    url = data.get(&quot;cloud_functions_url&quot;)
+    <span class="n">data</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cloud_functions_url&quot;</span><span class="p">)</span>
 
-    if not url:
-        raise ValueError(&quot;cloud_functions_url が設定されていません&quot;)
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">url</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cloud_functions_url が設定されていません&quot;</span><span class="p">)</span>
 
-    return url
-</code></pre>
+    <span class="k">return</span> <span class="n">url</span>
+</code></pre></div>
 
 
 
 **Firestore データ構造**:
 
-<pre class="codehilite"><code>customers/
+<div class="codehilite"><pre><span></span><code>customers/
 └── acme-corp/
     ├── name: &quot;株式会社ACME&quot;
     ├── cloud_functions_url: &quot;https://acme-backend-xxx.run.app&quot;
     ├── allowed_domains: [&quot;acme.co.jp&quot;]
     └── enabled: true
-</code></pre>
+</code></pre></div>
 
 
 
@@ -394,48 +394,48 @@ if request.method == 'OPTIONS':
 **【Gateway側】署名を生成して付与**
 
 
-<pre class="codehilite"><code class="language-python"># Gateway main.py
-import hmac
-import hashlib
+<div class="codehilite"><pre><span></span><code><span class="c1"># Gateway main.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hmac</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
 
-GATEWAY_SECRET = os.environ.get(&quot;GATEWAY_SECRET&quot;)
+<span class="n">GATEWAY_SECRET</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;GATEWAY_SECRET&quot;</span><span class="p">)</span>
 
-def create_signature(user_id, customer_id):
-    &quot;&quot;&quot;HMAC署名を生成&quot;&quot;&quot;
-    message = f&quot;{user_id}:{customer_id}&quot;.encode()
-    return hmac.new(
-        GATEWAY_SECRET.encode(),
-        message,
-        hashlib.sha256
-    ).hexdigest()
+<span class="k">def</span><span class="w"> </span><span class="nf">create_signature</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">customer_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;HMAC署名を生成&quot;&quot;&quot;</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">customer_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">hmac</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+        <span class="n">GATEWAY_SECRET</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span>
+        <span class="n">message</span><span class="p">,</span>
+        <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
 
-# リクエスト転送時
-headers = {
-    &quot;X-Gateway-Verified&quot;: &quot;true&quot;,
-    &quot;X-User-Id&quot;: user_id,
-    &quot;X-Customer-Id&quot;: customer_id,
-    &quot;X-Gateway-Signature&quot;: create_signature(user_id, customer_id),
-}
-</code></pre>
+<span class="c1"># リクエスト転送時</span>
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;X-Gateway-Verified&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;X-User-Id&quot;</span><span class="p">:</span> <span class="n">user_id</span><span class="p">,</span>
+    <span class="s2">&quot;X-Customer-Id&quot;</span><span class="p">:</span> <span class="n">customer_id</span><span class="p">,</span>
+    <span class="s2">&quot;X-Gateway-Signature&quot;</span><span class="p">:</span> <span class="n">create_signature</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">customer_id</span><span class="p">),</span>
+<span class="p">}</span>
+</code></pre></div>
 
 
 
 **【Backend側】署名を検証**
 
 
-<pre class="codehilite"><code class="language-python"># Backend main.py
-def verify_gateway_signature(user_id, customer_id, signature):
-    &quot;&quot;&quot;Gateway からの署名を検証&quot;&quot;&quot;
-    message = f&quot;{user_id}:{customer_id}&quot;.encode()
-    expected = hmac.new(
-        GATEWAY_SECRET.encode(),
-        message,
-        hashlib.sha256
-    ).hexdigest()
+<div class="codehilite"><pre><span></span><code><span class="c1"># Backend main.py</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">verify_gateway_signature</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">customer_id</span><span class="p">,</span> <span class="n">signature</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gateway からの署名を検証&quot;&quot;&quot;</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">customer_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+    <span class="n">expected</span> <span class="o">=</span> <span class="n">hmac</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+        <span class="n">GATEWAY_SECRET</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span>
+        <span class="n">message</span><span class="p">,</span>
+        <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
 
-    # タイミング攻撃を防ぐ
-    return hmac.compare_digest(signature, expected)
-</code></pre>
+    <span class="c1"># タイミング攻撃を防ぐ</span>
+    <span class="k">return</span> <span class="n">hmac</span><span class="o">.</span><span class="n">compare_digest</span><span class="p">(</span><span class="n">signature</span><span class="p">,</span> <span class="n">expected</span><span class="p">)</span>
+</code></pre></div>
 
 
 
@@ -458,31 +458,31 @@ def verify_gateway_signature(user_id, customer_id, signature):
 **ファイル**: `backend/common/rate_limiter.py`
 
 
-<pre class="codehilite"><code class="language-python">from collections import defaultdict
-import time
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
-# ユーザーごとのリクエスト履歴
-_request_history = defaultdict(list)
+<span class="c1"># ユーザーごとのリクエスト履歴</span>
+<span class="n">_request_history</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
 
-RATE_LIMIT = 60      # 1分間の最大リクエスト数
-WINDOW_SIZE = 60     # ウィンドウサイズ（秒）
+<span class="n">RATE_LIMIT</span> <span class="o">=</span> <span class="mi">60</span>      <span class="c1"># 1分間の最大リクエスト数</span>
+<span class="n">WINDOW_SIZE</span> <span class="o">=</span> <span class="mi">60</span>     <span class="c1"># ウィンドウサイズ（秒）</span>
 
-def check_rate_limit(user_id: str) -&gt; bool:
-    &quot;&quot;&quot;レート制限をチェック&quot;&quot;&quot;
-    now = time.time()
-    history = _request_history[user_id]
+<span class="k">def</span><span class="w"> </span><span class="nf">check_rate_limit</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;レート制限をチェック&quot;&quot;&quot;</span>
+    <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">history</span> <span class="o">=</span> <span class="n">_request_history</span><span class="p">[</span><span class="n">user_id</span><span class="p">]</span>
 
-    # 古いリクエストを削除
-    history[:] = [t for t in history if now - t &lt; WINDOW_SIZE]
+    <span class="c1"># 古いリクエストを削除</span>
+    <span class="n">history</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">history</span> <span class="k">if</span> <span class="n">now</span> <span class="o">-</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="n">WINDOW_SIZE</span><span class="p">]</span>
 
-    # 制限を超えていないかチェック
-    if len(history) &gt;= RATE_LIMIT:
-        return False
+    <span class="c1"># 制限を超えていないかチェック</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">history</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">RATE_LIMIT</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
 
-    # リクエストを記録
-    history.append(now)
-    return True
-</code></pre>
+    <span class="c1"># リクエストを記録</span>
+    <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">now</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">True</span>
+</code></pre></div>
 
 
 
@@ -502,28 +502,28 @@ def check_rate_limit(user_id: str) -&gt; bool:
 **ファイル**: `backend/main.py`
 
 
-<pre class="codehilite"><code class="language-python">MAX_MESSAGE_LENGTH = 10000
-THREAD_ID_PATTERN = re.compile(r'^[a-zA-Z0-9_-]{1,100}$')
+<div class="codehilite"><pre><span></span><code><span class="n">MAX_MESSAGE_LENGTH</span> <span class="o">=</span> <span class="mi">10000</span>
+<span class="n">THREAD_ID_PATTERN</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[a-zA-Z0-9_-]{1,100}$&#39;</span><span class="p">)</span>
 
-def validate_input(data):
-    &quot;&quot;&quot;入力値を検証&quot;&quot;&quot;
-    message = data.get(&quot;message&quot;, &quot;&quot;).strip()
-    thread_id = data.get(&quot;thread_id&quot;)
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_input</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;入力値を検証&quot;&quot;&quot;</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;message&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">thread_id</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;thread_id&quot;</span><span class="p">)</span>
 
-    # メッセージが空
-    if not message:
-        raise ValueError(&quot;メッセージを入力してください&quot;)
+    <span class="c1"># メッセージが空</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">message</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;メッセージを入力してください&quot;</span><span class="p">)</span>
 
-    # メッセージが長すぎる
-    if len(message) &gt; MAX_MESSAGE_LENGTH:
-        raise ValueError(f&quot;メッセージが長すぎます（{MAX_MESSAGE_LENGTH}文字まで）&quot;)
+    <span class="c1"># メッセージが長すぎる</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">MAX_MESSAGE_LENGTH</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;メッセージが長すぎます（</span><span class="si">{</span><span class="n">MAX_MESSAGE_LENGTH</span><span class="si">}</span><span class="s2">文字まで）&quot;</span><span class="p">)</span>
 
-    # thread_id の形式チェック
-    if thread_id and not THREAD_ID_PATTERN.match(thread_id):
-        raise ValueError(&quot;thread_idの形式が不正です&quot;)
+    <span class="c1"># thread_id の形式チェック</span>
+    <span class="k">if</span> <span class="n">thread_id</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">THREAD_ID_PATTERN</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">thread_id</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;thread_idの形式が不正です&quot;</span><span class="p">)</span>
 
-    return message, thread_id
-</code></pre>
+    <span class="k">return</span> <span class="n">message</span><span class="p">,</span> <span class="n">thread_id</span>
+</code></pre></div>
 
 
 
@@ -541,7 +541,7 @@ def validate_input(data):
 <div class="box-content">
 
 
-<pre class="codehilite"><code>【フロントエンド】                     【バックエンド】
+<div class="codehilite"><pre><span></span><code>【フロントエンド】                     【バックエンド】
 
 frontend/src/
 │
@@ -592,7 +592,7 @@ frontend/src/
                                                │                                       └── 後処理パイプライン
                                                │
                                                └──────── Firebase Admin SDK で検証
-</code></pre>
+</code></pre></div>
 
 
 

@@ -107,7 +107,7 @@ agent.py は、AIチャットボットの**性格・能力・記憶力**を決�
 
 **イメージ:**
 
-<pre class="codehilite"><code>┌──────────────────────────────────────┐
+<div class="codehilite"><pre><span></span><code>┌──────────────────────────────────────┐
 │  agent.py = AIの設定ファイル          │
 ├──────────────────────────────────────┤
 │                                      │
@@ -116,7 +116,7 @@ agent.py は、AIチャットボットの**性格・能力・記憶力**を決�
 │  20件まで覚える                       │  ← 記憶力
 │                                      │
 └──────────────────────────────────────┘
-</code></pre>
+</code></pre></div>
 
 
 
@@ -181,14 +181,14 @@ LangGraph は「AIの思考の流れ」を定義するフレームワークで�
 </div>
 
 
-<pre class="codehilite"><code class="language-python"># ✅ 正しい
-class MyAgent(BaseAgent):
-    pass
+<div class="codehilite"><pre><span></span><code><span class="c1"># ✅ 正しい</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MyAgent</span><span class="p">(</span><span class="n">BaseAgent</span><span class="p">):</span>
+    <span class="k">pass</span>
 
-# ❌ ダメ（継承を外すと動かない）
-class MyAgent:
-    pass
-</code></pre>
+<span class="c1"># ❌ ダメ（継承を外すと動かない）</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MyAgent</span><span class="p">:</span>
+    <span class="k">pass</span>
+</code></pre></div>
 
 
 
@@ -205,13 +205,13 @@ class MyAgent:
 </div>
 
 
-<pre class="codehilite"><code class="language-python">def create_graph(self) -&gt; StateGraph:
-    graph = StateGraph(AgentState)
-    graph.add_node(&quot;chat&quot;, self._chat_node)
-    graph.set_entry_point(&quot;chat&quot;)
-    graph.add_edge(&quot;chat&quot;, END)
-    return graph  # ← StateGraph を返す（必須）
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">create_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StateGraph</span><span class="p">:</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">StateGraph</span><span class="p">(</span><span class="n">AgentState</span><span class="p">)</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;chat&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chat_node</span><span class="p">)</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">set_entry_point</span><span class="p">(</span><span class="s2">&quot;chat&quot;</span><span class="p">)</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;chat&quot;</span><span class="p">,</span> <span class="n">END</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">graph</span>  <span class="c1"># ← StateGraph を返す（必須）</span>
+</code></pre></div>
 
 
 
@@ -228,11 +228,11 @@ class MyAgent:
 </div>
 
 
-<pre class="codehilite"><code class="language-python">async def _chat_node(self, state: AgentState) -&gt; dict:
-    # ... 処理 ...
-    response = await self.llm.ainvoke(messages)
-    return {&quot;messages&quot;: [response]}  # ← この形式で返す（必須）
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_chat_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">AgentState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="c1"># ... 処理 ...</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm</span><span class="o">.</span><span class="n">ainvoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">response</span><span class="p">]}</span>  <span class="c1"># ← この形式で返す（必須）</span>
+</code></pre></div>
 
 
 
@@ -265,21 +265,21 @@ class MyAgent:
 <p style="margin-bottom: 12px;">AIに「あなたは〇〇です」と役割を伝えます。ここを変えるだけでAIの話し方が変わります。</p>
 
 
-<pre class="codehilite"><code class="language-python"># 💡 例1: 関西弁のAI
-SYSTEM_PROMPT = &quot;&quot;&quot;あなたは関西弁で話すAIアシスタントやで。
-ユーザーの質問にフレンドリーに答えてな。
-「やで」「やん」「なんでやねん」を使ってな。&quot;&quot;&quot;
+<div class="codehilite"><pre><span></span><code><span class="c1"># 💡 例1: 関西弁のAI</span>
+<span class="n">SYSTEM_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;あなたは関西弁で話すAIアシスタントやで。</span>
+<span class="s2">ユーザーの質問にフレンドリーに答えてな。</span>
+<span class="s2">「やで」「やん」「なんでやねん」を使ってな。&quot;&quot;&quot;</span>
 
-# 💡 例2: 厳格なビジネスAI
-SYSTEM_PROMPT = &quot;&quot;&quot;あなたは法務部門のAIアシスタントです。
-契約書のレビューを専門とします。
-常に敬語を使い、法的リスクを指摘してください。&quot;&quot;&quot;
+<span class="c1"># 💡 例2: 厳格なビジネスAI</span>
+<span class="n">SYSTEM_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;あなたは法務部門のAIアシスタントです。</span>
+<span class="s2">契約書のレビューを専門とします。</span>
+<span class="s2">常に敬語を使い、法的リスクを指摘してください。&quot;&quot;&quot;</span>
 
-# 💡 例3: 優しい先生AI
-SYSTEM_PROMPT = &quot;&quot;&quot;あなたは小学生に教える優しい先生です。
-難しい言葉は使わず、たとえ話を使って説明してください。
-「〜だね」「〜かな？」など親しみやすい口調で話してください。&quot;&quot;&quot;
-</code></pre>
+<span class="c1"># 💡 例3: 優しい先生AI</span>
+<span class="n">SYSTEM_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;あなたは小学生に教える優しい先生です。</span>
+<span class="s2">難しい言葉は使わず、たとえ話を使って説明してください。</span>
+<span class="s2">「〜だね」「〜かな？」など親しみやすい口調で話してください。&quot;&quot;&quot;</span>
+</code></pre></div>
 
 
 
@@ -295,17 +295,228 @@ SYSTEM_PROMPT = &quot;&quot;&quot;あなたは小学生に教える優しい先�
 <p style="margin-bottom: 12px;">「頭の良さ」と「速さ」のトレードオフです。</p>
 
 
-<pre class="codehilite"><code class="language-python"># 速い・安い（日常会話向け）
-MODEL_NAME = &quot;gemini-1.5-flash&quot;
+<div class="codehilite"><pre><span></span><code><span class="c1"># 速い・安い（日常会話向け）</span>
+<span class="n">MODEL_NAME</span> <span class="o">=</span> <span class="s2">&quot;gemini-1.5-flash&quot;</span>
 
-# 賢い・高い（複雑な推論向け）
-MODEL_NAME = &quot;gemini-1.5-pro&quot;
-</code></pre>
+<span class="c1"># 賢い・高い（複雑な推論向け）</span>
+<span class="n">MODEL_NAME</span> <span class="o">=</span> <span class="s2">&quot;gemini-1.5-pro&quot;</span>
+</code></pre></div>
 
 
+
+<!-- モデル比較表（HTML） -->
+<div style="overflow-x: auto; margin-top: 12px;">
+<table style="width: 100%; border-collapse: collapse; background: white;">
+<tr style="background: #f0fdf4;">
+  <th style="padding: 8px; border: 1px solid #d1fae5; text-align: left;">モデル</th>
+  <th style="padding: 8px; border: 1px solid #d1fae5; text-align: center;">速度</th>
+  <th style="padding: 8px; border: 1px solid #d1fae5; text-align: center;">コスト</th>
+  <th style="padding: 8px; border: 1px solid #d1fae5; text-align: left;">おすすめ用途</th>
+</tr>
+<tr>
+  <td style="padding: 8px; border: 1px solid #d1fae5; font-family: monospace;">gemini-1.5-flash</td>
+  <td style="padding: 8px; border: 1px solid #d1fae5; text-align: center;">⚡高速</td>
+  <td style="padding: 8px; border: 1px solid #d1fae5; text-align: center;">💰安い</td>
+  <td style="padding: 8px; border: 1px solid #d1fae5;">一般的な会話、FAQ</td>
+</tr>
+<tr style="background: #f9fafb;">
+  <td style="padding: 8px; border: 1px solid #d1fae5; font-family: monospace;">gemini-1.5-pro</td>
+  <td style="padding: 8px; border: 1px solid #d1fae5; text-align: center;">🐢普通</td>
+  <td style="padding: 8px; border: 1px solid #d1fae5; text-align: center;">💰💰高い</td>
+  <td style="padding: 8px; border: 1px solid #d1fae5;">複雑な推論、分析</td>
+</tr>
+<tr>
+  <td style="padding: 8px; border: 1px solid #d1fae5; font-family: monospace;">gemini-2.0-flash</td>
+  <td style="padding: 8px; border: 1px solid #d1fae5; text-align: center;">⚡最速</td>
+  <td style="padding: 8px; border: 1px solid #d1fae5; text-align: center;">💰安い</td>
+  <td style="padding: 8px; border: 1px solid #d1fae5;">最新機能が必要時</td>
+</tr>
+</table>
+</div>
 
 </div>
-<div style="overflow-x: auto; margin-top: 12px;">
+
+<!-- MAX_HISTORY_MESSAGES -->
+<div style="background: #ecfdf5; border: 2px solid #10b981; border-radius: 8px; padding: 16px;">
+<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+  <span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 9999px; font-weight: bold;">3</span>
+  <span style="font-weight: bold; color: #065f46;">MAX_HISTORY_MESSAGES（会話の記憶量）</span>
+</div>
+
+<p style="margin-bottom: 12px;">AIが「何回前の会話まで覚えているか」を設定します。</p>
+
+
+<div class="codehilite"><pre><span></span><code><span class="c1"># 少なめ（コスト重視）</span>
+<span class="n">MAX_HISTORY_MESSAGES</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># 約5往復分</span>
+
+<span class="c1"># 普通（バランス型）← おすすめ</span>
+<span class="n">MAX_HISTORY_MESSAGES</span> <span class="o">=</span> <span class="mi">20</span>  <span class="c1"># 約10往復分</span>
+
+<span class="c1"># 多め（記憶力重視）</span>
+<span class="n">MAX_HISTORY_MESSAGES</span> <span class="o">=</span> <span class="mi">40</span>  <span class="c1"># 約20往復分</span>
+</code></pre></div>
+
+
+
+<div style="background: #fffbeb; border: 1px solid #f59e0b; padding: 12px; border-radius: 4px; margin-top: 8px;">
+⚠️ <strong>注意:</strong> 多いほど「賢く」なりますが、コストも増えます
+</div>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+<hr />
+<h2 id="全体の構造図解">全体の構造（図解）<a class="header-link" href="#全体の構造図解" title="Permanent link">&para;</a></h2>
+<div class="info-box">
+<div class="box-title">🏗️ agent.py の構造</div>
+<div class="box-content">
+
+<!-- HTML図解: ファイル構造 -->
+<div style="background: #1e293b; border-radius: 8px; padding: 20px; color: #e2e8f0; font-family: monospace;">
+
+<div style="color: #94a3b8; margin-bottom: 16px;">agent.py</div>
+
+<!-- 編集OKゾーン -->
+<div style="background: rgba(34, 197, 94, 0.2); border: 2px solid #22c55e; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+<div style="color: #22c55e; font-weight: bold; margin-bottom: 8px;">🟢 自由に編集OK</div>
+<div style="color: #e2e8f0;">
+<div>SYSTEM_PROMPT = "..."  <span style="color: #94a3b8;">← AIの性格</span></div>
+<div>MODEL_NAME = "..."     <span style="color: #94a3b8;">← 使うモデル</span></div>
+<div>MAX_HISTORY_MESSAGES   <span style="color: #94a3b8;">← 記憶する会話数</span></div>
+</div>
+</div>
+
+<!-- 触らないゾーン -->
+<div style="background: rgba(239, 68, 68, 0.2); border: 2px solid #ef4444; border-radius: 8px; padding: 16px;">
+<div style="color: #ef4444; font-weight: bold; margin-bottom: 8px;">🔴 触らない方がいい</div>
+<div style="color: #e2e8f0;">
+<div>class XxxAgent(BaseAgent):  <span style="color: #94a3b8;">← 継承は外さない</span></div>
+<div style="margin-top: 8px;">def create_graph(self):</div>
+<div style="padding-left: 20px;">return StateGraph(...)  <span style="color: #94a3b8;">← StateGraph を返す</span></div>
+<div style="margin-top: 8px;">async def _chat_node(self, state):</div>
+<div style="padding-left: 20px;">return {"messages": [...]}  <span style="color: #94a3b8;">← この形式で返す</span></div>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+<hr />
+<h2 id="よくある質問">よくある質問<a class="header-link" href="#よくある質問" title="Permanent link">&para;</a></h2>
+<div class="info-box">
+<div class="box-title">❓ FAQ</div>
+<div class="box-content">
+
+<details style="margin-bottom: 12px; background: #f9fafb; border-radius: 8px;">
+<summary style="cursor: pointer; padding: 12px; font-weight: bold;">Q: 壊してしまったら？</summary>
+<div style="padding: 0 12px 12px 12px;">
+
+
+<div class="codehilite"><pre><span></span><code>git<span class="w"> </span>checkout<span class="w"> </span>agent.py
+</code></pre></div>
+
+
+で元に戻せます。心配せずに試してみてください！
+
+</div>
+</details>
+
+<details style="margin-bottom: 12px; background: #f9fafb; border-radius: 8px;">
+<summary style="cursor: pointer; padding: 12px; font-weight: bold;">Q: 新しい顧客用のエージェントを作りたい</summary>
+<div style="padding: 0 12px 12px 12px;">
+
+
+<div class="codehilite"><pre><span></span><code>cp<span class="w"> </span>-r<span class="w"> </span>_template<span class="w"> </span>acme-corp
+</code></pre></div>
+
+
+でコピーして、`acme-corp/agent.py` を編集します。
+
+</div>
+</details>
+
+<details style="margin-bottom: 12px; background: #f9fafb; border-radius: 8px;">
+<summary style="cursor: pointer; padding: 12px; font-weight: bold;">Q: temperature って何？</summary>
+<div style="padding: 0 12px 12px 12px;">
+
+AIの「創造性」を調整するパラメータです（`__init__` 内にあります）。
+
+| 値 | 特徴 | 用途 |
+|----|------|------|
+| 0.0 | 毎回同じ回答 | FAQ、定型文 |
+| 0.7 | バランス型（デフォルト） | 一般会話 |
+| 1.0 | 創造的・多様 | ブレスト、物語生成 |
+
+</div>
+</details>
+
+<details style="margin-bottom: 12px; background: #f9fafb; border-radius: 8px;">
+<summary style="cursor: pointer; padding: 12px; font-weight: bold;">Q: もっと複雑なことがしたい（ツール使用、条件分岐）</summary>
+<div style="padding: 0 12px 12px 12px;">
+
+以下のリソースを参照してください：
+
+- <a href="https://langchain-ai.github.io/langgraph/" target="_blank">LangGraph公式ドキュメント</a>
+- <a href="https://michihiro-316.github.io/langchain-langgraph-docs/langgraph/" target="_blank">LangGraph学習ガイド（日本語）</a>
+
+</div>
+</details>
+
+</div>
+</div>
+
+<hr />
+<h2 id="まとめ">まとめ<a class="header-link" href="#まとめ" title="Permanent link">&para;</a></h2>
+<div class="summary-box">
+<div class="box-title">📝 覚えること</div>
+<div class="box-content">
+
+<!-- まとめ表（HTML） -->
+<div style="overflow-x: auto; margin: 16px 0;">
+<table style="width: 100%; border-collapse: collapse;">
+<tr style="background: #f0fdf4;">
+  <th style="padding: 12px; border: 1px solid #d1fae5; text-align: left;">やること</th>
+  <th style="padding: 12px; border: 1px solid #d1fae5; text-align: left;">やり方</th>
+</tr>
+<tr>
+  <td style="padding: 12px; border: 1px solid #e5e7eb;">AIの性格を変える</td>
+  <td style="padding: 12px; border: 1px solid #e5e7eb;"><code>SYSTEM_PROMPT</code> を編集</td>
+</tr>
+<tr style="background: #f9fafb;">
+  <td style="padding: 12px; border: 1px solid #e5e7eb;">モデルを変える</td>
+  <td style="padding: 12px; border: 1px solid #e5e7eb;"><code>MODEL_NAME</code> を編集</td>
+</tr>
+<tr>
+  <td style="padding: 12px; border: 1px solid #e5e7eb;">記憶力を変える</td>
+  <td style="padding: 12px; border: 1px solid #e5e7eb;"><code>MAX_HISTORY_MESSAGES</code> を編集</td>
+</tr>
+<tr style="background: #f9fafb;">
+  <td style="padding: 12px; border: 1px solid #e5e7eb;">壊したら</td>
+  <td style="padding: 12px; border: 1px solid #e5e7eb;"><code>git checkout agent.py</code></td>
+</tr>
+</table>
+</div>
+
+<!-- 3つのルール（HTML） -->
+<div style="background: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; padding: 16px; margin-top: 16px;">
+<div style="font-weight: bold; color: #b91c1c; margin-bottom: 8px;">🚨 3つの絶対ルール:</div>
+<ol style="margin: 0; padding-left: 20px; color: #1e293b;">
+<li><code>BaseAgent</code> を継承する</li>
+<li><code>create_graph()</code> は <code>StateGraph</code> を返す</li>
+<li><code>_chat_node()</code> は <code>{"messages": [...]}</code> を返す</li>
+</ol>
+</div>
+
+<p style="margin-top: 20px;"><strong>→ <a href="03_バックエンド解説.html">バックエンド解説に戻る</a></strong></p>
+
+</div>
+</div>
       </article>
       <footer class="footer">
         GCP AI Agent 設計資料 | Built with Python & Markdown

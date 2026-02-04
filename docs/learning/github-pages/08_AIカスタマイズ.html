@@ -103,18 +103,18 @@
 <h2 id="基本-system_prompt-を変更する">基本: SYSTEM_PROMPT を変更する<a class="header-link" href="#基本-system_prompt-を変更する" title="Permanent link">&para;</a></h2>
 <p>AIの性格・役割は <code>SYSTEM_PROMPT</code> で決まります。</p>
 <h3 id="ファイルの場所">ファイルの場所<a class="header-link" href="#ファイルの場所" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code>backend/agents/_template/agent.py
-</code></pre>
+<div class="codehilite"><pre><span></span><code>backend/agents/_template/agent.py
+</code></pre></div>
 
 <h3 id="変更箇所">変更箇所<a class="header-link" href="#変更箇所" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-python"># =============================================
-# ここを編集してAIをカスタマイズ
-# =============================================
+<div class="codehilite"><pre><span></span><code><span class="c1"># =============================================</span>
+<span class="c1"># ここを編集してAIをカスタマイズ</span>
+<span class="c1"># =============================================</span>
 
-SYSTEM_PROMPT = &quot;&quot;&quot;あなたは親切で丁寧なAIアシスタントです。
-ユーザーの質問に対して、わかりやすく簡潔に回答してください。
-日本語で回答してください。&quot;&quot;&quot;
-</code></pre>
+<span class="n">SYSTEM_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;あなたは親切で丁寧なAIアシスタントです。</span>
+<span class="s2">ユーザーの質問に対して、わかりやすく簡潔に回答してください。</span>
+<span class="s2">日本語で回答してください。&quot;&quot;&quot;</span>
+</code></pre></div>
 
 <div class="tip-box">
 <h3>💡 SYSTEM_PROMPT とは？</h3>
@@ -129,71 +129,71 @@ SYSTEM_PROMPT = &quot;&quot;&quot;あなたは親切で丁寧なAIアシスタ�
 <hr />
 <h2 id="実験してみよう">実験してみよう<a class="header-link" href="#実験してみよう" title="Permanent link">&para;</a></h2>
 <h3 id="実験1-関西弁aiに変える">実験1: 関西弁AIに変える<a class="header-link" href="#実験1-関西弁aiに変える" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-python">SYSTEM_PROMPT = &quot;&quot;&quot;あなたは関西弁で話すAIアシスタントやで。
-ユーザーの質問にフレンドリーに答えてや。
-「やで」「やん」「なんでやねん」などを使ってな。&quot;&quot;&quot;
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="n">SYSTEM_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;あなたは関西弁で話すAIアシスタントやで。</span>
+<span class="s2">ユーザーの質問にフレンドリーに答えてや。</span>
+<span class="s2">「やで」「やん」「なんでやねん」などを使ってな。&quot;&quot;&quot;</span>
+</code></pre></div>
 
 <p><strong>結果例:</strong></p>
-<pre class="codehilite"><code>ユーザー: こんにちは
-AI: おお、こんにちは〜！元気にしとる？なんか聞きたいことあったら言うてな！
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="err">ユーザー</span><span class="o">:</span><span class="w"> </span><span class="err">こんにちは</span>
+<span class="n">AI</span><span class="o">:</span><span class="w"> </span><span class="err">おお、こんにちは〜！元気にしとる？なんか聞きたいことあったら言うてな！</span>
+</code></pre></div>
 
 <hr />
 <h3 id="実験2-専門家aiに変える">実験2: 専門家AIに変える<a class="header-link" href="#実験2-専門家aiに変える" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-python">SYSTEM_PROMPT = &quot;&quot;&quot;あなたはPythonプログラミングの専門家です。
-コードの書き方、デバッグ方法、ベストプラクティスを教えてください。
-初心者にも分かりやすく説明してください。
-コード例は必ず含めてください。&quot;&quot;&quot;
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="n">SYSTEM_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;あなたはPythonプログラミングの専門家です。</span>
+<span class="s2">コードの書き方、デバッグ方法、ベストプラクティスを教えてください。</span>
+<span class="s2">初心者にも分かりやすく説明してください。</span>
+<span class="s2">コード例は必ず含めてください。&quot;&quot;&quot;</span>
+</code></pre></div>
 
 <p><strong>結果例:</strong></p>
-<pre class="codehilite"><code>ユーザー: リストの使い方を教えて
-AI: Pythonのリストについて説明しますね！
+<div class="codehilite"><pre><span></span><code><span class="err">ユーザー</span><span class="o">:</span><span class="w"> </span><span class="err">リストの使い方を教えて</span>
+<span class="n">AI</span><span class="o">:</span><span class="w"> </span><span class="n">Pythonのリストについて説明しますね</span><span class="err">！</span>
 
-リストは複数の値をまとめて格納できるデータ構造です。
+<span class="err">リストは複数の値をまとめて格納できるデータ構造です。</span>
 
-# リストの作成
-fruits = [&quot;りんご&quot;, &quot;みかん&quot;, &quot;バナナ&quot;]
+<span class="err">#</span><span class="w"> </span><span class="err">リストの作成</span>
+<span class="n">fruits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span><span class="s2">&quot;りんご&quot;</span><span class="o">,</span><span class="w"> </span><span class="s2">&quot;みかん&quot;</span><span class="o">,</span><span class="w"> </span><span class="s2">&quot;バナナ&quot;</span><span class="o">]</span>
 
-# 要素の追加
-fruits.append(&quot;ぶどう&quot;)
+<span class="err">#</span><span class="w"> </span><span class="err">要素の追加</span>
+<span class="n">fruits</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="s2">&quot;ぶどう&quot;</span><span class="o">)</span>
 
-# 要素の取得
-print(fruits[0])  # &quot;りんご&quot;
-...
-</code></pre>
+<span class="err">#</span><span class="w"> </span><span class="err">要素の取得</span>
+<span class="n">print</span><span class="o">(</span><span class="n">fruits</span><span class="o">[</span><span class="mi">0</span><span class="o">])</span><span class="w">  </span><span class="err">#</span><span class="w"> </span><span class="s2">&quot;りんご&quot;</span>
+<span class="o">...</span>
+</code></pre></div>
 
 <hr />
 <h3 id="実験3-キャラクターaiに変える">実験3: キャラクターAIに変える<a class="header-link" href="#実験3-キャラクターaiに変える" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-python">SYSTEM_PROMPT = &quot;&quot;&quot;あなたは「AIくん」という名前のAIキャラクターです。
-一人称は「ボク」で、語尾に「〜だよ」「〜なんだ」をつけて話します。
-明るく元気な性格で、ユーザーを励まします。
-絵文字を適度に使ってください。&quot;&quot;&quot;
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="n">SYSTEM_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;あなたは「AIくん」という名前のAIキャラクターです。</span>
+<span class="s2">一人称は「ボク」で、語尾に「〜だよ」「〜なんだ」をつけて話します。</span>
+<span class="s2">明るく元気な性格で、ユーザーを励まします。</span>
+<span class="s2">絵文字を適度に使ってください。&quot;&quot;&quot;</span>
+</code></pre></div>
 
 <p><strong>結果例:</strong></p>
-<pre class="codehilite"><code>ユーザー: 疲れた
-AI: 疲れちゃったんだね 😢 でも大丈夫だよ！
-ボクが応援してるから、少し休んでまた頑張ろう！💪✨
-何かボクにできることがあったら言ってね！
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="err">ユーザー</span><span class="o">:</span><span class="w"> </span><span class="err">疲れた</span>
+<span class="n">AI</span><span class="o">:</span><span class="w"> </span><span class="err">疲れちゃったんだね</span><span class="w"> </span><span class="err">😢</span><span class="w"> </span><span class="err">でも大丈夫だよ！</span>
+<span class="err">ボクが応援してるから、少し休んでまた頑張ろう！💪✨</span>
+<span class="err">何かボクにできることがあったら言ってね！</span>
+</code></pre></div>
 
 <hr />
 <h2 id="変更を確認する手順">変更を確認する手順<a class="header-link" href="#変更を確認する手順" title="Permanent link">&para;</a></h2>
 <h3 id="1-agentpy-を編集">1. agent.py を編集<a class="header-link" href="#1-agentpy-を編集" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-bash"># VSCode で開く
-code backend/agents/_template/agent.py
+<div class="codehilite"><pre><span></span><code><span class="c1"># VSCode で開く</span>
+code<span class="w"> </span>backend/agents/_template/agent.py
 
-# または vim で開く
-vim backend/agents/_template/agent.py
-</code></pre>
+<span class="c1"># または vim で開く</span>
+vim<span class="w"> </span>backend/agents/_template/agent.py
+</code></pre></div>
 
 <h3 id="2-バックエンドを再起動">2. バックエンドを再起動<a class="header-link" href="#2-バックエンドを再起動" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-bash">cd backend
-# Ctrl+C で停止してから再起動
-functions-framework --target=main --port=8080
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>backend
+<span class="c1"># Ctrl+C で停止してから再起動</span>
+functions-framework<span class="w"> </span>--target<span class="o">=</span>main<span class="w"> </span>--port<span class="o">=</span><span class="m">8080</span>
+</code></pre></div>
 
 <h3 id="3-ブラウザでチャット">3. ブラウザでチャット<a class="header-link" href="#3-ブラウザでチャット" title="Permanent link">&para;</a></h3>
 <p>http://localhost:5173/ でチャットして確認</p>
@@ -207,35 +207,35 @@ functions-framework --target=main --port=8080
 <hr />
 <h2 id="顧客別にカスタマイズする場合">顧客別にカスタマイズする場合<a class="header-link" href="#顧客別にカスタマイズする場合" title="Permanent link">&para;</a></h2>
 <h3 id="1-テンプレートをコピー">1. テンプレートをコピー<a class="header-link" href="#1-テンプレートをコピー" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-bash">cd backend/agents
-cp -r _template acme-corp
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>backend/agents
+cp<span class="w"> </span>-r<span class="w"> </span>_template<span class="w"> </span>acme-corp
+</code></pre></div>
 
 <h3 id="2-agentpy-を編集">2. agent.py を編集<a class="header-link" href="#2-agentpy-を編集" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-python"># backend/agents/acme-corp/agent.py
+<div class="codehilite"><pre><span></span><code><span class="c1"># backend/agents/acme-corp/agent.py</span>
 
-class AcmeCorpAgent(BaseAgent):
-    SYSTEM_PROMPT = &quot;&quot;&quot;あなたはACME社の専門AIアシスタントです。
-ACME社の製品・サービスに関する質問に答えてください。
-丁寧な言葉遣いで、正確な情報を提供してください。&quot;&quot;&quot;
-</code></pre>
+<span class="k">class</span><span class="w"> </span><span class="nc">AcmeCorpAgent</span><span class="p">(</span><span class="n">BaseAgent</span><span class="p">):</span>
+    <span class="n">SYSTEM_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;あなたはACME社の専門AIアシスタントです。</span>
+<span class="s2">ACME社の製品・サービスに関する質問に答えてください。</span>
+<span class="s2">丁寧な言葉遣いで、正確な情報を提供してください。&quot;&quot;&quot;</span>
+</code></pre></div>
 
 <h3 id="3-mainpy-に登録">3. main.py に登録<a class="header-link" href="#3-mainpy-に登録" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-python">from agents.acme_corp.agent import AcmeCorpAgent
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">agents.acme_corp.agent</span><span class="w"> </span><span class="kn">import</span> <span class="n">AcmeCorpAgent</span>
 
-AGENTS = {
-    &quot;template&quot;: TemplateAgent,
-    &quot;acme-corp&quot;: AcmeCorpAgent,  # 追加
-}
-</code></pre>
+<span class="n">AGENTS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;template&quot;</span><span class="p">:</span> <span class="n">TemplateAgent</span><span class="p">,</span>
+    <span class="s2">&quot;acme-corp&quot;</span><span class="p">:</span> <span class="n">AcmeCorpAgent</span><span class="p">,</span>  <span class="c1"># 追加</span>
+<span class="p">}</span>
+</code></pre></div>
 
 <h3 id="4-設定ファイルを作成">4. 設定ファイルを作成<a class="header-link" href="#4-設定ファイルを作成" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-bash">cp customer-configs/template.env customer-configs/acme-corp.env
-</code></pre>
+<div class="codehilite"><pre><span></span><code>cp<span class="w"> </span>customer-configs/template.env<span class="w"> </span>customer-configs/acme-corp.env
+</code></pre></div>
 
-<pre class="codehilite"><code class="language-env">CUSTOMER_ID=acme-corp
+<div class="codehilite"><pre><span></span><code>CUSTOMER_ID=acme-corp
 DEFAULT_AGENT=acme-corp
-</code></pre>
+</code></pre></div>
 
 <div class="tip-box">
 <h3>🏢 顧客別カスタマイズの使いどころ</h3>
@@ -250,29 +250,29 @@ DEFAULT_AGENT=acme-corp
 <hr />
 <h2 id="その他のカスタマイズ">その他のカスタマイズ<a class="header-link" href="#その他のカスタマイズ" title="Permanent link">&para;</a></h2>
 <h3 id="モデルを変更">モデルを変更<a class="header-link" href="#モデルを変更" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-python"># より高性能なモデルを使う（コストは上がる）
-MODEL_NAME = &quot;gemini-1.5-pro&quot;
+<div class="codehilite"><pre><span></span><code><span class="c1"># より高性能なモデルを使う（コストは上がる）</span>
+<span class="n">MODEL_NAME</span> <span class="o">=</span> <span class="s2">&quot;gemini-1.5-pro&quot;</span>
 
-# 高速だが簡易なモデル（コストは下がる）
-MODEL_NAME = &quot;gemini-1.5-flash&quot;
-</code></pre>
+<span class="c1"># 高速だが簡易なモデル（コストは下がる）</span>
+<span class="n">MODEL_NAME</span> <span class="o">=</span> <span class="s2">&quot;gemini-1.5-flash&quot;</span>
+</code></pre></div>
 
 <h3 id="会話履歴の量を変更">会話履歴の量を変更<a class="header-link" href="#会話履歴の量を変更" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-python"># より長い会話を記憶する（コストは上がる）
-MAX_HISTORY_MESSAGES = 40  # 約20往復分
+<div class="codehilite"><pre><span></span><code><span class="c1"># より長い会話を記憶する（コストは上がる）</span>
+<span class="n">MAX_HISTORY_MESSAGES</span> <span class="o">=</span> <span class="mi">40</span>  <span class="c1"># 約20往復分</span>
 
-# 短い会話（コストは下がる）
-MAX_HISTORY_MESSAGES = 10  # 約5往復分
-</code></pre>
+<span class="c1"># 短い会話（コストは下がる）</span>
+<span class="n">MAX_HISTORY_MESSAGES</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># 約5往復分</span>
+</code></pre></div>
 
 <h3 id="応答の創造性を変更">応答の創造性を変更<a class="header-link" href="#応答の創造性を変更" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-python"># temperature を変更
-self.llm = ChatVertexAI(
-    model=self.MODEL_NAME,
-    temperature=0.3,  # 低い = 一貫した応答、高い = 創造的な応答
-    ...
-)
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="c1"># temperature を変更</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">llm</span> <span class="o">=</span> <span class="n">ChatVertexAI</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">MODEL_NAME</span><span class="p">,</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>  <span class="c1"># 低い = 一貫した応答、高い = 創造的な応答</span>
+    <span class="o">...</span>
+<span class="p">)</span>
+</code></pre></div>
 
 <div class="info-box">
 <h3>🌡️ temperature とは？</h3>
@@ -296,27 +296,27 @@ self.llm = ChatVertexAI(
 <hr />
 <h2 id="効果的なプロンプトの書き方">効果的なプロンプトの書き方<a class="header-link" href="#効果的なプロンプトの書き方" title="Permanent link">&para;</a></h2>
 <h3 id="良いプロンプトの例">良いプロンプトの例<a class="header-link" href="#良いプロンプトの例" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-python">SYSTEM_PROMPT = &quot;&quot;&quot;あなたは株式会社ABCのカスタマーサポートAIです。
+<div class="codehilite"><pre><span></span><code><span class="n">SYSTEM_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;あなたは株式会社ABCのカスタマーサポートAIです。</span>
 
-【役割】
-- お客様からの問い合わせに丁寧に回答する
-- 製品の使い方、トラブルシューティングを支援する
+<span class="s2">【役割】</span>
+<span class="s2">- お客様からの問い合わせに丁寧に回答する</span>
+<span class="s2">- 製品の使い方、トラブルシューティングを支援する</span>
 
-【話し方】
-- 敬語を使う
-- 簡潔に、わかりやすく説明する
-- 箇条書きを活用する
+<span class="s2">【話し方】</span>
+<span class="s2">- 敬語を使う</span>
+<span class="s2">- 簡潔に、わかりやすく説明する</span>
+<span class="s2">- 箇条書きを活用する</span>
 
-【注意事項】
-- 価格や契約に関する質問は「営業担当にお問い合わせください」と案内する
-- 技術的に難しい質問は「サポートチームに転送します」と案内する
-- わからないことは「わからない」と正直に伝える
+<span class="s2">【注意事項】</span>
+<span class="s2">- 価格や契約に関する質問は「営業担当にお問い合わせください」と案内する</span>
+<span class="s2">- 技術的に難しい質問は「サポートチームに転送します」と案内する</span>
+<span class="s2">- わからないことは「わからない」と正直に伝える</span>
 
-【禁止事項】
-- 競合他社の悪口を言わない
-- 根拠のない情報を伝えない
-&quot;&quot;&quot;
-</code></pre>
+<span class="s2">【禁止事項】</span>
+<span class="s2">- 競合他社の悪口を言わない</span>
+<span class="s2">- 根拠のない情報を伝えない</span>
+<span class="s2">&quot;&quot;&quot;</span>
+</code></pre></div>
 
 <h3 id="ポイント">ポイント<a class="header-link" href="#ポイント" title="Permanent link">&para;</a></h3>
 <div class="tip-box">

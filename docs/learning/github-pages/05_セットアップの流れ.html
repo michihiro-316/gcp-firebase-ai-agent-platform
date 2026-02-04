@@ -291,16 +291,16 @@ GCPプロジェクト作成 → Firebase設定 → サービスアカウント�
 <li>「ルール」タブをクリック</li>
 <li>以下のルールをコピー＆ペースト:</li>
 </ol>
-<pre class="codehilite"><code class="language-javascript">rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // 基本: 全て拒否（明示的に許可したものだけアクセス可能）
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
-}
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="nx">rules_version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;2&#39;</span><span class="p">;</span>
+<span class="nx">service</span><span class="w"> </span><span class="nx">cloud</span><span class="p">.</span><span class="nx">firestore</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">match</span><span class="w"> </span><span class="o">/</span><span class="nx">databases</span><span class="o">/</span><span class="p">{</span><span class="nx">database</span><span class="p">}</span><span class="o">/</span><span class="nx">documents</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// 基本: 全て拒否（明示的に許可したものだけアクセス可能）</span>
+<span class="w">    </span><span class="nx">match</span><span class="w"> </span><span class="o">/</span><span class="p">{</span><span class="nb">document</span><span class="o">=**</span><span class="p">}</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">allow</span><span class="w"> </span><span class="nx">read</span><span class="p">,</span><span class="w"> </span><span class="nx">write</span><span class="o">:</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
 
 <ol start="4">
 <li>「公開」をクリック</li>
@@ -325,12 +325,12 @@ service cloud.firestore {
 <li>「アプリを登録」</li>
 </ol>
 <p>表示された設定をメモ:</p>
-<pre class="codehilite"><code class="language-javascript">const firebaseConfig = {
-  apiKey: &quot;AIzaSy...&quot;,              // ← これをメモ
-  authDomain: &quot;xxx.firebaseapp.com&quot;, // ← これをメモ
-  projectId: &quot;your-project-id&quot;,      // ← これをメモ
-};
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">firebaseConfig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">apiKey</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;AIzaSy...&quot;</span><span class="p">,</span><span class="w">              </span><span class="c1">// ← これをメモ</span>
+<span class="w">  </span><span class="nx">authDomain</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;xxx.firebaseapp.com&quot;</span><span class="p">,</span><span class="w"> </span><span class="c1">// ← これをメモ</span>
+<span class="w">  </span><span class="nx">projectId</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;your-project-id&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// ← これをメモ</span>
+<span class="p">};</span>
+</code></pre></div>
 
 <hr />
 <h2 id="ステップ3-サービスアカウント作成">ステップ3: サービスアカウント作成<a class="header-link" href="#ステップ3-サービスアカウント作成" title="Permanent link">&para;</a></h2>
@@ -372,8 +372,8 @@ xxx@project.iam.gserviceaccount.com<br>
 <p>JSONファイルがダウンロードされる。</p>
 <h3 id="34-鍵ファイルを配置">3.4 鍵ファイルを配置<a class="header-link" href="#34-鍵ファイルを配置" title="Permanent link">&para;</a></h3>
 <p>ダウンロードしたJSONファイルを:</p>
-<pre class="codehilite"><code>backend/service-account.json
-</code></pre>
+<div class="codehilite"><pre><span></span><code>backend/service-account.json
+</code></pre></div>
 
 <p>に配置（リネーム）。</p>
 <div class="warning-box">
@@ -392,26 +392,26 @@ xxx@project.iam.gserviceaccount.com<br>
 <hr />
 <h2 id="ステップ4-バックエンド環境変数設定">ステップ4: バックエンド環境変数設定<a class="header-link" href="#ステップ4-バックエンド環境変数設定" title="Permanent link">&para;</a></h2>
 <h3 id="場所-backendenv">場所: <code>backend/.env</code><a class="header-link" href="#場所-backendenv" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-bash"># ===== GCP設定 =====
-# GCPプロジェクトID（Firebase Consoleで確認）
-GOOGLE_CLOUD_PROJECT=your-project-id
+<div class="codehilite"><pre><span></span><code><span class="c1"># ===== GCP設定 =====</span>
+<span class="c1"># GCPプロジェクトID（Firebase Consoleで確認）</span>
+<span class="nv">GOOGLE_CLOUD_PROJECT</span><span class="o">=</span>your-project-id
 
-# サービスアカウントの鍵ファイルパス
-GOOGLE_APPLICATION_CREDENTIALS=./service-account.json
+<span class="c1"># サービスアカウントの鍵ファイルパス</span>
+<span class="nv">GOOGLE_APPLICATION_CREDENTIALS</span><span class="o">=</span>./service-account.json
 
-# ===== CORS設定 =====
-# フロントエンドのURL（ローカル開発時）
-ALLOWED_ORIGINS=http://localhost:5173
+<span class="c1"># ===== CORS設定 =====</span>
+<span class="c1"># フロントエンドのURL（ローカル開発時）</span>
+<span class="nv">ALLOWED_ORIGINS</span><span class="o">=</span>http://localhost:5173
 
-# ===== Vertex AI設定 =====
-# AIモデルのリージョン
-VERTEX_AI_LOCATION=asia-northeast1
+<span class="c1"># ===== Vertex AI設定 =====</span>
+<span class="c1"># AIモデルのリージョン</span>
+<span class="nv">VERTEX_AI_LOCATION</span><span class="o">=</span>asia-northeast1
 
-# ===== レート制限 =====
-# 1分あたりの最大リクエスト数
-RATE_LIMIT_REQUESTS=60
-RATE_LIMIT_WINDOW=60
-</code></pre>
+<span class="c1"># ===== レート制限 =====</span>
+<span class="c1"># 1分あたりの最大リクエスト数</span>
+<span class="nv">RATE_LIMIT_REQUESTS</span><span class="o">=</span><span class="m">60</span>
+<span class="nv">RATE_LIMIT_WINDOW</span><span class="o">=</span><span class="m">60</span>
+</code></pre></div>
 
 <h3 id="各設定の意味">各設定の意味<a class="header-link" href="#各設定の意味" title="Permanent link">&para;</a></h3>
 <table>
@@ -448,16 +448,16 @@ RATE_LIMIT_WINDOW=60
 <hr />
 <h2 id="ステップ5-フロントエンド環境変数設定">ステップ5: フロントエンド環境変数設定<a class="header-link" href="#ステップ5-フロントエンド環境変数設定" title="Permanent link">&para;</a></h2>
 <h3 id="場所-frontendenv">場所: <code>frontend/.env</code><a class="header-link" href="#場所-frontendenv" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-bash"># ===== Firebase設定 =====
-# Firebase Console → プロジェクト設定 → Webアプリ から取得
-VITE_FIREBASE_API_KEY=AIzaSyXXXXXXXXXXXXXXXXXXXX
-VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-project-id
+<div class="codehilite"><pre><span></span><code><span class="c1"># ===== Firebase設定 =====</span>
+<span class="c1"># Firebase Console → プロジェクト設定 → Webアプリ から取得</span>
+<span class="nv">VITE_FIREBASE_API_KEY</span><span class="o">=</span>AIzaSyXXXXXXXXXXXXXXXXXXXX
+<span class="nv">VITE_FIREBASE_AUTH_DOMAIN</span><span class="o">=</span>your-project.firebaseapp.com
+<span class="nv">VITE_FIREBASE_PROJECT_ID</span><span class="o">=</span>your-project-id
 
-# ===== API設定 =====
-# バックエンドのURL（ローカル開発時）
-VITE_API_BASE_URL=http://localhost:8080
-</code></pre>
+<span class="c1"># ===== API設定 =====</span>
+<span class="c1"># バックエンドのURL（ローカル開発時）</span>
+<span class="nv">VITE_API_BASE_URL</span><span class="o">=</span>http://localhost:8080
+</code></pre></div>
 
 <h3 id="なぜ-vite_-で始まる">なぜ VITE_ で始まる？<a class="header-link" href="#なぜ-vite_-で始まる" title="Permanent link">&para;</a></h3>
 <div class="info-box">
@@ -473,31 +473,31 @@ VITE_API_BASE_URL=http://localhost:8080
 <hr />
 <h2 id="ステップ6-バックエンド依存関係インストール">ステップ6: バックエンド依存関係インストール<a class="header-link" href="#ステップ6-バックエンド依存関係インストール" title="Permanent link">&para;</a></h2>
 <h3 id="ターミナルで実行">ターミナルで実行<a class="header-link" href="#ターミナルで実行" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-bash"># backendフォルダに移動
-cd backend
+<div class="codehilite"><pre><span></span><code><span class="c1"># backendフォルダに移動</span>
+<span class="nb">cd</span><span class="w"> </span>backend
 
-# 仮想環境を作成（推奨）
-python -m venv venv
+<span class="c1"># 仮想環境を作成（推奨）</span>
+python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
 
-# 仮想環境を有効化
-# Mac/Linux:
-source venv/bin/activate
-# Windows:
-# venv\Scripts\activate
+<span class="c1"># 仮想環境を有効化</span>
+<span class="c1"># Mac/Linux:</span>
+<span class="nb">source</span><span class="w"> </span>venv/bin/activate
+<span class="c1"># Windows:</span>
+<span class="c1"># venv\Scripts\activate</span>
 
-# 依存パッケージをインストール
-pip install -r requirements.txt
-</code></pre>
+<span class="c1"># 依存パッケージをインストール</span>
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</code></pre></div>
 
 <h3 id="requirementstxt-の中身抜粋">requirements.txt の中身（抜粋）<a class="header-link" href="#requirementstxt-の中身抜粋" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-text">functions-framework==3.*   # Cloud Functions ローカル実行
+<div class="codehilite"><pre><span></span><code>functions-framework==3.*   # Cloud Functions ローカル実行
 firebase-admin==6.*        # Firebase管理
 google-cloud-aiplatform==1.*  # Vertex AI
 langchain==0.3.*           # AIフレームワーク
 langgraph==0.2.*           # 状態管理付きAI
 flask==3.*                 # Webサーバー
 flask-cors==4.*            # CORS対応
-</code></pre>
+</code></pre></div>
 
 <hr />
 <h2 id="ステップ7-フロントエンド依存関係インストール">ステップ7: フロントエンド依存関係インストール<a class="header-link" href="#ステップ7-フロントエンド依存関係インストール" title="Permanent link">&para;</a></h2>
@@ -516,19 +516,19 @@ JavaScript/TypeScript のライブラリ（パッケージ）を管理するツ�
 </div>
 
 <h3 id="packagejson-と-node_modules-の関係">package.json と node_modules の関係<a class="header-link" href="#packagejson-と-node_modules-の関係" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code>【クローン直後】
-frontend/
-├── package.json      ← 「何が必要か」のリスト
-└── （node_modules はない）
+<div class="codehilite"><pre><span></span><code><span class="err">【</span><span class="nx">クローン直後</span><span class="err">】</span>
+<span class="nx">frontend</span><span class="o">/</span>
+<span class="err">├──</span><span class="w"> </span><span class="kn">package</span><span class="p">.</span><span class="nx">json</span><span class="w">      </span><span class="err">←</span><span class="w"> </span><span class="err">「</span><span class="nx">何が必要か</span><span class="err">」</span><span class="nx">のリスト</span>
+<span class="err">└──</span><span class="w"> </span><span class="err">（</span><span class="nx">node_modules</span><span class="w"> </span><span class="nx">はない</span><span class="err">）</span>
 
-        ↓ npm install を実行
+<span class="w">        </span><span class="err">↓</span><span class="w"> </span><span class="nx">npm</span><span class="w"> </span><span class="nx">install</span><span class="w"> </span><span class="nx">を実行</span>
 
-【インストール後】
-frontend/
-├── package.json      ← リスト（変わらない）
-├── package-lock.json ← 実際にインストールしたバージョンを記録（自動生成）
-└── node_modules/     ← ライブラリ本体がダウンロードされる（自動生成）
-</code></pre>
+<span class="err">【</span><span class="nx">インストール後</span><span class="err">】</span>
+<span class="nx">frontend</span><span class="o">/</span>
+<span class="err">├──</span><span class="w"> </span><span class="kn">package</span><span class="p">.</span><span class="nx">json</span><span class="w">      </span><span class="err">←</span><span class="w"> </span><span class="nx">リスト</span><span class="err">（</span><span class="nx">変わらない</span><span class="err">）</span>
+<span class="err">├──</span><span class="w"> </span><span class="kn">package</span><span class="o">-</span><span class="nx">lock</span><span class="p">.</span><span class="nx">json</span><span class="w"> </span><span class="err">←</span><span class="w"> </span><span class="nx">実際にインストールしたバージョンを記録</span><span class="err">（</span><span class="nx">自動生成</span><span class="err">）</span>
+<span class="err">└──</span><span class="w"> </span><span class="nx">node_modules</span><span class="o">/</span><span class="w">     </span><span class="err">←</span><span class="w"> </span><span class="nx">ライブラリ本体がダウンロードされる</span><span class="err">（</span><span class="nx">自動生成</span><span class="err">）</span>
+</code></pre></div>
 
 <div class="tip-box">
 <h3>💡 なぜ node_modules は git に入れない？</h3>
@@ -541,16 +541,16 @@ frontend/
 </div>
 
 <h3 id="ターミナルで実行_1">ターミナルで実行<a class="header-link" href="#ターミナルで実行_1" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-bash"># frontendフォルダに移動
-cd frontend
+<div class="codehilite"><pre><span></span><code><span class="c1"># frontendフォルダに移動</span>
+<span class="nb">cd</span><span class="w"> </span>frontend
 
-# 依存パッケージをインストール
-npm install
-</code></pre>
+<span class="c1"># 依存パッケージをインストール</span>
+npm<span class="w"> </span>install
+</code></pre></div>
 
 <p>成功すると:</p>
-<pre class="codehilite"><code>added 200 packages in 30s
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="nx">added</span><span class="w"> </span><span class="mi">200</span><span class="w"> </span><span class="nx">packages</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="mi">30</span><span class="nx">s</span>
+</code></pre></div>
 
 <h3 id="package-lockjson-とは">package-lock.json とは？<a class="header-link" href="#package-lockjson-とは" title="Permanent link">&para;</a></h3>
 <div class="info-box">
@@ -581,75 +581,108 @@ npm install
 </pre>
 </div>
 
-<h3 id="実行">実行<a class="header-link" href="#実行" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-bash"># backendフォルダにいることを確認
-cd backend
-
-# 顧客を追加
-python scripts/manage_customer.py add test-corp &quot;テスト株式会社&quot;
-</code></pre>
-
-<p>成功すると:</p>
-<pre class="codehilite"><code>=== 顧客を作成 ===
-
-✅ 顧客 'テスト株式会社' (test-corp) を作成しました
-
-次のステップ:
-  python scripts/manage_customer.py add-domain test-corp example.com
-</code></pre>
-
+<h3 id="実行firebase-console">実行（Firebase Console）<a class="header-link" href="#実行firebase-console" title="Permanent link">&para;</a></h3>
+<ol>
+<li><a href="https://console.firebase.google.com/">Firebase Console</a> を開く</li>
+<li>左メニュー → <strong>Firestore Database</strong></li>
+<li>「コレクションを開始」をクリック</li>
+<li>コレクションID: <code>customers</code> と入力</li>
+<li>ドキュメントID: <code>test-corp</code> と入力</li>
+<li>以下のフィールドを追加:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>フィールド</th>
+<th>型</th>
+<th>値</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>string</td>
+<td>テスト株式会社</td>
+</tr>
+<tr>
+<td><code>enabled</code></td>
+<td>boolean</td>
+<td>true</td>
+</tr>
+<tr>
+<td><code>allowed_domains</code></td>
+<td>array</td>
+<td>（次のステップで追加）</td>
+</tr>
+<tr>
+<td><code>allowed_emails</code></td>
+<td>array</td>
+<td>（次のステップで追加）</td>
+</tr>
+<tr>
+<td><code>cloud_functions_url</code></td>
+<td>string</td>
+<td>http://localhost:8080</td>
+</tr>
+</tbody>
+</table>
+<ol start="7">
+<li>「保存」をクリック</li>
+</ol>
 <hr />
 <h2 id="ステップ9-メールドメインを登録自動振り分け">ステップ9: メールドメインを登録（自動振り分け）<a class="header-link" href="#ステップ9-メールドメインを登録自動振り分け" title="Permanent link">&para;</a></h2>
-<h3 id="推奨自動振り分けを使う">推奨：自動振り分けを使う<a class="header-link" href="#推奨自動振り分けを使う" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-bash"># メールドメイン（@以降）を登録（社員全員が自動で振り分けられる）
-python scripts/manage_customer.py add-domain test-corp test-corp.co.jp
-</code></pre>
-
-<p>成功すると:</p>
-<pre class="codehilite"><code>=== メールドメインを追加 ===
-
-✅ メールドメイン '@test-corp.co.jp' を 'テスト株式会社' に追加しました
-
-→ @test-corp.co.jp のユーザーはログイン時に自動で振り分けられます
-</code></pre>
-
+<h3 id="推奨自動振り分けを使うfirebase-console">推奨：自動振り分けを使う（Firebase Console）<a class="header-link" href="#推奨自動振り分けを使うfirebase-console" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Firebase Console → <strong>Firestore Database</strong></li>
+<li><code>customers</code> → <code>test-corp</code> ドキュメントを開く</li>
+<li><code>allowed_domains</code> フィールドを編集:<br />
+   - 「配列に追加」をクリック<br />
+   - 値: <code>test-corp.co.jp</code>（@は不要）</li>
+<li>「更新」をクリック</li>
+</ol>
+<p><strong>→ これで @test-corp.co.jp のユーザーは全員自動で振り分けられます！</strong></p>
 <h3 id="テスト用に個別メールを登録する場合">テスト用に個別メールを登録する場合<a class="header-link" href="#テスト用に個別メールを登録する場合" title="Permanent link">&para;</a></h3>
 <p>Gmailなど会社のメールドメイン以外でテストする場合:</p>
-<pre class="codehilite"><code class="language-bash">python scripts/manage_customer.py add-email test-corp your-email@gmail.com
-</code></pre>
-
+<ol>
+<li>Firebase Console → <strong>Firestore Database</strong></li>
+<li><code>customers</code> → <code>test-corp</code> ドキュメントを開く</li>
+<li><code>allowed_emails</code> フィールドを編集:<br />
+   - 「配列に追加」をクリック<br />
+   - 値: <code>your-email@gmail.com</code></li>
+<li>「更新」をクリック</li>
+</ol>
 <div class="tip-box">
 <h3>✨ 自動振り分けの仕組み</h3>
 <p><strong>【従来の方法】400人の会社を登録する場合</strong><br>
-→ 400回 add-user コマンドを実行... 大変！</p>
+→ 400人分のメールを1つずつ登録... 大変！</p>
 <p><strong>【自動振り分け】</strong><br>
-→ 1回 add-domain を実行するだけ！<br>
+→ `allowed_domains` にドメインを1つ追加するだけ！<br>
 → @acme.co.jp のユーザーは全員自動で振り分け</p>
 <p><strong>メモ:</strong> ここでいう「ドメイン」は、メールアドレスの@以降の部分（メールドメイン）です。URLドメインではありません。</p>
 <table>
-<tr><th>方法</th><th>コマンド</th><th>用途</th></tr>
-<tr><td>メールドメイン登録</td><td>add-domain</td><td>社員全員を一括登録（@acme.co.jpなど）</td></tr>
-<tr><td>個別メール登録</td><td>add-email</td><td>業務委託者を個別登録（外部メール）</td></tr>
+<tr><th>方法</th><th>Firestoreフィールド</th><th>用途</th></tr>
+<tr><td>メールドメイン登録</td><td>allowed_domains</td><td>社員全員を一括登録（@acme.co.jpなど）</td></tr>
+<tr><td>個別メール登録</td><td>allowed_emails</td><td>業務委託者を個別登録（外部メール）</td></tr>
 </table>
 </div>
 
 <hr />
 <h2 id="ステップ10-バックエンド起動">ステップ10: バックエンド起動<a class="header-link" href="#ステップ10-バックエンド起動" title="Permanent link">&para;</a></h2>
 <h3 id="ターミナル1で実行">ターミナル1で実行<a class="header-link" href="#ターミナル1で実行" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-bash"># backendフォルダにいることを確認
-cd backend
+<div class="codehilite"><pre><span></span><code><span class="c1"># backendフォルダにいることを確認</span>
+<span class="nb">cd</span><span class="w"> </span>backend
 
-# 仮想環境が有効か確認（プロンプトに(venv)があるか）
-# なければ: source venv/bin/activate
+<span class="c1"># 仮想環境が有効か確認（プロンプトに(venv)があるか）</span>
+<span class="c1"># なければ: source venv/bin/activate</span>
 
-# サーバーを起動
-functions-framework --target=main --port=8080
-</code></pre>
+<span class="c1"># サーバーを起動</span>
+functions-framework<span class="w"> </span>--target<span class="o">=</span>main<span class="w"> </span>--port<span class="o">=</span><span class="m">8080</span>
+</code></pre></div>
 
 <p>成功すると:</p>
-<pre class="codehilite"><code> * Serving Flask app 'main'
- * Running on http://127.0.0.1:8080
-</code></pre>
+<div class="codehilite"><pre><span></span><code> <span class="k">*</span> Serving Flask app &#39;main&#39;
+ <span class="k">*</span> Running on http://127.0.0.1:8080
+</code></pre></div>
 
 <hr />
 <h2 id="ステップ11-フロントエンド起動">ステップ11: フロントエンド起動<a class="header-link" href="#ステップ11-フロントエンド起動" title="Permanent link">&para;</a></h2>
@@ -709,18 +742,18 @@ localhost = PC（建物）
 </div>
 
 <h3 id="ターミナル2別のターミナルで実行">ターミナル2（別のターミナル）で実行<a class="header-link" href="#ターミナル2別のターミナルで実行" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-bash"># frontendフォルダに移動
-cd frontend
+<div class="codehilite"><pre><span></span><code><span class="c1"># frontendフォルダに移動</span>
+<span class="nb">cd</span><span class="w"> </span>frontend
 
-# 開発サーバーを起動
-npm run dev
-</code></pre>
+<span class="c1"># 開発サーバーを起動</span>
+npm<span class="w"> </span>run<span class="w"> </span>dev
+</code></pre></div>
 
 <p>成功すると:</p>
-<pre class="codehilite"><code>  VITE v5.x.x  ready in 500ms
+<div class="codehilite"><pre><span></span><code>  VITE v5.x.x  ready in 500ms
 
   ➜  Local:   http://localhost:5173/
-</code></pre>
+</code></pre></div>
 
 <h3 id="コードを変更すると">コードを変更すると？<a class="header-link" href="#コードを変更すると" title="Permanent link">&para;</a></h3>
 <div class="tip-box">
@@ -767,8 +800,7 @@ ALLOWED_ORIGINS=http://localhost:5173（末尾スラッシュなし）</p>
 対処: ファイルの存在と.envの設定を確認</p>
 <p><strong>【エラー4】顧客に紐付けされていません</strong><br>
 原因: 自動振り分けにマッチしない<br>
-対処: add-email でメールを個別登録<br>
-<code>python scripts/manage_customer.py add-email test-corp you@gmail.com</code></p>
+対処: Firebase Console → Firestore → customers → test-corp → allowed_emails にメールを追加</p>
 <p><strong>【エラー5】Vertex AI API が無効です</strong><br>
 原因: APIが有効化されていない<br>
 対処: GCP Console → APIとサービス → Vertex AI API を有効化</p>

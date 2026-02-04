@@ -83,11 +83,11 @@
 <p>このドキュメントでは、複数の会話（セッション）を管理する仕組みを解説します。</p>
 <h2 id="セッションとは">セッションとは？<a class="header-link" href="#セッションとは" title="Permanent link">&para;</a></h2>
 <p>「セッション」とは、1つの独立した会話のことです。</p>
-<pre class="codehilite"><code>例：
+<div class="codehilite"><pre><span></span><code>例：
 - セッションA: 「Pythonについて教えて」
 - セッションB: 「今日の天気は？」
 - セッションC: 「レシピを教えて」
-</code></pre>
+</code></pre></div>
 
 <p>複数のセッションを持つことで、異なるトピックの会話を同時に進行できます。</p>
 <h2 id="ファイル構成">ファイル構成<a class="header-link" href="#ファイル構成" title="Permanent link">&para;</a></h2>
@@ -193,15 +193,15 @@ useSessions: セッションのメッセージを更新
 </div>
 
 <h2 id="セッションのデータ構造">セッションのデータ構造<a class="header-link" href="#セッションのデータ構造" title="Permanent link">&para;</a></h2>
-<pre class="codehilite"><code class="language-typescript">interface ChatSession {
-  id: string           // 一意のID（例: &quot;session_1705471200_abc123&quot;）
-  title: string        // タイトル（例: &quot;Pythonについて教えて&quot;）
-  messages: Message[]  // メッセージ履歴
-  threadId: string     // バックエンドとの会話ID
-  createdAt: number    // 作成日時
-  updatedAt: number    // 最終更新日時
-}
-</code></pre>
+<div class="codehilite"><pre><span></span><code><span class="kd">interface</span><span class="w"> </span><span class="nx">ChatSession</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w">           </span><span class="c1">// 一意のID（例: &quot;session_1705471200_abc123&quot;）</span>
+<span class="w">  </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w">        </span><span class="c1">// タイトル（例: &quot;Pythonについて教えて&quot;）</span>
+<span class="w">  </span><span class="nx">messages</span><span class="o">:</span><span class="w"> </span><span class="kt">Message</span><span class="p">[]</span><span class="w">  </span><span class="c1">// メッセージ履歴</span>
+<span class="w">  </span><span class="nx">threadId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w">     </span><span class="c1">// バックエンドとの会話ID</span>
+<span class="w">  </span><span class="nx">createdAt</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="w">    </span><span class="c1">// 作成日時</span>
+<span class="w">  </span><span class="nx">updatedAt</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="w">    </span><span class="c1">// 最終更新日時</span>
+<span class="p">}</span>
+</code></pre></div>
 
 <h2 id="ローカルストレージでの保存">ローカルストレージでの保存<a class="header-link" href="#ローカルストレージでの保存" title="Permanent link">&para;</a></h2>
 <p>セッションはブラウザの<strong>ローカルストレージ</strong>に保存されます。</p>
@@ -267,43 +267,43 @@ A. セッションは消えます。ローカルストレージもクリアさ�
 </ul>
 <h2 id="コード例">コード例<a class="header-link" href="#コード例" title="Permanent link">&para;</a></h2>
 <h3 id="セッション管理フックの使用">セッション管理フックの使用<a class="header-link" href="#セッション管理フックの使用" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-typescript">// App.tsx での使用例
-import { useSessions } from './hooks/useSessions'
+<div class="codehilite"><pre><span></span><code><span class="c1">// App.tsx での使用例</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useSessions</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./hooks/useSessions&#39;</span>
 
-function App() {
-  const {
-    sessions,           // セッション一覧
-    activeSession,      // 現在のセッション
-    createSession,      // 新規作成
-    switchSession,      // 切り替え
-    closeSession,       // 削除
-  } = useSessions()
+<span class="kd">function</span><span class="w"> </span><span class="nx">App</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sessions</span><span class="p">,</span><span class="w">           </span><span class="c1">// セッション一覧</span>
+<span class="w">    </span><span class="nx">activeSession</span><span class="p">,</span><span class="w">      </span><span class="c1">// 現在のセッション</span>
+<span class="w">    </span><span class="nx">createSession</span><span class="p">,</span><span class="w">      </span><span class="c1">// 新規作成</span>
+<span class="w">    </span><span class="nx">switchSession</span><span class="p">,</span><span class="w">      </span><span class="c1">// 切り替え</span>
+<span class="w">    </span><span class="nx">closeSession</span><span class="p">,</span><span class="w">       </span><span class="c1">// 削除</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useSessions</span><span class="p">()</span>
 
-  // 新しいセッションを作成
-  const handleNewChat = () =&gt; {
-    createSession()
-  }
+<span class="w">  </span><span class="c1">// 新しいセッションを作成</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">handleNewChat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">createSession</span><span class="p">()</span>
+<span class="w">  </span><span class="p">}</span>
 
-  // セッションを切り替え
-  const handleSelectSession = (id: string) =&gt; {
-    switchSession(id)
-  }
-}
-</code></pre>
+<span class="w">  </span><span class="c1">// セッションを切り替え</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">handleSelectSession</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">switchSession</span><span class="p">(</span><span class="nx">id</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
 
 <h3 id="タイトル自動生成の仕組み">タイトル自動生成の仕組み<a class="header-link" href="#タイトル自動生成の仕組み" title="Permanent link">&para;</a></h3>
-<pre class="codehilite"><code class="language-typescript">// 最初のユーザーメッセージからタイトルを生成
-// 例: &quot;Pythonでリストをソートする方法を...&quot; → &quot;Pythonでリストをソート...&quot;
+<div class="codehilite"><pre><span></span><code><span class="c1">// 最初のユーザーメッセージからタイトルを生成</span>
+<span class="c1">// 例: &quot;Pythonでリストをソートする方法を...&quot; → &quot;Pythonでリストをソート...&quot;</span>
 
-function generateTitleFromMessage(content: string): string {
-  const maxLength = 20
-  const trimmed = content.trim().replace(/\n/g, ' ')
-  if (trimmed.length &lt;= maxLength) {
-    return trimmed
-  }
-  return trimmed.substring(0, maxLength) + '...'
-}
-</code></pre>
+<span class="kd">function</span><span class="w"> </span><span class="nx">generateTitleFromMessage</span><span class="p">(</span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">maxLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">20</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">trimmed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">content</span><span class="p">.</span><span class="nx">trim</span><span class="p">().</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\n/g</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">trimmed</span><span class="p">.</span><span class="nx">length</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="nx">maxLength</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">trimmed</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">trimmed</span><span class="p">.</span><span class="nx">substring</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="nx">maxLength</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s1">&#39;...&#39;</span>
+<span class="p">}</span>
+</code></pre></div>
       </article>
       <footer class="footer">
         GCP AI Agent 設計資料 | Built with Python & Markdown
